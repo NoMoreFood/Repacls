@@ -1,0 +1,211 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="OperationFindAccount.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="Operation.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationReplaceAccount.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationPath.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationMigrateDomain.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationRemoveOrphan.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationAddAccountIfMissing.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationCheckCanonical.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationCompact.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationExportDescriptor.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationFindDomain.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationHelp.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationInheritChildren.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationNoHiddenSystem.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationPrintDescriptor.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationQuiet.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationRemoveAccount.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationRemoveRedundant.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationResetChildren.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationSetOwner.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationThreads.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationWhatIf.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationSidHistory.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="Helpers.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationFindNullAcl.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationReport.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ConcurrentQueue.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="DriverKitPartial.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="Functions.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationFindAccount.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="Operation.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationReplaceAccount.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationPath.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationFactory.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationMigrateDomain.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationRemoveOrphan.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationAddAccountIfMissing.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationCheckCanonical.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationCompact.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationExportDescriptor.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationFindDomain.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationHelp.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationInheritChildren.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationNoHiddenSystem.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationPrintDescriptor.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationQuiet.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationRemoveAccount.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationRemoveRedundant.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationResetChildren.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationSetOwner.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationThreads.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationWhatIf.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationSidHistory.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="InputOutput.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationFindNullAcl.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationReport.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="Version.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Includes">
+      <UniqueIdentifier>{363895d8-9c91-487c-afe6-1fb64c043fa1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{90408b4f-ce8c-435f-8ae8-67de6a5ce9d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{61b0c674-ffa6-42cb-92be-790b08cd5b5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Includes\Operations">
+      <UniqueIdentifier>{826c14c0-f65d-482a-8432-9b681a1575ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Operations">
+      <UniqueIdentifier>{f973d354-b21b-4e1f-8147-9a5ab4da43e9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc">
+      <Filter>Resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Notes.txt">
+      <Filter>Includes</Filter>
+    </Text>
+  </ItemGroup>
+</Project>
