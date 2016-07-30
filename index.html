@@ -41,9 +41,11 @@
         <h1>
 <a id="repacls-usage-information" class="anchor" href="#repacls-usage-information" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Repacls Usage Information</h1>
 
-<p>Link To Latest Binaries: <a href="https://github.com/NoMoreFood/Repacls/files/387976/Repacls.Binaries.-.v1.1.0.0.zip">Here</a></p>
+<p>Link To Latest Binaries: <a href="https://github.com/NoMoreFood/Repacls/files/391969/Repacls.Binaries.1.4.0.0.zip">Here</a></p>
 
-<pre><code>repacls.exe /Path &lt;Absolute Path&gt; ... other options ....
+<pre><code>V:\Code\Repacls\Build\Release\x64&gt;repacls.exe
+
+repacls.exe /Path &lt;Absolute Path&gt; ... other options ....
 
 Repacls was developed to address large scale migrations, transitions, health
 checks, and access control optimizations.  Repacls is multi-threaded and
@@ -182,11 +184,21 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    This command will remove any explicit permission that is redundant of
    of the permissions its already given through inheritance.  This option
    helps recovered from the many individual explicit permissions that may
-   have been littered from the old cacls.exe command that didn't
-   understand how to set up inheritance.
+   have been littered from the old cacls.exe command that didn't understand
+   how to set up inheritance.
 
 /ReplaceAccount &lt;SearchAccount&gt; &lt;ReplaceAccount&gt;
    Search for an account and replace it with another account.
+
+/Report &lt;FileName&gt; &lt;RegularExpression&gt;
+   This command will write a comma separated value file with the fields of
+   filename, security descriptor part (e.g., DACL), account name, permissions,
+   and inheritance flags.  The regular expression will perform a case
+   insensitive regular expression search against the account name in
+   DOMAIN\user format.  To report all data, pass .* as the regular expression.
+   An optional qualifier after regular expression can be specified after the
+   regular expression to refine what part of the security descriptor to scan.
+   See Other Notes &amp; Limitations section for more information.
 
 /SetOwner &lt;Name|Sid&gt;
    Will set the owner of the file to the name specified.
@@ -220,6 +232,12 @@ optional ':X' parameter after the end of the account name where X is a comma
 separated list of DACL,SACL, OWNER, or GROUP.  For example,
 '/RemoveAccount "DOM\joe:DACL,OWNER"' will only cause the designated account
 to be removed from the DACL and OWNER parts of the security descriptor.
+
+Since repacls is multi-threaded, any file output shown on the screen or
+written to an output file may appear differently between executions.  In this
+is problematic for your needs, you can turn off multi-threading by setting
+/Threads to '1' or, in the case of comparing files between runs, sort the
+output before comparing with your favorite text editor.
 
 Examples
 ========
