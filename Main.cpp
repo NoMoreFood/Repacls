@@ -456,6 +456,7 @@ int wmain(int iArgs, WCHAR * aArgs[])
 		wprintf(L"= Scan Path(s): %s\n", (*sScanPath).c_str());
 	wprintf(L"= Maximum Threads: %d\n", (int)InputOutput::MaxThreads());
 	wprintf(L"= What If Mode: %s\n", InputOutput::InWhatIfMode() ? L"Yes" : L"No");
+	wprintf(L"= Antivirus Active: %s\n", CheckIfAntivirusIsActive() ? L"Yes" : L"No");
 	wprintf(L"===============================================================================\n");
 
 	// do the scan

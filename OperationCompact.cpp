@@ -64,7 +64,7 @@ bool OperationCompact::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tOb
 				tAceOuter->Header.AceFlags |= (tAceInner->Header.AceFlags & OBJECT_INHERIT_ACE);
 				tAceOuter->Header.AceFlags &= (!HasInheritOnly(tAceInner) || !HasInheritOnly(tAceOuter)) ? ~INHERIT_ONLY_ACE : ~0;
 
-				// per previous checks, the masks are either idential or mergable so we can
+				// per previous checks, the masks are either identical or mergable so we can
 				// unconditionally or them together
 				tAceOuter->Mask |= tAceInner->Mask;
 

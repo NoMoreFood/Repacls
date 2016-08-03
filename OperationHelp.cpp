@@ -206,17 +206,22 @@ Exclusive Options
 
 Other Notes & Limitations
 =========================
-To only affect a particular part of a security descriptor, you can add on an 
-optional ':X' parameter after the end of the account name where X is a comma
-separated list of DACL,SACL, OWNER, or GROUP.  For example,
-'/RemoveAccount "DOM\joe:DACL,OWNER"' will only cause the designated account
-to be removed from the DACL and OWNER parts of the security descriptor. 
+- To only affect a particular part of a security descriptor, you can add on an 
+  optional ':X' parameter after the end of the account name where X is a comma
+  separated list of DACL,SACL, OWNER, or GROUP.  For example,
+  '/RemoveAccount "DOM\joe:DACL,OWNER"' will only cause the designated account
+  to be removed from the DACL and OWNER parts of the security descriptor. 
 
-Since repacls is multi-threaded, any file output shown on the screen or 
-written to an output file may appear differently between executions.  In this
-is problematic for your needs, you can turn off multi-threading by setting 
-/Threads to '1' or, in the case of comparing files between runs, sort the 
-output before comparing with your favorite text editor. 
+- Since repacls is multi-threaded, any file output shown on the screen or 
+  written to an output file may appear differently between executions.  In this
+  is problematic for your needs, you can turn off multi-threading by setting 
+  /Threads to '1' or, in the case of comparing files between runs, sort the 
+  output before comparing with your favorite text editor.
+
+- Antivirus applications can degrade performance tremendously if active while
+  running repacls.  If performance is a concern and you are processing a large
+  volume, you may want to consider temporarily disabling realtime virus 
+  scanning.  Antivirus status is noted when executing repacls.
  
 Examples
 ========

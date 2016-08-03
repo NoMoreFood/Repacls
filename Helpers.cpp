@@ -6,6 +6,10 @@
 #include <lmcons.h>
 #include <stdio.h>
 #include <ntsecapi.h>
+#include <atlbase.h>
+#include <atlstr.h>
+#include <wscapi.h>
+#include <iwscapi.h>
 
 #include <string>
 #include <map>
@@ -361,4 +365,60 @@ HANDLE RegisterFileHandle(HANDLE hFile, std::wstring sOperation)
 		oFileLookup[sPath] = std::pair<HANDLE, std::wstring>(hFile, sOperation);
 		return hFile;
 	}
+}
+
+bool CheckIfAntivirusIsActive()
+{
+	CoInitializeEx(0, COINIT_APARTMENTTHREADED);
+	bool bIsInstalled = false;
+
+	// query the product list
+	IWSCProductList * PtrProductList = nullptr;
+	if (FAILED(CoCreateInstance(__uuidof(WSCProductList), NULL, CLSCTX_INPROC_SERVER,
+		__uuidof(IWSCProductList), reinterpret_cast<LPVOID*> (&PtrProductList))))
+	{
+		return false;
+	}
+
+	// initialize the antivirus provider list
+	if (FAILED(PtrProductList->Initialize(WSC_SECURITY_PROVIDER_ANTIVIRUS)))
+	{
+		PtrProductList->Release();
+		return false;
+	}
+
+	// get the current product count
+	LONG ProductCount = 0;
+	if (FAILED(PtrProductList->get_Count(&ProductCount)))
+	{
+		PtrProductList->Release();
+		return false;
+	}
+
+	for (LONG i = 0; i < ProductCount; i++)
+	{
+		// get the product details
+		IWscProduct * PtrProduct = nullptr;
+		if (FAILED(PtrProductList->get_Item(i, &PtrProduct)))
+		{
+			PtrProductList->Release();
+			return false;
+		}
+
+		// fetch the product state
+		WSC_SECURITY_PRODUCT_STATE ProductState;
+		if (FAILED(PtrProduct->get_ProductState(&ProductState)))
+		{
+			PtrProduct->Release();
+			PtrProductList->Release();
+			return false;
+		}
+
+		bIsInstalled |= (ProductState == WSC_SECURITY_PRODUCT_STATE_ON);
+		PtrProduct->Release();
+	}
+
+	// return status
+	PtrProductList->Release();
+	return bIsInstalled;
 }
