@@ -45,10 +45,10 @@ public:
 		return iMaxThreads;
 	}
 
-	static std::wstring & BasePath()
+	static std::vector<std::wstring> & ScanPaths()
 	{
-		static std::wstring sBasePath = L"";
-		return sBasePath;
+		static std::vector<std::wstring> vScanPaths;
+		return vScanPaths;
 	}
 
 	static void AddFile(const std::wstring & sLine)

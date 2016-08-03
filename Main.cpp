@@ -331,35 +331,36 @@ void AnalzyingQueue()
 	}
 }
 
-VOID BeginFileScan(std::wstring sScanPath)
+VOID BeginFileScan()
 {
 	// startup some threads for processing
 	std::vector<std::thread *> oThreads;
 	for (USHORT iNum = 0; iNum < InputOutput::MaxThreads(); iNum++)
 		oThreads.push_back(new std::thread(AnalzyingQueue));
 
-	// queue that is used to store the directory listing
-	std::queue<ObjectEntry> oQueue;
+	for (std::vector<std::wstring>::iterator sScanPath = InputOutput::ScanPaths().begin();
+		sScanPath != InputOutput::ScanPaths().end(); sScanPath++)
+	{
+		// to get the process started, we need to have one entry so
+		// we will set that to the passed argument
+		ObjectEntry oEntryFirst;
+		oEntryFirst.IsRoot = true;
 
-	// to get the process started, we need to have one entry so
-	// we will set that to the passed argument
-	ObjectEntry oEntryFirst;
-	oEntryFirst.IsRoot = true;
+		// convert the path to a long path that is compatible with the other call
+		UNICODE_STRING tPathU;
+		RtlDosPathNameToNtPathName_U((*sScanPath).c_str(), &tPathU, NULL, NULL);
 
-	// convert the path to a long path that is compatible with the other call
-	UNICODE_STRING tPathU;
-	RtlDosPathNameToNtPathName_U(sScanPath.c_str(), &tPathU, NULL, NULL);
+		// copy it to a null terminated string
+		oEntryFirst.Name = std::wstring(tPathU.Buffer, tPathU.Length / sizeof(WCHAR));
+		oEntryFirst.Attributes = GetFileAttributes((*sScanPath).c_str());
 
-	// copy it to a null terminated string
-	oEntryFirst.Name = std::wstring(tPathU.Buffer, tPathU.Length / sizeof(WCHAR));
-	oEntryFirst.Attributes = GetFileAttributes(sScanPath.c_str());
+		// free the buffer returned previously
+		RtlFreeUnicodeString(&tPathU);
 
-	// free the buffer returned previously
-	RtlFreeUnicodeString(&tPathU);
-
-	// add this entry to being processing
-	iFilesToProcess++;
-	oScanQueue.push(oEntryFirst);
+		// add this entry to being processing
+		iFilesToProcess++;
+		oScanQueue.push(oEntryFirst);
+	}
 
 	// wait until all threads complete
 	while (iFilesToProcess > 0)
@@ -437,7 +438,7 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	}
 
 	// verify a path was specified
-	if (InputOutput::BasePath().size() == 0)
+	if (InputOutput::ScanPaths().size() == 0)
 	{
 		wprintf(L"%s\n", L"ERROR: No path was specified.");
 		exit(-1);
@@ -450,14 +451,16 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	wprintf(L"===============================================================================\n");
 	wprintf(L"= Repacls Version %hs by Bryan Berns\n", VERSION_STRING);
 	wprintf(L"===============================================================================\n");
-	wprintf(L"= Scan Path: %s\n", InputOutput::BasePath().c_str());
+	for (std::vector<std::wstring>::iterator sScanPath = InputOutput::ScanPaths().begin();
+		sScanPath != InputOutput::ScanPaths().end(); sScanPath++)
+		wprintf(L"= Scan Path(s): %s\n", (*sScanPath).c_str());
 	wprintf(L"= Maximum Threads: %d\n", (int)InputOutput::MaxThreads());
 	wprintf(L"= What If Mode: %s\n", InputOutput::InWhatIfMode() ? L"Yes" : L"No");
 	wprintf(L"===============================================================================\n");
 
 	// do the scan
 	ULONGLONG iTimeStart = GetTickCount64();
-	BeginFileScan(InputOutput::BasePath());
+	BeginFileScan();
 	ULONGLONG iTimeStop = GetTickCount64();
 
 	// print out statistics

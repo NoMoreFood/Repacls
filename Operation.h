@@ -29,7 +29,7 @@ typedef ACCESS_ACE *PACCESS_ACE;
 #define SidNotMatch(x,y) (!SidMatch(x,y))
 
 // macros for checking file attributes
-#define CheckBitSet(x,y) ((x & y) != 0)
+#define CheckBitSet(x,y) (((x) & (y)) != 0)
 #define IsDirectory(x) CheckBitSet(x,FILE_ATTRIBUTE_DIRECTORY)
 #define IsHiddenSystem(x) (CheckBitSet(x,FILE_ATTRIBUTE_HIDDEN) && CheckBitSet(x,FILE_ATTRIBUTE_SYSTEM))
 #define IsReparsePoint(x) (CheckBitSet(x,FILE_ATTRIBUTE_REPARSE_POINT))

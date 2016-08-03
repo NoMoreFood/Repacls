@@ -38,17 +38,25 @@ Global Options affect the entire command regardless of where they appear in the
 passed command line.  It is recommended to include them at the very beginning
 or end of your command as to not confuse them with ordered parameters.
 
-/Path
+/Path <Path>
    Specifies the file or directory to process.  If a directory, the directory
    is processed recursively; all operations specified affect the directory 
    and all files and folders under the directory (unless otherwise specified).
-   This parameter is mandatory.
+   This parameter is mandatory.  This command can be specified multiple times.
+
+/SharePaths <ComputerName>[:AdminOnly|IncludeHidden]
+   Specifies a server that has one or more shares to process.  This command is
+   equivalent to specifying /Path for every share on a particular file server.
+   By default, only non-administrative and non-hidden shares are scanned.
+   To only scan administrative shares (e.g. C$), append :AdminOnly to the 
+   computer name.  To include hidden, non-administrative shares, append 
+   :IncludeHidden to the computer name.
 
 /Quiet
    Hides all non-error output. This option will greatly enhance performance if
    a large number of changes are being processed.  Alternatively, it is 
    advisable to redirect console output to a file (using the > redirector) if 
-  /Quiet cannot be specified.
+   /Quiet cannot be specified.
 
 /Threads <NumberOfThreads>
    Specifies the number of threads to use while processing.  The default value
@@ -167,7 +175,10 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    An optional qualifier after regular expression can be specified after the
    regular expression to refine what part of the security descriptor to scan.
    See Other Notes & Limitations section for more information.
+)";
 
+std::wcout <<
+LR"(
 /SetOwner <Name|Sid>
    Will set the owner of the file to the name specified.
 
@@ -175,14 +186,11 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    Will convert any instances of old SIDs present in the security descriptor
    to there to active SID currently associated with the account.  This is
    especially useful after a domain migration and prior to removing
-   excess SID history on accounts.  
-)";
+   excess SID history on accounts. 
 
-std::wcout <<
-LR"(
 Exclusive Options
 =================
-/Help or /? or /H
+/Help or /? or /H 
    Shows this information.
 
 /ResetChildren

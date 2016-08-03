@@ -82,6 +82,9 @@
     <ClCompile Include="OperationReport.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
+    <ClCompile Include="OperationSharePaths.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConcurrentQueue.h">
@@ -179,6 +182,9 @@
     </ClInclude>
     <ClInclude Include="Version.h">
       <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationSharePaths.h">
+      <Filter>Includes\Operations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

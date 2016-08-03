@@ -128,7 +128,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
@@ -138,6 +138,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DisableSpecificWarnings>4100</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -197,6 +198,7 @@
     <ClCompile Include="OperationReport.cpp" />
     <ClCompile Include="OperationResetChildren.cpp" />
     <ClCompile Include="OperationSetOwner.cpp" />
+    <ClCompile Include="OperationSharePaths.cpp" />
     <ClCompile Include="OperationSidHistory.cpp" />
     <ClCompile Include="OperationThreads.cpp" />
     <ClCompile Include="OperationWhatIf.cpp" />
@@ -206,6 +208,7 @@
     <ClInclude Include="DriverKitPartial.h" />
     <ClInclude Include="Functions.h" />
     <ClInclude Include="InputOutput.h" />
+    <ClInclude Include="OperationSharePaths.h" />
     <ClInclude Include="OperationAddAccountIfMissing.h" />
     <ClInclude Include="OperationCheckCanonical.h" />
     <ClInclude Include="OperationCompact.h" />
