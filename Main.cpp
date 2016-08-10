@@ -387,6 +387,11 @@ VOID BeginFileScan()
 
 int wmain(int iArgs, WCHAR * aArgs[])
 {
+	// print standard header
+	wprintf(L"===============================================================================\n");
+	wprintf(L"= Repacls Version %hs by Bryan Berns\n", VERSION_STRING);
+	wprintf(L"===============================================================================\n");
+
 	// translate
 	std::queue<std::wstring> oArgList;
 	for (int iArg = 1; iArg < iArgs; iArg++)
@@ -447,9 +452,10 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	// ensure we have permissions to all files
 	EnablePrivs();
 	
-	// not general information
+	// note parameter information
+	wprintf(L"\n");
 	wprintf(L"===============================================================================\n");
-	wprintf(L"= Repacls Version %hs by Bryan Berns\n", VERSION_STRING);
+	wprintf(L"= Initial Scan Details\n");
 	wprintf(L"===============================================================================\n");
 	for (std::vector<std::wstring>::iterator sScanPath = InputOutput::ScanPaths().begin();
 		sScanPath != InputOutput::ScanPaths().end(); sScanPath++)

@@ -63,6 +63,9 @@ SidActionResult OperationMigrateDomain::DetermineSid(WCHAR * const sSdPart, Obje
 	std::wstring sTargetAccountName = sTargetDomain + (wcsstr(sSourceAccountName.c_str(), L"\\") + 1);
 	PSID tTargetAccountSid = GetSidFromName(sTargetAccountName);
 
+	// do a reverse lookup to see if this might be a sid history item
+	if (GetNameFromSidEx(tTargetAccountSid) == sSourceAccountName) return SidActionResult::Nothing;
+
 	// stop processing if the account does not exist
 	if (tTargetAccountSid == nullptr) return SidActionResult::Nothing;
 

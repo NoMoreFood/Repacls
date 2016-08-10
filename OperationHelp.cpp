@@ -63,7 +63,7 @@ or end of your command as to not confuse them with ordered parameters.
    of  '5' is usually adequate, but can be increased if performing changes 
    over a higher-latency connection.  Since changes to a parent directory 
    often affect the inherited security on children, the security of children
-   objects are always processed after the the security on their parent objects
+   objects are always processed after the security on their parent objects
    are fully processed. 
 
 /WhatIf
