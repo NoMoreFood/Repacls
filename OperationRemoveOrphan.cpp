@@ -23,6 +23,7 @@ OperationRemoveOrphan::OperationRemoveOrphan(std::queue<std::wstring> & oArgList
 
 	// do a reverse lookup of the name for reporting
 	sDomainName = GetNameFromSidEx(tDomainSid);
+	sDomainName = sDomainName.substr(0, sDomainName.find(L"\\"));
 
 	// flag this as being an ace-level action
 	AppliesToDacl = true;
@@ -51,11 +52,11 @@ SidActionResult OperationRemoveOrphan::DetermineSid(WCHAR * const sSdPart, Objec
 
 	// see if the sid is unresolvable; if it is then this is not an orphan
 	bool bIsOrphan = false;
-	GetNameFromSid(tCurrentSid, &bIsOrphan);
+	std::wstring sSid = GetNameFromSidEx(tCurrentSid, &bIsOrphan);
 	if (!bIsOrphan) return SidActionResult::Nothing;
 
 	// update the sid in the ace
-	InputOutput::AddInfo(L"Removing orphan of security identifier or domain '" + sDomainName + L"'", sSdPart);
+	InputOutput::AddInfo(L"Removing orphan of security identifier '" + sSid + L"' from domain '" + sDomainName + L"'", sSdPart);
 	tResultantSid = NULL;
 	return SidActionResult::Remove;
 }

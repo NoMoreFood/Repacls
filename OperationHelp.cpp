@@ -12,7 +12,7 @@ ClassFactory<OperationHelp> * OperationHelp::RegisteredFactoryAltTwo =
 OperationHelp::OperationHelp(std::queue<std::wstring> & oArgList) : Operation(oArgList)
 {
 	std::wcout <<
-LR"(
+		LR"(
 repacls.exe /Path <Absolute Path> ... other options ....
 
 Repacls was developed to address large scale migrations, transitions, health 
@@ -51,6 +51,14 @@ or end of your command as to not confuse them with ordered parameters.
    To only scan administrative shares (e.g. C$), append :AdminOnly to the 
    computer name.  To include hidden, non-administrative shares, append 
    :IncludeHidden to the computer name.
+
+/DomainPaths <DomainName>[:AdminOnly|IncludeHidden|StopOnError]
+   Specifies a domain to scan for member servers that should be processed.  
+   For each server that is found, a /SharePaths command is processed
+   for that particular server.  This takes the same extra parameters as
+   /SharePaths including another option StopOnError to stop processing if 
+   the shares of any particular computer can not be read; if not specified
+   an error will be shown on the screen but processing will continue.
 
 /Quiet
    Hides all non-error output. This option will greatly enhance performance if
@@ -165,7 +173,10 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
 
 /ReplaceAccount <SearchAccount> <ReplaceAccount>
    Search for an account and replace it with another account.
+)";
 
+std::wcout <<
+LR"(
 /Report <FileName> <RegularExpression>
    This command will write a comma separated value file with the fields of
    filename, security descriptor part (e.g., DACL), account name, permissions,
@@ -175,10 +186,7 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    An optional qualifier after regular expression can be specified after the
    regular expression to refine what part of the security descriptor to scan.
    See Other Notes & Limitations section for more information.
-)";
 
-std::wcout <<
-LR"(
 /SetOwner <Name|Sid>
    Will set the owner of the file to the name specified.
 
