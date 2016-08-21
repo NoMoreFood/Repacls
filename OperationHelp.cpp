@@ -44,15 +44,17 @@ or end of your command as to not confuse them with ordered parameters.
    and all files and folders under the directory (unless otherwise specified).
    This parameter is mandatory.  This command can be specified multiple times.
 
-/SharePaths <ComputerName>[:AdminOnly|IncludeHidden]
+/SharePaths <ComputerName>[:AdminOnly|IncludeHidden|Match=<Str>|NoMatch=<Str>]
    Specifies a server that has one or more shares to process.  This command is
    equivalent to specifying /Path for every share on a particular file server.
-   By default, only non-administrative and non-hidden shares are scanned.
+   By default, only non-administrative, non-hidden shares are scanned.
    To only scan administrative shares (e.g. C$), append :AdminOnly to the 
    computer name.  To include hidden, non-administrative shares, append 
-   :IncludeHidden to the computer name.
+   :IncludeHidden to the computer name.  By appending :Match= or :NoMatch= 
+   with a literal string or regular expression, any share name that does not  
+   match or mismatch the specified string, respectively, will be excluded.
 
-/DomainPaths <DomainName>[:AdminOnly|IncludeHidden|StopOnError]
+/DomainPaths <DomainName>[:StopOnError|<See /SharePaths>]
    Specifies a domain to scan for member servers that should be processed.  
    For each server that is found, a /SharePaths command is processed
    for that particular server.  This takes the same extra parameters as
