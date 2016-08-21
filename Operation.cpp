@@ -98,6 +98,13 @@ bool Operation::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEnt
 	return bMadeChange;
 }
 
+std::vector<std::wstring> Operation::SplitArgs(std::wstring sInput, std::wstring sDelimiter)
+{
+	std::wregex oRegex(sDelimiter);
+	std::wsregex_token_iterator oFirst{ sInput.begin(), sInput.end(), oRegex, -1 }, oLast;
+	return { oFirst, oLast };
+}
+
 bool Operation::ProcessSidAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID & tCurrentSid, bool & bSidReplacement)
 {
 	PSID tResultantSid;
@@ -142,9 +149,7 @@ std::vector<std::wstring> Operation::ProcessAndCheckArgs(int iArgsRequired, std:
 
 	// parse the parameters, splitting on :
 	std::wstring sArg = oArgList.front(); oArgList.pop();
-	std::wregex oRegex(sDelimiter);
-	std::wsregex_token_iterator oFirst{ sArg.begin(), sArg.end(), oRegex, -1 }, oLast;
-	std::vector<std::wstring> oSubArgs = { oFirst, oLast };
+	std::vector<std::wstring> oSubArgs = SplitArgs(sArg, sDelimiter);
 
 	// verify we have enough parameters
 	if (oSubArgs.size() < (size_t) iArgsRequired)

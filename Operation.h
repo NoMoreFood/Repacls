@@ -63,6 +63,7 @@ class Operation
 {
 protected:
 
+	static std::vector<std::wstring> Operation::SplitArgs(std::wstring sInput, std::wstring sDelimiter);
 	static std::vector<std::wstring> ProcessAndCheckArgs(int iArgsRequired, std::queue<std::wstring> & oArgList, std::wstring sDelimiter = L":");
 	void ProcessGranularTargetting(std::wstring sScope);
 

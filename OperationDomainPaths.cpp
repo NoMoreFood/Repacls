@@ -66,7 +66,8 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList) 
 	}
 
 	// create the search filter
-	WCHAR sSearchFilter[] = L"(&(objectCategory=computer)(|(operatingSystem=*server*)(operatingSystem=*ontap*)(operatingSystem=*netapp*))(!(userAccountControl:1.2.840.113556.1.4.803:=8192))(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
+	WCHAR sSearchFilter[] = L"(&(objectCategory=computer)(|(operatingSystem=*server*)(operatingSystem=*ontap*)(operatingSystem=*netapp*))" \
+		"(!(userAccountControl:1.2.840.113556.1.4.803:=8192))(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
 
 	// execute the search.
 	LPWSTR sAttributes[] = { L"cn" };
