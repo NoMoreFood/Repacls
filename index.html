@@ -41,10 +41,10 @@
         <h1>
 <a id="repacls-usage-information" class="anchor" href="#repacls-usage-information" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Repacls Usage Information</h1>
 
-<p>Link To Latest Binaries (1.6.0.0): <a href="https://github.com/NoMoreFood/Repacls/files/416316/Repacls.Binaries.1.6.0.0.zip">Here</a></p>
+<p>Link To Latest Binaries (1.6.2.0): <a href="https://github.com/NoMoreFood/Repacls/files/428939/Repacls.Binaries.1.6.2.0.zip">Here</a></p>
 
 <pre><code>===============================================================================
-= Repacls Version 1.6.0.0 by Bryan Berns
+= Repacls Version 1.6.2.0 by Bryan Berns
 ===============================================================================
 
 repacls.exe /Path &lt;Absolute Path&gt; ... other options ....
@@ -78,15 +78,17 @@ or end of your command as to not confuse them with ordered parameters.
    and all files and folders under the directory (unless otherwise specified).
    This parameter is mandatory.  This command can be specified multiple times.
 
-/SharePaths &lt;ComputerName&gt;[:AdminOnly|IncludeHidden]
+/SharePaths &lt;ComputerName&gt;[:AdminOnly|IncludeHidden|Match=&lt;Str&gt;|NoMatch=&lt;Str&gt;]
    Specifies a server that has one or more shares to process.  This command is
    equivalent to specifying /Path for every share on a particular file server.
-   By default, only non-administrative and non-hidden shares are scanned.
+   By default, only non-administrative, non-hidden shares are scanned.
    To only scan administrative shares (e.g. C$), append :AdminOnly to the 
    computer name.  To include hidden, non-administrative shares, append 
-   :IncludeHidden to the computer name.
+   :IncludeHidden to the computer name.  By appending :Match= or :NoMatch= 
+   with a literal string or regular expression, any share name that does not  
+   match or mismatch the specified string, respectively, will be excluded.
 
-/DomainPaths &lt;DomainName&gt;[:AdminOnly|IncludeHidden|StopOnError]
+/DomainPaths &lt;DomainName&gt;[:StopOnError|&lt;See /SharePaths&gt;]
    Specifies a domain to scan for member servers that should be processed.  
    For each server that is found, a /SharePaths command is processed
    for that particular server.  This takes the same extra parameters as
