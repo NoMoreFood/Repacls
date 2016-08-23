@@ -22,7 +22,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : 
 	bool bAdminOnly = false;
 	bool bHiddenIncluded = false;
 	std::wregex oMatchRegex = std::wregex(L".*");
-	std::wregex oNoMatchRegex = std::wregex(L"\0");
+	std::wregex oNoMatchRegex = std::wregex(L":");
 	if (sSubArgs.size() == 2)
 	{
 		// further split the second arg into a command delimited list
@@ -51,7 +51,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : 
 				try
 				{
 					// parse the regular expression
-					(_wcsnicmp((*sShareArg).c_str(), sMatchArg, _countof(sMatchArg) - 1) == 0) ? oMatchRegex : oNoMatchRegex =
+					((_wcsnicmp((*sShareArg).c_str(), sMatchArg, _countof(sMatchArg) - 1) == 0) ? oMatchRegex : oNoMatchRegex) =
 						std::wregex(oMatchArgs[1], std::regex_constants::icase);
 				}
 				catch (std::exception &)
@@ -123,10 +123,10 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : 
 			std::transform(sLocalPath.begin(), sLocalPath.end(), sLocalPath.begin(), ::toupper);
 
 			// see if the share name matches the regular expression
-			if (!std::regex_match(tInfo[iEntry].shi2_netname, oMatchRegex)) continue;
+			if (!std::regex_search(tInfo[iEntry].shi2_netname, oMatchRegex)) continue;
 
 			// see if the share name does not match the regular expression
-			if (std::regex_match(tInfo[iEntry].shi2_netname, oNoMatchRegex)) continue;
+			if (std::regex_search(tInfo[iEntry].shi2_netname, oNoMatchRegex)) continue;
 
 			// add path to the share list
 			mPaths[tInfo[iEntry].shi2_netname] = sLocalPath;
