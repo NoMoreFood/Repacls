@@ -12,7 +12,7 @@ private:
 
 	// operation specific
 	PSID tDomainSid = nullptr;
-	std::wstring sDomainSid = L"";
+	std::wstring sDomainName = L"";
 
 public:
 

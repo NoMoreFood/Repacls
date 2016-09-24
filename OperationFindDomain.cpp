@@ -21,6 +21,10 @@ OperationFindDomain::OperationFindDomain(std::queue<std::wstring> & oArgList) : 
 		exit(0);
 	}
 
+	// do a reverse lookup of the name for reporting
+	sDomainName = GetNameFromSidEx(tDomainSid);
+	sDomainName = sDomainName.substr(0, sDomainName.find(L"\\"));
+
 	// flag this as being an ace-level action
 	AppliesToDacl = true;
 	AppliesToSacl = true;
@@ -46,6 +50,6 @@ SidActionResult OperationFindDomain::DetermineSid(WCHAR * const sSdPart, ObjectE
 	std::wstring sAccount = GetNameFromSidEx(tCurrentSid);
 
 	// report the
-	InputOutput::AddInfo(L"Found domain identifier '" + sDomainSid + L"' on account '" + sAccount + L"'", sSdPart);
+	InputOutput::AddInfo(L"Found domain identifier '" + sDomainName + L"' on account '" + sAccount + L"'", sSdPart);
 	return SidActionResult::Nothing;
 }
