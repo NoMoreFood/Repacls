@@ -12,7 +12,7 @@ OperationExportDescriptor::OperationExportDescriptor(std::queue<std::wstring> & 
 
 	// fetch params
 	hFile = CreateFile(sSubArgs[0].c_str(), GENERIC_WRITE,
-		FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	// see if names could be resolved
 	if (hFile == INVALID_HANDLE_VALUE)
