@@ -210,7 +210,11 @@ std::wstring GenerateAccessMask(DWORD iCurrentMask)
 		{ READ_CONTROL, L"Read Permissions" },
 		{ WRITE_DAC, L"Set Permissions" },
 		{ WRITE_OWNER, L"Take Ownership" },
-		{ SYNCHRONIZE, L"Synchronize" }
+		{ SYNCHRONIZE, L"Synchronize" },
+		{ GENERIC_ALL, L"Generic All" },
+		{ GENERIC_WRITE, L"Generic Write" },
+		{ GENERIC_READ, L"Generic Read" },
+		{ GENERIC_EXECUTE, L"Generic Execute" }
 	};
 
 	// loop through the mask and construct of string of the names
@@ -222,6 +226,12 @@ std::wstring GenerateAccessMask(DWORD iCurrentMask)
 			sMaskList += MaskDefinitions[iMaskEntry].Description + L";";
 			iCurrentMask ^= MaskDefinitions[iMaskEntry].Mask;
 		}
+	}
+
+	// if any remaining permission bits exist, append them as well
+	if (iCurrentMask != 0)
+	{
+		sMaskList += L"Unrecognized Permissions (" + std::to_wstring(iCurrentMask) + L");";
 	}
 
 	// handle the empty case or trim off the trailing semicolon
@@ -254,7 +264,7 @@ VOID EnablePrivs()
 		return;
 	}
 
-	WCHAR * sPrivsToSet[] = { SE_RESTORE_NAME, SE_BACKUP_NAME, SE_TAKE_OWNERSHIP_NAME };
+	WCHAR * sPrivsToSet[] = { SE_RESTORE_NAME, SE_BACKUP_NAME, SE_TAKE_OWNERSHIP_NAME, SE_SECURITY_NAME };
 	for (int i = 0; i < sizeof(sPrivsToSet) / sizeof(WCHAR *); i++)
 	{
 		// populate the privilege adjustment structure
