@@ -153,7 +153,7 @@ std::wstring GetNameFromSid(const PSID tSid, bool * bMarkAsOrphan)
 std::wstring GetNameFromSidEx(const PSID tSid, bool * bMarkAsOrphan)
 {
 	// if sid is resolvable then return the account name
-	std::wstring sName = GetNameFromSid(tSid, NULL);
+	std::wstring sName = GetNameFromSid(tSid, bMarkAsOrphan);
 	if (sName != L"") return sName;
 
 	// if sid is unresolvable then return sid in string form
