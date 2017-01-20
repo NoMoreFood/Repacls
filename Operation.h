@@ -52,10 +52,10 @@ ObjectEntry;
 
 typedef enum SidActionResult : char
 {
-	Nothing,
-	Replace,
-	Remove,
-	Add,
+	Nothing = 0,
+	Replace = 1 << 0,
+	Remove = 1 << 1,
+	Add = 1 << 2
 }
 SidActionResult;
 

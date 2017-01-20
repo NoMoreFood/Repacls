@@ -182,6 +182,7 @@
     <ClCompile Include="OperationAddAccountIfMissing.cpp" />
     <ClCompile Include="OperationCheckCanonical.cpp" />
     <ClCompile Include="OperationCompact.cpp" />
+    <ClCompile Include="OperationCopyDomain.cpp" />
     <ClCompile Include="OperationDomainPaths.cpp" />
     <ClCompile Include="OperationExportDescriptor.cpp" />
     <ClCompile Include="OperationFindAccount.cpp" />
@@ -211,6 +212,7 @@
     <ClInclude Include="DriverKitPartial.h" />
     <ClInclude Include="Functions.h" />
     <ClInclude Include="InputOutput.h" />
+    <ClInclude Include="OperationCopyDomain.h" />
     <ClInclude Include="OperationDomainPaths.h" />
     <ClInclude Include="OperationSharePaths.h" />
     <ClInclude Include="OperationAddAccountIfMissing.h" />

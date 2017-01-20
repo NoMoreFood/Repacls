@@ -88,6 +88,9 @@
     <ClCompile Include="OperationDomainPaths.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
+    <ClCompile Include="OperationCopyDomain.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConcurrentQueue.h">
@@ -190,6 +193,9 @@
       <Filter>Includes\Operations</Filter>
     </ClInclude>
     <ClInclude Include="OperationDomainPaths.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationCopyDomain.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>
   </ItemGroup>

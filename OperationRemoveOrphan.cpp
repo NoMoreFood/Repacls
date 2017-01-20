@@ -22,8 +22,7 @@ OperationRemoveOrphan::OperationRemoveOrphan(std::queue<std::wstring> & oArgList
 	}
 
 	// do a reverse lookup of the name for reporting
-	sDomainName = GetNameFromSidEx(tDomainSid);
-	sDomainName = sDomainName.substr(0, sDomainName.find(L"\\"));
+	sDomainName = GetDomainNameFromSid(tDomainSid);
 
 	// flag this as being an ace-level action
 	AppliesToDacl = true;

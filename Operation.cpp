@@ -144,6 +144,7 @@ std::vector<std::wstring> Operation::ProcessAndCheckArgs(int iArgsRequired, std:
 	// check if around arguments exist yet
 	if (iArgsRequired > 0 && oArgList.size() == 0)
 	{
+		wprintf(L"ERROR: An option that was specified is missing a required parameter.\n");
 		exit(-1);
 	}
 
@@ -154,6 +155,7 @@ std::vector<std::wstring> Operation::ProcessAndCheckArgs(int iArgsRequired, std:
 	// verify we have enough parameters
 	if (oSubArgs.size() < (size_t) iArgsRequired)
 	{
+		wprintf(L"ERROR: An option that was specified is missing a required parameter.\n");
 		exit(-1);
 	}
 

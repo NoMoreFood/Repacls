@@ -147,6 +147,11 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    entires, it possible for them to result file system is performance 
    degradation.  
 
+/CopyDomain <SourceDomainName>:<TargetDomainName>
+	This command is identical to /MigrateDomain except that the original 
+    entry referring the SourceDomainName is retained instead of replaced.  
+    This command only applies to the SACL and the DACL.
+
 /MigrateDomain <SourceDomainName>:<TargetDomainName>
 	This command will look to see whether any account in <SourceDomain>
     has an identically-named account in <TargetDomain>.  If so, any entires
@@ -165,7 +170,10 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
 /RemoveOrphans <Domain|Sid>
    Remove any account whose SID is derived from the <Domain> specified
    and can no longer be resolved to a valid name.  
+)";
 
+std::wcout <<
+LR"(
 /RemoveRedundant
    This command will remove any explicit permission that is redundant of
    of the permissions its already given through inheritance.  This option
@@ -175,10 +183,7 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
 
 /ReplaceAccount <SearchAccount> <ReplaceAccount>
    Search for an account and replace it with another account.
-)";
 
-std::wcout <<
-LR"(
 /Report <FileName> <RegularExpression>
    This command will write a comma separated value file with the fields of
    filename, security descriptor part (e.g., DACL), account name, permissions,
@@ -193,9 +198,9 @@ LR"(
    Will set the owner of the file to the name specified.
 
 /UpdateHistoricalSids
-   Will convert any instances of old SIDs present in the security descriptor
-   to there to active SID currently associated with the account.  This is
-   especially useful after a domain migration and prior to removing
+   Will update any SIDs that present in the security descriptor and are part 
+   of a SID history with the primary SID that is associated an account.  This 
+   is especially useful after a domain migration and prior to removing
    excess SID history on accounts. 
 
 Exclusive Options

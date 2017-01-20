@@ -164,6 +164,18 @@ std::wstring GetNameFromSidEx(const PSID tSid, bool * bMarkAsOrphan)
 	return sSid;
 }
 
+std::wstring GetDomainNameFromSid(const PSID tSid)
+{
+	// do a reverse lookup using our normal call
+	std::wstring sDomainName = GetNameFromSidEx(tSid, NULL);
+
+	// sometimes the domain will be returned as DOMAIN\DOMAIN instead
+	// of just DOMAIN\ so lets trim off any excess characters
+	std::wstring::size_type nSlash = sDomainName.find(L"\\");
+	if (nSlash != std::wstring::npos) sDomainName.erase(nSlash + 1);
+	return sDomainName;
+}
+
 std::wstring GenerateInheritanceFlags(DWORD iCurrentFlags)
 {
 	std::wstring sFlags;

@@ -31,8 +31,8 @@ OperationMigrateDomain::OperationMigrateDomain(std::queue<std::wstring> & oArgLi
 	}
 
 	// store the domain strings
-	sSourceDomain = GetNameFromSidEx(tSourceDomain);
-	sTargetDomain = GetNameFromSidEx(tTargetDomain);
+	sSourceDomain = GetDomainNameFromSid(tSourceDomain);
+	sTargetDomain = GetDomainNameFromSid(tTargetDomain);
 
 	// flag this as being an ace-level action
 	AppliesToDacl = true;
@@ -55,25 +55,58 @@ SidActionResult OperationMigrateDomain::DetermineSid(WCHAR * const sSdPart, Obje
 		return SidActionResult::Nothing;
 	}
 
-	// translate the old sid to an account name
-	std::wstring sSourceAccountName = GetNameFromSid(tCurrentSid, NULL);
-	if (sSourceAccountName.size() == 0)	return SidActionResult::Nothing;
+	// see if this SID is a well-known, built-in SID in the form S-1-5-21-<domain>-(<1000)
+	const PISID tSidStruct = (PISID) tCurrentSid;
+	const PISID tSidTargetDomain = (PISID) tTargetDomain;
+	if (tSidStruct->SubAuthorityCount == 5 &&
+		tSidStruct->SubAuthority[0] == 21 &&
+		tSidStruct->SubAuthority[4] < 1000)
+	{
+		// create a new sid that has the domain identifier of the target domain
+		PSID tSidTmp = NULL;
+		AllocateAndInitializeSid(&tSidStruct->IdentifierAuthority, tSidStruct->SubAuthorityCount,
+			tSidStruct->SubAuthority[0], tSidTargetDomain->SubAuthority[1], tSidTargetDomain->SubAuthority[2],
+			tSidTargetDomain->SubAuthority[3], tSidStruct->SubAuthority[4], 0, 0, 0, &tSidTmp);
 
-	// check to see if an equivalent account exists in the target domain
-	std::wstring sTargetAccountName = sTargetDomain + (wcsstr(sSourceAccountName.c_str(), L"\\") + 1);
-	PSID tTargetAccountSid = GetSidFromName(sTargetAccountName);
+		// lookup the target name and see if it exists
+		std::wstring sTargetAccountName = GetNameFromSid(tSidTmp);
+		FreeSid(tSidTmp);
+		if (sTargetAccountName.size() == 0)	return SidActionResult::Nothing;
 
-	// exit if no match was found
-	if (tTargetAccountSid == nullptr) return SidActionResult::Nothing;
+		// do a forward lookup on the name in order to get a reference to the 
+		// SID that we do not have to worry about cleaning up
+		tResultantSid = GetSidFromName(sTargetAccountName);
 
-	// do a reverse lookup to see if this might be a sid history item
-	if (GetNameFromSidEx(tTargetAccountSid) == sSourceAccountName) return SidActionResult::Nothing;
+		// lookup the source name for reporting
+		std::wstring sSourceAccountName = GetNameFromSidEx(tCurrentSid);
 
-	// stop processing if the account does not exist
-	if (tTargetAccountSid == nullptr) return SidActionResult::Nothing;
+		// update the sid in the ace
+		InputOutput::AddInfo(L"Migrating Well Known '" + sSourceAccountName + L"' to '" + sTargetAccountName + L"'", sSdPart);
+	}
+	else
+	{
+		// translate the old sid to an account name
+		std::wstring sSourceAccountName = GetNameFromSid(tCurrentSid, NULL);
+		if (sSourceAccountName.size() == 0)	return SidActionResult::Nothing;
+
+		// check to see if an equivalent account exists in the target domain
+		std::wstring sTargetAccountName = sTargetDomain + (wcsstr(sSourceAccountName.c_str(), L"\\") + 1);
+		tResultantSid = GetSidFromName(sTargetAccountName);
+
+		// exit if no match was found
+		if (tResultantSid == nullptr) return SidActionResult::Nothing;
+
+		// do a reverse lookup to see if this might be a sid history item
+		if (GetNameFromSidEx(tResultantSid) == sSourceAccountName) return SidActionResult::Nothing;
+
+		// stop processing if the account does not exist
+		if (tResultantSid == nullptr) return SidActionResult::Nothing;
+
+		// update the sid in the ace
+		InputOutput::AddInfo(L"Migrating '" + sSourceAccountName + L"' to '" + sTargetAccountName + L"'", sSdPart);
+
+	}
 
 	// update the sid in the ace
-	InputOutput::AddInfo(L"Migrating '" + sSourceAccountName + L"' to '" + sTargetAccountName + L"'", sSdPart);
-	tResultantSid = tTargetAccountSid;
 	return SidActionResult::Replace;
 }
