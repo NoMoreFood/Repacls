@@ -148,11 +148,11 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    degradation.  
 
 /CopyDomain <SourceDomainName>:<TargetDomainName>
-	This command is identical to /MigrateDomain except that the original 
+	This command is identical to /MoveDomain except that the original 
     entry referring the SourceDomainName is retained instead of replaced.  
     This command only applies to the SACL and the DACL.
 
-/MigrateDomain <SourceDomainName>:<TargetDomainName>
+/MoveDomain <SourceDomainName>:<TargetDomainName>
 	This command will look to see whether any account in <SourceDomain>
     has an identically-named account in <TargetDomain>.  If so, any entires
      are converted to use the new domain.  For example,
@@ -245,7 +245,7 @@ Examples
 
 - Migrate all permissions for all accounts with matching
   names in DOMA with DOMB:
-  repacls.exe /Path C:\Test /MigrateDomain DOMA:DOMB
+  repacls.exe /Path C:\Test /MoveDomain DOMA:DOMB
 
 - Update old SID references, remove any explicit permissions that are already 
   granted by inherited permissions, and compact all ACLs if not compacted:

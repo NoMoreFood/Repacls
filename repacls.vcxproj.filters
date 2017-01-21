@@ -13,9 +13,6 @@
     <ClCompile Include="OperationPath.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
-    <ClCompile Include="OperationMigrateDomain.cpp">
-      <Filter>Source\Operations</Filter>
-    </ClCompile>
     <ClCompile Include="OperationRemoveOrphan.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
@@ -91,6 +88,9 @@
     <ClCompile Include="OperationCopyDomain.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
+    <ClCompile Include="OperationMoveDomain.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConcurrentQueue.h">
@@ -118,9 +118,6 @@
       <Filter>Includes\Operations</Filter>
     </ClInclude>
     <ClInclude Include="OperationFactory.h">
-      <Filter>Includes\Operations</Filter>
-    </ClInclude>
-    <ClInclude Include="OperationMigrateDomain.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>
     <ClInclude Include="OperationRemoveOrphan.h">
@@ -196,6 +193,9 @@
       <Filter>Includes\Operations</Filter>
     </ClInclude>
     <ClInclude Include="OperationCopyDomain.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationMoveDomain.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>
   </ItemGroup>

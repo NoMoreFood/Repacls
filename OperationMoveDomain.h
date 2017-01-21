@@ -2,13 +2,13 @@
 
 #include "Operation.h"
 
-class OperationMigrateDomain : public Operation
+class OperationMoveDomain : public Operation
 {
 private:
 
 	// statics used by command registration utility
-	static std::wstring GetCommand() { return L"MigrateDomain"; }
-	static ClassFactory<OperationMigrateDomain> * RegisteredFactory;
+	static std::wstring GetCommand() { return L"MoveDomain"; }
+	static ClassFactory<OperationMoveDomain> * RegisteredFactory;
 
 	// operation specific
 	PSID tSourceDomain = nullptr;
@@ -22,5 +22,5 @@ public:
 	SidActionResult DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) override;
 
 	// constructors
-	OperationMigrateDomain(std::queue<std::wstring> & oArgList);
+	OperationMoveDomain(std::queue<std::wstring> & oArgList);
 };

@@ -190,7 +190,7 @@
     <ClCompile Include="OperationFindNullAcl.cpp" />
     <ClCompile Include="OperationHelp.cpp" />
     <ClCompile Include="OperationInheritChildren.cpp" />
-    <ClCompile Include="OperationMigrateDomain.cpp" />
+    <ClCompile Include="OperationMoveDomain.cpp" />
     <ClCompile Include="OperationNoHiddenSystem.cpp" />
     <ClCompile Include="OperationPath.cpp" />
     <ClCompile Include="OperationPrintDescriptor.cpp" />
@@ -226,7 +226,7 @@
     <ClInclude Include="OperationFindNullAcl.h" />
     <ClInclude Include="OperationHelp.h" />
     <ClInclude Include="OperationInheritChildren.h" />
-    <ClInclude Include="OperationMigrateDomain.h" />
+    <ClInclude Include="OperationMoveDomain.h" />
     <ClInclude Include="OperationNoHiddenSystem.h" />
     <ClInclude Include="OperationPath.h" />
     <ClInclude Include="OperationPrintDescriptor.h" />

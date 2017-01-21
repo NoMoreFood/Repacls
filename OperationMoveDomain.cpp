@@ -1,11 +1,11 @@
-#include "OperationMigrateDomain.h"
+#include "OperationMoveDomain.h"
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationMigrateDomain> * OperationMigrateDomain::RegisteredFactory =
-new ClassFactory<OperationMigrateDomain>(GetCommand());
+ClassFactory<OperationMoveDomain> * OperationMoveDomain::RegisteredFactory =
+new ClassFactory<OperationMoveDomain>(GetCommand());
 
-OperationMigrateDomain::OperationMigrateDomain(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationMoveDomain::OperationMoveDomain(std::queue<std::wstring> & oArgList) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to part
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(2, oArgList);
@@ -44,7 +44,7 @@ OperationMigrateDomain::OperationMigrateDomain(std::queue<std::wstring> & oArgLi
 	if (sSubArgs.size() > 2) ProcessGranularTargetting(sSubArgs[2]);
 }
 
-SidActionResult OperationMigrateDomain::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
+SidActionResult OperationMoveDomain::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
 	// see if this sid in the source domain
 	BOOL bDomainSidsEqual = FALSE;
