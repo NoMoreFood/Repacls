@@ -85,7 +85,7 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 				tTargetAccountSid = GetSidFromName(sTargetAccountName);
 
 				// lookup the source name for reporting
-				std::wstring sSourceAccountName = GetNameFromSidEx(tAceDacl->Sid);
+				std::wstring sSourceAccountName = GetNameFromSidEx(&tAceDacl->Sid);
 
 				// record the status to report
 				sInfoToReport = L"Copying Well Known '" + sSourceAccountName + L"' to '" + sTargetAccountName + L"'";
