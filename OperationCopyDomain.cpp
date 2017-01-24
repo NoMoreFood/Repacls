@@ -18,7 +18,7 @@ OperationCopyDomain::OperationCopyDomain(std::queue<std::wstring> & oArgList) : 
 	if (tSourceDomain == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid source domain '%s' specified for parameter '%s'.\n", sSourceDomain.c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Invalid source domain '%s' specified for parameter '%s'.\n", sSubArgs[0].c_str(), GetCommand().c_str());
 		exit(0);
 	}
 
@@ -26,7 +26,7 @@ OperationCopyDomain::OperationCopyDomain(std::queue<std::wstring> & oArgList) : 
 	if (tTargetDomain == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid target domain'%s' specified for parameter '%s'.\n", sTargetDomain.c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Invalid target domain '%s' specified for parameter '%s'.\n", sSubArgs[1].c_str(), GetCommand().c_str());
 		exit(0);
 	}
 
@@ -85,10 +85,10 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 				tTargetAccountSid = GetSidFromName(sTargetAccountName);
 
 				// lookup the source name for reporting
-				std::wstring sSourceAccountName = GetNameFromSidEx(tTargetAccountSid);
+				std::wstring sSourceAccountName = GetNameFromSidEx(tAceDacl->Sid);
 
 				// record the status to report
-				sInfoToReport = L"Migrating Well Known '" + sSourceAccountName + L"' to '" + sTargetAccountName + L"'";
+				sInfoToReport = L"Copying Well Known '" + sSourceAccountName + L"' to '" + sTargetAccountName + L"'";
 			}
 			else
 			{
@@ -110,7 +110,7 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 				if (tTargetAccountSid == nullptr) continue;
 
 				// record the status to report
-				sInfoToReport = L"Migrating '" + sSourceAccountName + L"' to '" + sTargetAccountName + L"'";
+				sInfoToReport = L"Copying '" + sSourceAccountName + L"' to '" + sTargetAccountName + L"'";
 			}
 
 			// determine access mode

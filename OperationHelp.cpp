@@ -150,7 +150,9 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
 /CopyDomain <SourceDomainName>:<TargetDomainName>
 	This command is identical to /MoveDomain except that the original 
     entry referring the SourceDomainName is retained instead of replaced.  
-    This command only applies to the SACL and the DACL.
+    This command only applies to the SACL and the DACL.  If this command is
+    used multiple times, it is recommended to use /Compact to ensure there
+    are not any redundant access control entries.
 
 /MoveDomain <SourceDomainName>:<TargetDomainName>
 	This command will look to see whether any account in <SourceDomain>

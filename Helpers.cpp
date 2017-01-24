@@ -125,7 +125,7 @@ std::wstring GetNameFromSid(const PSID tSid, bool * bMarkAsOrphan)
 		}
 		else
 		{
-			wprintf(L"ERROR: Unexpected error returned from account lookup (%lu).", iError);
+			wprintf(L"ERROR: Unexpected error returned from account lookup (%lu).\n", iError);
 			return L"";
 		}
 	}
