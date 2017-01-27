@@ -360,12 +360,19 @@ HANDLE RegisterFileHandle(HANDLE hFile, std::wstring sOperation)
 	// do a reverse lookup on the file name
 	DWORD iSize = GetFinalPathNameByHandle(hFile, NULL, 0, VOLUME_NAME_NT);
 
-	// create a string that can accommodate that size
+	// create a string that can accommodate that size (plus null terminating character)
 	std::wstring sPath;
-	sPath.reserve(iSize);
+	sPath.resize(iSize + 1);
 
 	// get the full name
-	GetFinalPathNameByHandle(hFile, (LPWSTR) sPath.data(), (DWORD) sPath.capacity(), VOLUME_NAME_NT);
+	if (GetFinalPathNameByHandle(hFile, (LPWSTR)sPath.data(), (DWORD)sPath.capacity(), VOLUME_NAME_NT) == 0)
+	{
+		wprintf(L"ERROR: The true path to the specified file could not be determined.\n");
+		exit(-1);
+	}
+
+	// resize string back to actual size to remove null terminating character from string data
+	sPath.resize(iSize);
 
 	// if the handle already exists, then use that one if the parameters match
 	std::map<std::wstring, std::pair<HANDLE,std::wstring>>::iterator oFile = oFileLookup.find(sPath);
@@ -384,14 +391,21 @@ HANDLE RegisterFileHandle(HANDLE hFile, std::wstring sOperation)
 	}
 	else
 	{
-		oFileLookup[sPath] = std::pair<HANDLE, std::wstring>(hFile, sOperation);
+		oFileLookup[std::wstring(sPath)] = std::pair<HANDLE, std::wstring>(hFile, sOperation);
 		return hFile;
 	}
 }
 
 bool CheckIfAntivirusIsActive()
 {
-	CoInitializeEx(0, COINIT_APARTMENTTHREADED);
+	// initialize COM for checking the antivirus status
+	HRESULT hResult = CoInitializeEx(0, COINIT_APARTMENTTHREADED);
+	if (hResult != S_OK && hResult != S_FALSE)
+	{
+		return false;
+	}
+
+	// assume not installed by default
 	bool bIsInstalled = false;
 
 	// query the product list

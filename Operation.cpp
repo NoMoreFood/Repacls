@@ -108,7 +108,7 @@ std::vector<std::wstring> Operation::SplitArgs(std::wstring sInput, std::wstring
 bool Operation::ProcessSidAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID & tCurrentSid, bool & bSidReplacement)
 {
 	PSID tResultantSid;
-	SidActionResult tResult = DetermineSid(sSdPart, tObjectEntry, tCurrentSid, tResultantSid);
+	const SidActionResult tResult = DetermineSid(sSdPart, tObjectEntry, tCurrentSid, tResultantSid);
 	bool bMadeChange = false;
 
 	if (tResult == SidActionResult::Remove)
