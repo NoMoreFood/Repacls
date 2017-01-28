@@ -108,11 +108,18 @@ Commands That Do Not Alter Security
    it is recommended to inspect the ACL with icacls.exe or Windows Explorer
    to ensure the ACL is not corrupted in a more significant way.
 
-/ExportDescriptor <FileName>
+/SaveSecurity <FileName>
    Export the security descriptor to the file specified.  The file is 
    outputted in the format of file|descriptor on each line.  The security 
-   descriptor is formated as specified in the documentation for
-   ConvertSecurityDescriptorToStringSecurityDescriptor().
+   descriptor is formatted as specified in the documentation for
+   ConvertDescriptorToStringSecurityDescriptor().  This command does
+   not print informational messages other than errors.
+
+/RestoreSecurity <FileName>
+   The reverse operation of /SaveSecurity.  Takes the file name and security
+   descriptors specified in the file specified and applies them to the file
+   system.  This command does not print informational messages other than 
+   errors.
 
 /FindAccount <Name|Sid>
    Reports any instance of an account specified.
@@ -160,8 +167,11 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
      are converted to use the new domain.  For example,
     'OldDomain\Domain Admins' would become 'NewDomain\Domain Admins'.  Since
     this operation relies on the names being resolvable, specifying a SID 
-    instead of domain name for this command does not work.
+    instead of domain name for this command does not work.  
+)";
 
+std::wcout <<
+LR"(
 /RemoveAccount <Name|Sid>
     Will remove <Name> from the security descriptor.  If the specified name
     is found as the file owner, the owner is replaced by the builtin 
@@ -171,11 +181,8 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
 
 /RemoveOrphans <Domain|Sid>
    Remove any account whose SID is derived from the <Domain> specified
-   and can no longer be resolved to a valid name.  
-)";
+   and can no longer be resolved to a valid name
 
-std::wcout <<
-LR"(
 /RemoveRedundant
    This command will remove any explicit permission that is redundant of
    of the permissions its already given through inheritance.  This option
@@ -207,6 +214,8 @@ LR"(
 
 Exclusive Options
 =================
+Exclusive options cannot be combined with any other security operations.
+
 /Help or /? or /H 
    Shows this information.
 

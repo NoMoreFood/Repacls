@@ -31,8 +31,16 @@ OperationReport::OperationReport(std::queue<std::wstring> & oArgList) : Operatio
 	// if this is the first handle using this file, write out a header
 	if (hFile == hReportFile)
 	{
-		// write out the header
+		// write out the file type marker
+		USHORT hHeader = 0xFEFF;
 		DWORD iBytes = 0;
+		if (WriteFile(hFile, &hHeader, sizeof(USHORT), &iBytes, NULL) == 0)
+		{
+			wprintf(L"ERROR: Could not write out report file type marker '%s'.\n", GetCommand().c_str());
+			exit(-1);
+		}
+
+		// write out the header
 		std::wstring sToWrite = std::wstring(L"") + Q(L"Path") + L"," + Q(L"Descriptor Part") + L"," +
 			Q(L"Account Name") + L"," + Q(L"Permissions") + L"," + Q(L"Inheritance") + L"\r\n";
 		if (WriteFile(hReportFile, sToWrite.c_str(), (DWORD)sToWrite.size() * sizeof(WCHAR), &iBytes, NULL) == 0)

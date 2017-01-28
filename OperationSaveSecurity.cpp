@@ -1,11 +1,11 @@
-#include "OperationExportDescriptor.h"
+#include "OperationSaveSecurity.h"
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationExportDescriptor> * OperationExportDescriptor::RegisteredFactory =
-new ClassFactory<OperationExportDescriptor>(GetCommand());
+ClassFactory<OperationSaveSecurity> * OperationSaveSecurity::RegisteredFactory =
+new ClassFactory<OperationSaveSecurity>(GetCommand());
 
-OperationExportDescriptor::OperationExportDescriptor(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationSaveSecurity::OperationSaveSecurity(std::queue<std::wstring> & oArgList) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to part
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
@@ -22,6 +22,15 @@ OperationExportDescriptor::OperationExportDescriptor(std::queue<std::wstring> & 
 		exit(-1);
 	}
 
+	// write out the file type marker
+	USHORT hHeader = 0xFEFF;
+	DWORD iBytes = 0;
+	if (WriteFile(hFile, &hHeader, sizeof(USHORT), &iBytes, NULL) == 0)
+	{
+		wprintf(L"ERROR: Could not write out report file type marker '%s'.\n", GetCommand().c_str());
+		exit(-1);
+	}
+
 	// flag this as being an ace-level action
 	AppliesToSd = true;
 	AppliesToDacl = true;
@@ -30,11 +39,11 @@ OperationExportDescriptor::OperationExportDescriptor(std::queue<std::wstring> & 
 	AppliesToGroup = true;
 }
 
-bool OperationExportDescriptor::ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR const tSecurityDescriptor)
+bool OperationSaveSecurity::ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement)
 {
 	// convert the current security descriptor to a string
 	WCHAR * sInfo = NULL;
-	if (ConvertSecurityDescriptorToStringSecurityDescriptor(tSecurityDescriptor, SDDL_REVISION_1,
+	if (ConvertSecurityDescriptorToStringSecurityDescriptor(tDescriptor, SDDL_REVISION_1,
 		DACL_SECURITY_INFORMATION | SACL_SECURITY_INFORMATION | OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION,
 		&sInfo, NULL) == 0)
 	{

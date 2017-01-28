@@ -94,6 +94,7 @@ void AnalyzeSecurity(ObjectEntry & oEntry)
 	bool bSaclCleanupRequired = false;
 	bool bOwnerCleanupRequired = false;
 	bool bGroupCleanupRequired = false;
+	bool bDescCleanupRequired = true;
 
 	// used for one-shot operations like reset children or inheritance
 	DWORD iSpecialCommitMergeFlags = 0;
@@ -130,7 +131,40 @@ void AnalyzeSecurity(ObjectEntry & oEntry)
 		}
 		if ((*oOperation)->AppliesToSd)
 		{
-			(*oOperation)->ProcessSdAction(oEntry.Name, oEntry, tDesc);
+			if ((*oOperation)->ProcessSdAction(oEntry.Name, oEntry, tDesc, bDescCleanupRequired))
+			{
+				// cleanup previous operations if necessary
+				if (bDaclCleanupRequired)  { LocalFree(tAclDacl); bDaclCleanupRequired = false; };
+				if (bSaclCleanupRequired)  { LocalFree(tAclDacl); bSaclCleanupRequired = false; };
+				if (bOwnerCleanupRequired) { LocalFree(tAclDacl); bOwnerCleanupRequired = false; };
+				if (bGroupCleanupRequired) { LocalFree(tAclDacl); bGroupCleanupRequired = false; };
+				if (bDescCleanupRequired)  { LocalFree(tDesc);    bDescCleanupRequired = false; };
+
+				// extract the elements from the raw security descriptor
+				BOOL bItemPresent = FALSE;
+				BOOL bItemDefaulted = FALSE;
+				GetSecurityDescriptorDacl(tDesc, &bItemPresent, &tAclDacl, &bItemDefaulted);
+				GetSecurityDescriptorSacl(tDesc, &bItemPresent, &tAclSacl, &bItemDefaulted);
+				GetSecurityDescriptorOwner(tDesc, &tOwnerSid, &bItemDefaulted);
+				GetSecurityDescriptorGroup(tDesc, &tGroupSid, &bItemDefaulted);
+
+				// extract relevant inheritance bits
+				DWORD tRevisionInfo;
+				SECURITY_DESCRIPTOR_CONTROL tControl;
+				GetSecurityDescriptorControl(tDesc, &tControl, &tRevisionInfo);
+
+				// convert inheritance bits to the special flags that control inheritance
+				iSpecialCommitMergeFlags = CheckBitSet(SE_SACL_PROTECTED, tControl) ?
+					PROTECTED_SACL_SECURITY_INFORMATION : UNPROTECTED_SACL_SECURITY_INFORMATION;
+				iSpecialCommitMergeFlags = CheckBitSet(SE_DACL_PROTECTED, tControl) ?
+					PROTECTED_DACL_SECURITY_INFORMATION : UNPROTECTED_DACL_SECURITY_INFORMATION;
+
+				// mark all elements as needing to be updated
+				bDaclIsDirty = true;
+				bSaclIsDirty = true;
+				bOwnerIsDirty = true;
+				bGroupIsDirty = true;
+			}
 		}
 	}
 
@@ -181,7 +215,7 @@ void AnalyzeSecurity(ObjectEntry & oEntry)
 	if (bSaclCleanupRequired) LocalFree(tAclSacl);
 	if (bOwnerCleanupRequired) LocalFree(tOwnerSid);
 	if (bGroupCleanupRequired) LocalFree(tGroupSid);
-	LocalFree(tDesc);
+	if (bDescCleanupRequired) LocalFree(tDesc);
 }
 
 
@@ -346,13 +380,28 @@ VOID BeginFileScan()
 		ObjectEntry oEntryFirst;
 		oEntryFirst.IsRoot = true;
 
+		// make a local copy of the path since we may have to alter it
+		std::wstring sPath = *sScanPath;
+
+		// handle special case where a drive root is specified
+		// we must ensure it takes the form x:\. to resolve correctly
+		size_t iSemiColon = sPath.rfind(L":");
+		if (iSemiColon != std::wstring::npos)
+		{
+			std::wstring sEnd = sPath.substr(iSemiColon);
+			if (sEnd == L":" || sEnd == L":\\")
+			{
+				sPath = sPath.substr(0, iSemiColon) + L":\\.";
+			}
+		}
+
 		// convert the path to a long path that is compatible with the other call
 		UNICODE_STRING tPathU;
-		RtlDosPathNameToNtPathName_U((*sScanPath).c_str(), &tPathU, NULL, NULL);
+		RtlDosPathNameToNtPathName_U(sPath.c_str(), &tPathU, NULL, NULL);
 
 		// copy it to a null terminated string
 		oEntryFirst.Name = std::wstring(tPathU.Buffer, tPathU.Length / sizeof(WCHAR));
-		oEntryFirst.Attributes = GetFileAttributes((*sScanPath).c_str());
+		oEntryFirst.Attributes = GetFileAttributes(oEntryFirst.Name.c_str());
 
 		// free the buffer returned previously
 		RtlFreeUnicodeString(&tPathU);

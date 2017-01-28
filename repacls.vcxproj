@@ -188,11 +188,12 @@
     <ClCompile Include="OperationCompact.cpp" />
     <ClCompile Include="OperationCopyDomain.cpp" />
     <ClCompile Include="OperationDomainPaths.cpp" />
-    <ClCompile Include="OperationExportDescriptor.cpp" />
+    <ClCompile Include="OperationSaveSecurity.cpp" />
     <ClCompile Include="OperationFindAccount.cpp" />
     <ClCompile Include="OperationFindDomain.cpp" />
     <ClCompile Include="OperationFindNullAcl.cpp" />
     <ClCompile Include="OperationHelp.cpp" />
+    <ClCompile Include="OperationRestoreSecurity.cpp" />
     <ClCompile Include="OperationInheritChildren.cpp" />
     <ClCompile Include="OperationMoveDomain.cpp" />
     <ClCompile Include="OperationNoHiddenSystem.cpp" />
@@ -218,11 +219,12 @@
     <ClInclude Include="InputOutput.h" />
     <ClInclude Include="OperationCopyDomain.h" />
     <ClInclude Include="OperationDomainPaths.h" />
+    <ClInclude Include="OperationRestoreSecurity.h" />
     <ClInclude Include="OperationSharePaths.h" />
     <ClInclude Include="OperationAddAccountIfMissing.h" />
     <ClInclude Include="OperationCheckCanonical.h" />
     <ClInclude Include="OperationCompact.h" />
-    <ClInclude Include="OperationExportDescriptor.h" />
+    <ClInclude Include="OperationSaveSecurity.h" />
     <ClInclude Include="OperationFactory.h" />
     <ClInclude Include="OperationFindAccount.h" />
     <ClInclude Include="Operation.h" />

@@ -16,11 +16,11 @@ OperationPrintDescriptor::OperationPrintDescriptor(std::queue<std::wstring> & oA
 	AppliesToGroup = true;
 }
 
-bool OperationPrintDescriptor::ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR const tSecurityDescriptor)
+bool OperationPrintDescriptor::ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement)
 {
 	// convert the current security descriptor to a string
 	WCHAR * sInfo = NULL;
-	if (ConvertSecurityDescriptorToStringSecurityDescriptor(tSecurityDescriptor, SDDL_REVISION_1,
+	if (ConvertSecurityDescriptorToStringSecurityDescriptor(tDescriptor, SDDL_REVISION_1,
 		DACL_SECURITY_INFORMATION | SACL_SECURITY_INFORMATION | OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION,
 		&sInfo, NULL) == 0)
 	{

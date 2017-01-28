@@ -13,7 +13,7 @@ private:
 public:
 
 	// overrides
-	bool ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR const tSecurityDescriptor) override;
+	bool ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement) override;
 
 	// constructors
 	OperationPrintDescriptor(std::queue<std::wstring> & oArgList);
