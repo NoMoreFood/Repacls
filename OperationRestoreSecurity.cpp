@@ -27,14 +27,17 @@ OperationRestoreSecurity::OperationRestoreSecurity(std::queue<std::wstring> & oA
 	while (std::getline(fFile, sLine))
 	{
 		// parse the file name and descriptor which are separated by a '|' character
-		std::vector<std::wstring> oLineItems = SplitArgs(sLine, L"\\|");
+		// also, sometimes a character return appears in the input stream so adding 
+		// it here ensures it is stripped from the very end
+		std::vector<std::wstring> oLineItems = SplitArgs(sLine, L"=|\r");
 
 		// convert the long string descriptor its binary equivalent
 		PSECURITY_DESCRIPTOR tDesc;
-		if (ConvertStringSecurityDescriptorToSecurityDescriptor(oLineItems.at(1).c_str(), 
+		if (oLineItems.size() != 2 ||
+			ConvertStringSecurityDescriptorToSecurityDescriptor(oLineItems.at(1).c_str(),
 			SDDL_REVISION_1, &tDesc, NULL) == 0)
 		{
-			InputOutput::AddError(L"ERROR: Unable to parse string security descriptor.");
+			wprintf(L"ERROR: Unable to parse string security descriptor file for restoration.");
 			exit(-1);
 		}
 

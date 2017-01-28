@@ -53,7 +53,7 @@ bool OperationSaveSecurity::ProcessSdAction(std::wstring & sFileName, ObjectEntr
 
 	// write the string to a file
 	DWORD iBytes = 0;
-	std::wstring sToWrite = sFileName + L"|" + sInfo + L"\r\n";
+	std::wstring sToWrite = sFileName + L"=" + sInfo + L"\r\n";
 	if (WriteFile(hFile, sToWrite.c_str(), (DWORD)sToWrite.size() * sizeof(WCHAR), &iBytes, NULL) == 0)
 	{
 		LocalFree(sInfo);
