@@ -2,13 +2,13 @@
 
 #include "Operation.h"
 
-class OperationSaveSecurity : public Operation
+class OperationBackupSecurity : public Operation
 {
 private:
 
 	// statics used by command registration utility
-	static std::wstring GetCommand() { return L"SaveSecurity"; }
-	static ClassFactory<OperationSaveSecurity> * RegisteredFactory;
+	static std::wstring GetCommand() { return L"BackupSecurity"; }
+	static ClassFactory<OperationBackupSecurity> * RegisteredFactory;
 
 	HANDLE hFile = INVALID_HANDLE_VALUE;
 	std::wstring sFile = L"";
@@ -19,6 +19,6 @@ public:
 	bool ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement) override;
 
 	// constructors
-	OperationSaveSecurity(std::queue<std::wstring> & oArgList);
+	OperationBackupSecurity(std::queue<std::wstring> & oArgList);
 };
 

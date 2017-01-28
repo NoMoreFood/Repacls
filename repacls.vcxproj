@@ -188,7 +188,7 @@
     <ClCompile Include="OperationCompact.cpp" />
     <ClCompile Include="OperationCopyDomain.cpp" />
     <ClCompile Include="OperationDomainPaths.cpp" />
-    <ClCompile Include="OperationSaveSecurity.cpp" />
+    <ClCompile Include="OperationBackupSecurity.cpp" />
     <ClCompile Include="OperationFindAccount.cpp" />
     <ClCompile Include="OperationFindDomain.cpp" />
     <ClCompile Include="OperationFindNullAcl.cpp" />
@@ -224,7 +224,7 @@
     <ClInclude Include="OperationAddAccountIfMissing.h" />
     <ClInclude Include="OperationCheckCanonical.h" />
     <ClInclude Include="OperationCompact.h" />
-    <ClInclude Include="OperationSaveSecurity.h" />
+    <ClInclude Include="OperationBackupSecurity.h" />
     <ClInclude Include="OperationFactory.h" />
     <ClInclude Include="OperationFindAccount.h" />
     <ClInclude Include="Operation.h" />

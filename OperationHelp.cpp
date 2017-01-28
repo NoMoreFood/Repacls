@@ -108,7 +108,7 @@ Commands That Do Not Alter Security
    it is recommended to inspect the ACL with icacls.exe or Windows Explorer
    to ensure the ACL is not corrupted in a more significant way.
 
-/SaveSecurity <FileName>
+/BackupSecurity <FileName>
    Export the security descriptor to the file specified.  The file is 
    outputted in the format of file|descriptor on each line.  The security 
    descriptor is formatted as specified in the documentation for
@@ -116,7 +116,7 @@ Commands That Do Not Alter Security
    not print informational messages other than errors.
 
 /RestoreSecurity <FileName>
-   The reverse operation of /SaveSecurity.  Takes the file name and security
+   The reverse operation of /BackupSecurity.  Takes the file name and security
    descriptors specified in the file specified and applies them to the file
    system.  This command does not print informational messages other than 
    errors.

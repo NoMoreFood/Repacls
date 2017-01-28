@@ -88,10 +88,10 @@
     <ClCompile Include="OperationMoveDomain.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
-    <ClCompile Include="OperationSaveSecurity.cpp">
+    <ClCompile Include="OperationRestoreSecurity.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
-    <ClCompile Include="OperationRestoreSecurity.cpp">
+    <ClCompile Include="OperationBackupSecurity.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
   </ItemGroup>
@@ -198,10 +198,10 @@
     <ClInclude Include="OperationMoveDomain.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>
-    <ClInclude Include="OperationSaveSecurity.h">
+    <ClInclude Include="OperationRestoreSecurity.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>
-    <ClInclude Include="OperationRestoreSecurity.h">
+    <ClInclude Include="OperationBackupSecurity.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>
   </ItemGroup>

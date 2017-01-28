@@ -1,11 +1,11 @@
-#include "OperationSaveSecurity.h"
+#include "OperationBackupSecurity.h"
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationSaveSecurity> * OperationSaveSecurity::RegisteredFactory =
-new ClassFactory<OperationSaveSecurity>(GetCommand());
+ClassFactory<OperationBackupSecurity> * OperationBackupSecurity::RegisteredFactory =
+new ClassFactory<OperationBackupSecurity>(GetCommand());
 
-OperationSaveSecurity::OperationSaveSecurity(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationBackupSecurity::OperationBackupSecurity(std::queue<std::wstring> & oArgList) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to part
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
@@ -39,7 +39,7 @@ OperationSaveSecurity::OperationSaveSecurity(std::queue<std::wstring> & oArgList
 	AppliesToGroup = true;
 }
 
-bool OperationSaveSecurity::ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement)
+bool OperationBackupSecurity::ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement)
 {
 	// convert the current security descriptor to a string
 	WCHAR * sInfo = NULL;
