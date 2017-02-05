@@ -1,10 +1,10 @@
 # Repacls Usage Information
 
-Link To Latest Binaries (1.6.2.1): [Here](https://github.com/NoMoreFood/Repacls/files/431447/Repacls.Binaries.1.6.2.1.zip)
+Link To Latest Binaries (1.8.0.0): [Here](https://github.com/NoMoreFood/Repacls/files/753372/Repacls.Binaries.1.8.0.0.zip)
 
 ```
 ===============================================================================
-= Repacls Version 1.6.2.1 by Bryan Berns
+= Repacls Version 1.8.0.0 by Bryan Berns
 ===============================================================================
 
 repacls.exe /Path <Absolute Path> ... other options ....
@@ -102,11 +102,18 @@ Commands That Do Not Alter Security
    it is recommended to inspect the ACL with icacls.exe or Windows Explorer
    to ensure the ACL is not corrupted in a more significant way.
 
-/ExportDescriptor <FileName>
+/BackupSecurity <FileName>
    Export the security descriptor to the file specified.  The file is 
    outputted in the format of file|descriptor on each line.  The security 
-   descriptor is formated as specified in the documentation for
-   ConvertSecurityDescriptorToStringSecurityDescriptor().
+   descriptor is formatted as specified in the documentation for
+   ConvertDescriptorToStringSecurityDescriptor().  This command does
+   not print informational messages other than errors.
+
+/RestoreSecurity <FileName>
+   The reverse operation of /BackupSecurity.  Takes the file name and security
+   descriptors specified in the file specified and applies them to the file
+   system.  This command does not print informational messages other than 
+   errors.
 
 /FindAccount <Name|Sid>
    Reports any instance of an account specified.
@@ -141,13 +148,20 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    entires, it possible for them to result file system is performance 
    degradation.  
 
-/MigrateDomain <SourceDomainName>:<TargetDomainName>
+/CopyDomain <SourceDomainName>:<TargetDomainName>
+	This command is identical to /MoveDomain except that the original 
+    entry referring the SourceDomainName is retained instead of replaced.  
+    This command only applies to the SACL and the DACL.  If this command is
+    used multiple times, it is recommended to use /Compact to ensure there
+    are not any redundant access control entries.
+
+/MoveDomain <SourceDomainName>:<TargetDomainName>
 	This command will look to see whether any account in <SourceDomain>
     has an identically-named account in <TargetDomain>.  If so, any entires
      are converted to use the new domain.  For example,
     'OldDomain\Domain Admins' would become 'NewDomain\Domain Admins'.  Since
     this operation relies on the names being resolvable, specifying a SID 
-    instead of domain name for this command does not work.
+    instead of domain name for this command does not work.  
 
 /RemoveAccount <Name|Sid>
     Will remove <Name> from the security descriptor.  If the specified name
@@ -158,7 +172,7 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
 
 /RemoveOrphans <Domain|Sid>
    Remove any account whose SID is derived from the <Domain> specified
-   and can no longer be resolved to a valid name.  
+   and can no longer be resolved to a valid name
 
 /RemoveRedundant
    This command will remove any explicit permission that is redundant of
@@ -184,13 +198,15 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    Will set the owner of the file to the name specified.
 
 /UpdateHistoricalSids
-   Will convert any instances of old SIDs present in the security descriptor
-   to there to active SID currently associated with the account.  This is
-   especially useful after a domain migration and prior to removing
+   Will update any SIDs that present in the security descriptor and are part 
+   of a SID history with the primary SID that is associated an account.  This 
+   is especially useful after a domain migration and prior to removing
    excess SID history on accounts. 
 
 Exclusive Options
 =================
+Exclusive options cannot be combined with any other security operations.
+
 /Help or /? or /H 
    Shows this information.
 
@@ -231,7 +247,7 @@ Examples
 
 - Migrate all permissions for all accounts with matching
   names in DOMA with DOMB:
-  repacls.exe /Path C:\Test /MigrateDomain DOMA:DOMB
+  repacls.exe /Path C:\Test /MoveDomain DOMA:DOMB
 
 - Update old SID references, remove any explicit permissions that are already 
   granted by inherited permissions, and compact all ACLs if not compacted:
