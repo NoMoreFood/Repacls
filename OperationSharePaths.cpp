@@ -120,7 +120,8 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : 
 			if (sLocalPath.back() != L'\\') sLocalPath += L'\\';
 
 			// convert to uppercase
-			std::transform(sLocalPath.begin(), sLocalPath.end(), sLocalPath.begin(), ::toupper);
+			std::transform(sLocalPath.begin(), sLocalPath.end(), sLocalPath.begin(), 
+				[](const WCHAR c) { return static_cast<WCHAR>(::toupper(c)); });
 
 			// see if the share name matches the regular expression
 			if (!std::regex_search(tInfo[iEntry].shi2_netname, oMatchRegex)) continue;
