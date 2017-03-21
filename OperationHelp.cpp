@@ -115,12 +115,6 @@ Commands That Do Not Alter Security
    ConvertDescriptorToStringSecurityDescriptor().  This command does
    not print informational messages other than errors.
 
-/RestoreSecurity <FileName>
-   The reverse operation of /BackupSecurity.  Takes the file name and security
-   descriptors specified in the file specified and applies them to the file
-   system.  This command does not print informational messages other than 
-   errors.
-
 /FindAccount <Name|Sid>
    Reports any instance of an account specified.
 
@@ -202,6 +196,12 @@ LR"(
    An optional qualifier after regular expression can be specified after the
    regular expression to refine what part of the security descriptor to scan.
    See Other Notes & Limitations section for more information.
+
+/RestoreSecurity <FileName>
+   The reverse operation of /BackupSecurity.  Takes the file name and security
+   descriptors specified in the file specified and applies them to the file
+   system.  This command does not print informational messages other than 
+   errors.
 
 /SetOwner <Name|Sid>
    Will set the owner of the file to the name specified.
