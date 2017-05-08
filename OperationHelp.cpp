@@ -184,7 +184,7 @@ LR"(
    have been littered from the old cacls.exe command that didn't understand 
    how to set up inheritance.
 
-/ReplaceAccount <SearchAccount> <ReplaceAccount>
+/ReplaceAccount <SearchAccount>:<ReplaceAccount>
    Search for an account and replace it with another account.
 
 /Report <FileName> <RegularExpression>
