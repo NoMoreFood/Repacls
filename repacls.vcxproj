@@ -22,7 +22,7 @@
     <ProjectGuid>{0E11E31A-BE5D-4B31-AA8E-DA9AEEC84F37}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>PermChange</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
     <ProjectName>repacls</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
