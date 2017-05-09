@@ -1,10 +1,10 @@
 # Repacls Usage Information
 
-Link To Latest Binaries (1.8.0.0): [Here](https://github.com/NoMoreFood/Repacls/files/753372/Repacls.Binaries.1.8.0.0.zip)
+Link To Latest Binaries (1.8.0.1): [Here](https://github.com/NoMoreFood/Repacls/files/985175/Repacls.Binaries.1.8.0.1.zip)
 
 ```
 ===============================================================================
-= Repacls Version 1.8.0.0 by Bryan Berns
+= Repacls Version 1.8.0.1 by Bryan Berns
 ===============================================================================
 
 repacls.exe /Path <Absolute Path> ... other options ....
