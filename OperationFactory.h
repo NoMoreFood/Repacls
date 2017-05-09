@@ -32,7 +32,8 @@ public:
 		}
 
 		// convert to uppercase for map matching
-		std::transform(sCommand.begin(), sCommand.end(), sCommand.begin(), ::toupper);
+		std::transform(sCommand.begin(), sCommand.end(), sCommand.begin(), 
+			[](const WCHAR c) { return static_cast<WCHAR>(::toupper(c)); });
 
 		// remove the first character
 		sCommand.erase(0, 1);
@@ -66,7 +67,8 @@ public:
 
 	ClassFactory(std::wstring sCommand)
 	{
-		std::transform(sCommand.begin(), sCommand.end(), sCommand.begin(), ::toupper);
+		std::transform(sCommand.begin(), sCommand.end(), sCommand.begin(), 
+			[](const WCHAR c) { return static_cast<WCHAR>(::toupper(c)); });
 		GetCommands()[sCommand] = this;
 	};
 };
