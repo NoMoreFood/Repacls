@@ -1,10 +1,10 @@
 # Repacls Usage Information
 
-Link To Latest Binaries (1.8.0.1): [Here](https://github.com/NoMoreFood/Repacls/files/985175/Repacls.Binaries.1.8.0.1.zip)
+Link To Latest Binaries (1.9.0.0): [Here](https://github.com/NoMoreFood/Repacls/raw/v1.9.0.0/Build/Repacls.Binaries.1.9.0.0.zip)
 
 ```
 ===============================================================================
-= Repacls Version 1.8.0.1 by Bryan Berns
+= Repacls Version 1.9.0.0 by Bryan Berns
 ===============================================================================
 
 repacls.exe /Path <Absolute Path> ... other options ....
@@ -109,12 +109,6 @@ Commands That Do Not Alter Security
    ConvertDescriptorToStringSecurityDescriptor().  This command does
    not print informational messages other than errors.
 
-/RestoreSecurity <FileName>
-   The reverse operation of /BackupSecurity.  Takes the file name and security
-   descriptors specified in the file specified and applies them to the file
-   system.  This command does not print informational messages other than 
-   errors.
-
 /FindAccount <Name|Sid>
    Reports any instance of an account specified.
 
@@ -124,6 +118,23 @@ Commands That Do Not Alter Security
 /FindNullAcl
    Reports any instance of a null ACL.  A null ACL, unlike an empty ACL, allows
    all access (i.e., similar to an ACE with 'Everyone' with 'Full Control') 
+
+/Locate <FileName> <RegularExpression>
+   This command will write a comma separated value file with the fields of
+   filename, creation time, file modified time, file size and file attributes.
+   The regular expression will perform a case insensitive regular expression 
+   search against file name or directory name.  To report all data, pass .* 
+   as the regular expression.
+
+/Report <FileName> <RegularExpression>
+   This command will write a comma separated value file with the fields of
+   filename, security descriptor part (e.g., DACL), account name, permissions,
+   and inheritance flags.  The regular expression will perform a case
+   insensitive regular expression search against the account name in 
+   DOMAIN\user format.  To report all data, pass .* as the regular expression.
+   An optional qualifier after regular expression can be specified after the
+   regular expression to refine what part of the security descriptor to scan.
+   See Other Notes & Limitations section for more information.
 
 Commands That Can Alter Security (When /WhatIf Is Not Present) 
 --------------------------------
@@ -149,26 +160,26 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    degradation.  
 
 /CopyDomain <SourceDomainName>:<TargetDomainName>
-	This command is identical to /MoveDomain except that the original 
-    entry referring the SourceDomainName is retained instead of replaced.  
-    This command only applies to the SACL and the DACL.  If this command is
-    used multiple times, it is recommended to use /Compact to ensure there
-    are not any redundant access control entries.
+   This command is identical to /MoveDomain except that the original 
+   entry referring the SourceDomainName is retained instead of replaced.  
+   This command only applies to the SACL and the DACL.  If this command is
+   used multiple times, it is recommended to use /Compact to ensure there
+   are not any redundant access control entries.
 
 /MoveDomain <SourceDomainName>:<TargetDomainName>
-	This command will look to see whether any account in <SourceDomain>
-    has an identically-named account in <TargetDomain>.  If so, any entires
-     are converted to use the new domain.  For example,
-    'OldDomain\Domain Admins' would become 'NewDomain\Domain Admins'.  Since
-    this operation relies on the names being resolvable, specifying a SID 
-    instead of domain name for this command does not work.  
+   This command will look to see whether any account in <SourceDomain>
+   has an identically-named account in <TargetDomain>.  If so, any entires
+   are converted to use the new domain.  For example,
+   'OldDomain\Domain Admins' would become 'NewDomain\Domain Admins'.  Since
+   this operation relies on the names being resolvable, specifying a SID 
+   instead of domain name for this command does not work.  
 
 /RemoveAccount <Name|Sid>
-    Will remove <Name> from the security descriptor.  If the specified name
-    is found as the file owner, the owner is replaced by the builtin 
-    Administrators group.  If the specified name is found as the group owner
-    (a defunct attribute that has no function in terms of security), it is 
-    also replace with the built-in Administrators group.
+   Will remove <Name> from the security descriptor.  If the specified name
+   is found as the file owner, the owner is replaced by the builtin 
+   Administrators group.  If the specified name is found as the group owner
+   (a defunct attribute that has no function in terms of security), it is 
+   also replace with the built-in Administrators group.
 
 /RemoveOrphans <Domain|Sid>
    Remove any account whose SID is derived from the <Domain> specified
@@ -181,18 +192,14 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    have been littered from the old cacls.exe command that didn't understand 
    how to set up inheritance.
 
-/ReplaceAccount <SearchAccount> <ReplaceAccount>
+/ReplaceAccount <SearchAccount>:<ReplaceAccount>
    Search for an account and replace it with another account.
 
-/Report <FileName> <RegularExpression>
-   This command will write a comma separated value file with the fields of
-   filename, security descriptor part (e.g., DACL), account name, permissions,
-   and inheritance flags.  The regular expression will perform a case
-   insensitive regular expression search against the account name in 
-   DOMAIN\user format.  To report all data, pass .* as the regular expression.
-   An optional qualifier after regular expression can be specified after the
-   regular expression to refine what part of the security descriptor to scan.
-   See Other Notes & Limitations section for more information.
+/RestoreSecurity <FileName>
+   The reverse operation of /BackupSecurity.  Takes the file name and security
+   descriptors specified in the file specified and applies them to the file
+   system.  This command does not print informational messages other than 
+   errors.
 
 /SetOwner <Name|Sid>
    Will set the owner of the file to the name specified.
