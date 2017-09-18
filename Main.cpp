@@ -69,9 +69,10 @@ void AnalyzeSecurity(ObjectEntry & oEntry)
 	PACL tAclSacl = NULL;
 	PSID tOwnerSid = NULL;
 	PSID tGroupSid = NULL;
-	PSECURITY_DESCRIPTOR tDesc;
+	PSECURITY_DESCRIPTOR tDesc = NULL;
 	DWORD iError = 0;
-	if ((iError = GetNamedSecurityInfo(oEntry.Name.c_str(), SE_FILE_OBJECT,
+	if (iInformationToLookup != 0 &&
+		(iError = GetNamedSecurityInfo(oEntry.Name.c_str(), SE_FILE_OBJECT,
 		iInformationToLookup, (bFetchOwner) ? &tOwnerSid : NULL, (bFetchGroup) ? &tGroupSid : NULL,
 		(bFetchDacl) ? &tAclDacl : NULL, (bFetchSacl) ? &tAclSacl : NULL, &tDesc)) != ERROR_SUCCESS)
 	{
@@ -94,7 +95,7 @@ void AnalyzeSecurity(ObjectEntry & oEntry)
 	bool bSaclCleanupRequired = false;
 	bool bOwnerCleanupRequired = false;
 	bool bGroupCleanupRequired = false;
-	bool bDescCleanupRequired = true;
+	bool bDescCleanupRequired = (tDesc != NULL);
 
 	// used for one-shot operations like reset children or inheritance
 	DWORD iSpecialCommitMergeFlags = 0;
@@ -112,7 +113,11 @@ void AnalyzeSecurity(ObjectEntry & oEntry)
 
 		// merge any special commit flags
 		iSpecialCommitMergeFlags |= (*oOperation)->SpecialCommitFlags;
-
+		
+		if ((*oOperation)->AppliesToObject)
+		{
+			(*oOperation)->ProcessObjectAction(oEntry);
+		}
 		if ((*oOperation)->AppliesToDacl)
 		{
 			bDaclIsDirty |= (*oOperation)->ProcessAclAction(L"DACL", oEntry, tAclDacl, bDaclCleanupRequired);
@@ -138,7 +143,6 @@ void AnalyzeSecurity(ObjectEntry & oEntry)
 				if (bSaclCleanupRequired)  { LocalFree(tAclDacl); bSaclCleanupRequired = false; };
 				if (bOwnerCleanupRequired) { LocalFree(tAclDacl); bOwnerCleanupRequired = false; };
 				if (bGroupCleanupRequired) { LocalFree(tAclDacl); bGroupCleanupRequired = false; };
-				if (bDescCleanupRequired)  { LocalFree(tDesc);    bDescCleanupRequired = false; };
 
 				// extract the elements from the raw security descriptor
 				BOOL bItemPresent = FALSE;
@@ -470,7 +474,8 @@ int wmain(int iArgs, WCHAR * aArgs[])
 			oOperation->AppliesToSacl ||
 			oOperation->AppliesToOwner ||
 			oOperation->AppliesToGroup ||
-			oOperation->AppliesToSd)
+			oOperation->AppliesToSd || 
+			oOperation->AppliesToObject)
 		{
 			// do exclusivity check and error
 			if (bExclusiveOperation && oOperation->ExclusiveOperation)

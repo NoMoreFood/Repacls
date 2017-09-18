@@ -94,6 +94,9 @@
     <ClCompile Include="OperationBackupSecurity.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
+    <ClCompile Include="OperationLocate.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConcurrentQueue.h">
@@ -202,6 +205,9 @@
       <Filter>Includes\Operations</Filter>
     </ClInclude>
     <ClInclude Include="OperationBackupSecurity.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationLocate.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>
   </ItemGroup>

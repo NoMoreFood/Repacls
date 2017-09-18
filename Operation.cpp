@@ -175,6 +175,7 @@ void Operation::ProcessGranularTargetting(std::wstring sScope)
 	AppliesToSacl = false;
 	AppliesToOwner = false;
 	AppliesToGroup = false;
+	AppliesToObject = false;
 
 	for (std::vector<std::wstring>::iterator oScope = sScopeOpts.begin();
 		oScope != sScopeOpts.end(); oScope++)

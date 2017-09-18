@@ -14,5 +14,7 @@ std::wstring GenerateAccessMask(DWORD iCurrentMask);
 std::wstring GenerateInheritanceFlags(DWORD iCurrentFlags);
 HANDLE RegisterFileHandle(HANDLE hFile, std::wstring sOperation);
 bool CheckIfAntivirusIsActive();
+std::wstring FileTimeToString(LPFILETIME tFileTime);
+BOOL WriteToFile(std::wstring & sStringToWrite, HANDLE hFile);
 
 

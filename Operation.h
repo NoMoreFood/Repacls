@@ -74,6 +74,7 @@ public:
 	bool AppliesToOwner = false;
 	bool AppliesToGroup = false;
 	bool AppliesToSd = false;
+	bool AppliesToObject = false;
 
 	bool AppliesToRootOnly = false;
 	bool AppliesToChildrenOnly = false;
@@ -86,6 +87,7 @@ public:
 	virtual bool ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement);
 	virtual bool ProcessSidAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID & tCurrentSid, bool & bSidReplacement);
 	virtual SidActionResult DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) { return SidActionResult::Nothing; }
+	virtual void ProcessObjectAction(ObjectEntry & tObjectEntry) { return; }
 
 	Operation(std::queue<std::wstring> & oArgList);
 };

@@ -19,7 +19,7 @@ OperationRestoreSecurity::OperationRestoreSecurity(std::queue<std::wstring> & oA
 	std::wifstream fFile(sSubArgs[0].c_str());
 
 	// adapt the stream to read windows unicode files
-	fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf16<wchar_t,
+	fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf8<wchar_t,
 		0x10ffff, std::consume_header>));
 
 	// read the file line-by-line
@@ -27,9 +27,9 @@ OperationRestoreSecurity::OperationRestoreSecurity(std::queue<std::wstring> & oA
 	while (std::getline(fFile, sLine))
 	{
 		// parse the file name and descriptor which are separated by a '|' character
-		// also, sometimes a character return appears in the input stream so adding 
+		// also, sometimes a carriage return appears in the input stream so adding 
 		// it here ensures it is stripped from the very end
-		std::vector<std::wstring> oLineItems = SplitArgs(sLine, L"=|\r");
+		std::vector<std::wstring> oLineItems = SplitArgs(sLine, L"\\||\r");
 
 		// convert the long string descriptor its binary equivalent
 		PSECURITY_DESCRIPTOR tDesc;

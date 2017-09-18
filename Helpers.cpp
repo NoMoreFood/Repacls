@@ -365,7 +365,8 @@ HANDLE RegisterFileHandle(HANDLE hFile, std::wstring sOperation)
 	sPath.resize(iSize + 1);
 
 	// get the full name
-	if (GetFinalPathNameByHandle(hFile, (LPWSTR)sPath.data(), (DWORD)sPath.capacity(), VOLUME_NAME_NT) == 0)
+	if (GetFinalPathNameByHandle(hFile, (LPWSTR)sPath.data(), (DWORD)sPath.capacity(), 
+		FILE_NAME_NORMALIZED | VOLUME_NAME_NT) == 0)
 	{
 		wprintf(L"ERROR: The true path to the specified file could not be determined.\n");
 		exit(-1);
@@ -457,4 +458,49 @@ bool CheckIfAntivirusIsActive()
 	// return status
 	PtrProductList->Release();
 	return bIsInstalled;
+}
+
+std::wstring FileTimeToString(LPFILETIME tFileTime)
+{
+	// the date format function require system time structure
+	SYSTEMTIME tTime;
+	FileTimeToSystemTime(tFileTime, &tTime);
+
+	// convert the date to a string and return
+	WCHAR sTime[24];
+	GetDateFormatEx(LOCALE_NAME_INVARIANT, LOCALE_USE_CP_ACP, NULL,
+		L"yyyy'-'MM'-'dd ", sTime, _countof(sTime), NULL);
+	GetTimeFormatEx(LOCALE_NAME_INVARIANT, LOCALE_USE_CP_ACP, NULL,
+		L"HH':'mm':'ss", sTime + wcslen(sTime), (int)
+		(_countof(sTime) - wcslen(sTime)));
+	return std::wstring(sTime);
+}
+
+BOOL WriteToFile(std::wstring & sStringToWrite, HANDLE hFile)
+{
+	// see how many characters we need to store as utf-8
+	int iChars = WideCharToMultiByte(CP_UTF8, 0,
+		sStringToWrite.c_str(), (int) sStringToWrite.length(), 
+		NULL, 0, NULL, NULL);
+	if (iChars == 0)
+	{
+		return FALSE;
+	}
+
+	// allocate and do the conversion
+	BYTE * sString = (BYTE *) malloc(iChars);
+    iChars = WideCharToMultiByte(CP_UTF8, 0, 
+		sStringToWrite.c_str(), (int) sStringToWrite.length(),
+		(LPSTR) sString, iChars, NULL, NULL);
+	if (iChars == 0)
+	{
+		free(sString);
+		return FALSE;
+	}
+
+	// write to file, free memory, and return result
+	DWORD iBytes = 0;
+	BOOL bResult = WriteFile(hFile, sString, iChars, &iBytes, NULL);
+	free(sString);
+	return bResult;
 }
