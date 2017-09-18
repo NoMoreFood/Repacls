@@ -32,18 +32,18 @@ OperationReport::OperationReport(std::queue<std::wstring> & oArgList) : Operatio
 	if (hFile == hReportFile)
 	{
 		// write out the file type marker
-		USHORT hHeader = 0xFEFF;
+		BYTE hHeader[] = { 0xEF,0xBB,0xBF };
 		DWORD iBytes = 0;
-		if (WriteFile(hFile, &hHeader, sizeof(USHORT), &iBytes, NULL) == 0)
+		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, NULL) == 0)
 		{
-			wprintf(L"ERROR: Could not write out report file type marker '%s'.\n", GetCommand().c_str());
+			wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
 			exit(-1);
 		}
 
 		// write out the header
 		std::wstring sToWrite = std::wstring(L"") + Q(L"Path") + L"," + Q(L"Descriptor Part") + L"," +
 			Q(L"Account Name") + L"," + Q(L"Permissions") + L"," + Q(L"Inheritance") + L"\r\n";
-		if (WriteFile(hReportFile, sToWrite.c_str(), (DWORD)sToWrite.size() * sizeof(WCHAR), &iBytes, NULL) == 0)
+		if (WriteToFile(sToWrite, hReportFile) == 0)
 		{
 			wprintf(L"ERROR: Could not write header to report file for parameter '%s'.\n", GetCommand().c_str());
 			exit(-1);
@@ -83,9 +83,8 @@ SidActionResult OperationReport::DetermineSid(WCHAR * const sSdPart, ObjectEntry
 	if (!std::regex_match(sAccount, tRegex)) return SidActionResult::Nothing;
 
 	// write the string to a file
-	DWORD iBytes = 0;
 	std::wstring sToWrite = Q(tObjectEntry.Name) + L"," + Q(sSdPart) + L"," + Q(sAccount) + L"\r\n";
-	if (WriteFile(hReportFile, sToWrite.c_str(), (DWORD)sToWrite.size() * sizeof(WCHAR), &iBytes, NULL) == 0)
+	if (WriteToFile(sToWrite, hReportFile) == 0)
 	{
 		InputOutput::AddError(L"ERROR: Unable to write security information to report file.");
 	}
@@ -115,10 +114,9 @@ bool OperationReport::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObj
 		std::wstring sFlags = GenerateInheritanceFlags(tAce->Header.AceFlags);
 
 		// write the string to a file
-		DWORD iBytes = 0;
 		std::wstring sToWrite = Q(tObjectEntry.Name) + L"," + Q(sSdPart) + L"," +
 			Q(sAccount) + L"," + Q(sMask) + L"," + Q(sFlags) + L"\r\n";
-		if (WriteFile(hReportFile, sToWrite.c_str(), (DWORD)sToWrite.size() * sizeof(WCHAR), &iBytes, NULL) == 0)
+		if (WriteToFile(sToWrite, hReportFile) == 0)
 		{
 			InputOutput::AddError(L"ERROR: Unable to write security information to report file.");
 		}

@@ -193,6 +193,7 @@
     <ClCompile Include="OperationFindDomain.cpp" />
     <ClCompile Include="OperationFindNullAcl.cpp" />
     <ClCompile Include="OperationHelp.cpp" />
+    <ClCompile Include="OperationLocate.cpp" />
     <ClCompile Include="OperationRestoreSecurity.cpp" />
     <ClCompile Include="OperationInheritChildren.cpp" />
     <ClCompile Include="OperationMoveDomain.cpp" />
@@ -219,6 +220,7 @@
     <ClInclude Include="InputOutput.h" />
     <ClInclude Include="OperationCopyDomain.h" />
     <ClInclude Include="OperationDomainPaths.h" />
+    <ClInclude Include="OperationLocate.h" />
     <ClInclude Include="OperationRestoreSecurity.h" />
     <ClInclude Include="OperationSharePaths.h" />
     <ClInclude Include="OperationAddAccountIfMissing.h" />

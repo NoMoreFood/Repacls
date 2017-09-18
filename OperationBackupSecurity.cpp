@@ -23,11 +23,11 @@ OperationBackupSecurity::OperationBackupSecurity(std::queue<std::wstring> & oArg
 	}
 
 	// write out the file type marker
-	USHORT hHeader = 0xFEFF;
+	BYTE hHeader[] = { 0xEF,0xBB,0xBF };
 	DWORD iBytes = 0;
-	if (WriteFile(hFile, &hHeader, sizeof(USHORT), &iBytes, NULL) == 0)
+	if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, NULL) == 0)
 	{
-		wprintf(L"ERROR: Could not write out report file type marker '%s'.\n", GetCommand().c_str());
+		wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
 		exit(-1);
 	}
 
@@ -52,9 +52,8 @@ bool OperationBackupSecurity::ProcessSdAction(std::wstring & sFileName, ObjectEn
 	}
 
 	// write the string to a file
-	DWORD iBytes = 0;
-	std::wstring sToWrite = sFileName + L"=" + sInfo + L"\r\n";
-	if (WriteFile(hFile, sToWrite.c_str(), (DWORD)sToWrite.size() * sizeof(WCHAR), &iBytes, NULL) == 0)
+	std::wstring sToWrite = sFileName + L"|" + sInfo + L"\r\n";
+	if (WriteToFile(sToWrite, hFile) == 0)
 	{
 		LocalFree(sInfo);
 		InputOutput::AddError(L"ERROR: Unable to write security descriptor to file.");

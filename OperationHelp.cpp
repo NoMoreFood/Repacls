@@ -125,6 +125,23 @@ Commands That Do Not Alter Security
    Reports any instance of a null ACL.  A null ACL, unlike an empty ACL, allows
    all access (i.e., similar to an ACE with 'Everyone' with 'Full Control') 
 
+/Locate <FileName> <RegularExpression>
+   This command will write a comma separated value file with the fields of
+   filename, creation time, file modified time, file size and file attributes.
+   The regular expression will perform a case insensitive regular expression 
+   search against file name or directory name.  To report all data, pass .* 
+   as the regular expression.
+
+/Report <FileName> <RegularExpression>
+   This command will write a comma separated value file with the fields of
+   filename, security descriptor part (e.g., DACL), account name, permissions,
+   and inheritance flags.  The regular expression will perform a case
+   insensitive regular expression search against the account name in 
+   DOMAIN\user format.  To report all data, pass .* as the regular expression.
+   An optional qualifier after regular expression can be specified after the
+   regular expression to refine what part of the security descriptor to scan.
+   See Other Notes & Limitations section for more information.
+
 Commands That Can Alter Security (When /WhatIf Is Not Present) 
 --------------------------------
 /AddAccountIfMissing <Name|Sid>
@@ -149,29 +166,29 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    degradation.  
 
 /CopyDomain <SourceDomainName>:<TargetDomainName>
-	This command is identical to /MoveDomain except that the original 
-    entry referring the SourceDomainName is retained instead of replaced.  
-    This command only applies to the SACL and the DACL.  If this command is
-    used multiple times, it is recommended to use /Compact to ensure there
-    are not any redundant access control entries.
-
-/MoveDomain <SourceDomainName>:<TargetDomainName>
-	This command will look to see whether any account in <SourceDomain>
-    has an identically-named account in <TargetDomain>.  If so, any entires
-     are converted to use the new domain.  For example,
-    'OldDomain\Domain Admins' would become 'NewDomain\Domain Admins'.  Since
-    this operation relies on the names being resolvable, specifying a SID 
-    instead of domain name for this command does not work.  
+   This command is identical to /MoveDomain except that the original 
+   entry referring the SourceDomainName is retained instead of replaced.  
+   This command only applies to the SACL and the DACL.  If this command is
+   used multiple times, it is recommended to use /Compact to ensure there
+   are not any redundant access control entries.
 )";
 
 std::wcout <<
 LR"(
+/MoveDomain <SourceDomainName>:<TargetDomainName>
+   This command will look to see whether any account in <SourceDomain>
+   has an identically-named account in <TargetDomain>.  If so, any entires
+   are converted to use the new domain.  For example,
+   'OldDomain\Domain Admins' would become 'NewDomain\Domain Admins'.  Since
+   this operation relies on the names being resolvable, specifying a SID 
+   instead of domain name for this command does not work.  
+
 /RemoveAccount <Name|Sid>
-    Will remove <Name> from the security descriptor.  If the specified name
-    is found as the file owner, the owner is replaced by the builtin 
-    Administrators group.  If the specified name is found as the group owner
-    (a defunct attribute that has no function in terms of security), it is 
-    also replace with the built-in Administrators group.
+   Will remove <Name> from the security descriptor.  If the specified name
+   is found as the file owner, the owner is replaced by the builtin 
+   Administrators group.  If the specified name is found as the group owner
+   (a defunct attribute that has no function in terms of security), it is 
+   also replace with the built-in Administrators group.
 
 /RemoveOrphans <Domain|Sid>
    Remove any account whose SID is derived from the <Domain> specified
@@ -186,16 +203,6 @@ LR"(
 
 /ReplaceAccount <SearchAccount>:<ReplaceAccount>
    Search for an account and replace it with another account.
-
-/Report <FileName> <RegularExpression>
-   This command will write a comma separated value file with the fields of
-   filename, security descriptor part (e.g., DACL), account name, permissions,
-   and inheritance flags.  The regular expression will perform a case
-   insensitive regular expression search against the account name in 
-   DOMAIN\user format.  To report all data, pass .* as the regular expression.
-   An optional qualifier after regular expression can be specified after the
-   regular expression to refine what part of the security descriptor to scan.
-   See Other Notes & Limitations section for more information.
 
 /RestoreSecurity <FileName>
    The reverse operation of /BackupSecurity.  Takes the file name and security
