@@ -18,18 +18,6 @@
 #include "Operation.h"
 #include "Functions.h"
 
-typedef struct SidCompare
-{
-	inline bool operator()(PSID p1, PSID p2) const
-	{
-		const DWORD iLength1 = GetLengthSid(p1);
-		const DWORD iLength2 = GetLengthSid(p2);
-		if (iLength1 != iLength2) return iLength1 < iLength2;
-		return memcmp(p1, p2, iLength1) > 0;
-	}
-} 
-SidCompare;
-
 const PSID GetSidFromName(std::wstring & sAccountName)
 {
 	// for caching
@@ -46,7 +34,7 @@ const PSID GetSidFromName(std::wstring & sAccountName)
 		}
 	}
 
-	// first see if the name look like a sid
+	// first see if the name looks like a sid
 	PSID tSidFromSid;
 	if (ConvertStringSidToSid(sAccountName.c_str(), &tSidFromSid) != 0)
 	{
@@ -95,7 +83,7 @@ std::wstring GetNameFromSid(const PSID tSid, bool * bMarkAsOrphan)
 	// scope lock for thread safety
 	{
 		std::shared_lock<std::shared_mutex> oLock(oMutex);
-		std::map<PSID, std::wstring>::iterator oInteractor = oSidToNameLookup.find(tSid);
+		std::map<PSID, std::wstring, SidCompare>::iterator oInteractor = oSidToNameLookup.find(tSid);
 		if (oInteractor != oSidToNameLookup.end())
 		{
 			// if blank that means the account has no associated same
@@ -276,7 +264,8 @@ VOID EnablePrivs()
 		return;
 	}
 
-	WCHAR * sPrivsToSet[] = { SE_RESTORE_NAME, SE_BACKUP_NAME, SE_TAKE_OWNERSHIP_NAME, SE_SECURITY_NAME };
+	WCHAR * sPrivsToSet[] = { SE_RESTORE_NAME, SE_BACKUP_NAME, 
+		SE_TAKE_OWNERSHIP_NAME, SE_CHANGE_NOTIFY_NAME };
 	for (int i = 0; i < sizeof(sPrivsToSet) / sizeof(WCHAR *); i++)
 	{
 		// populate the privilege adjustment structure
@@ -397,7 +386,7 @@ HANDLE RegisterFileHandle(HANDLE hFile, std::wstring sOperation)
 	}
 }
 
-bool CheckIfAntivirusIsActive()
+std::wstring GetAntivirusStateDescription()
 {
 	// initialize COM for checking the antivirus status
 	HRESULT hResult = CoInitializeEx(0, COINIT_APARTMENTTHREADED);
@@ -407,21 +396,21 @@ bool CheckIfAntivirusIsActive()
 	}
 
 	// assume not installed by default
-	bool bIsInstalled = false;
+	bool bIsEnabled = false;
 
 	// query the product list
 	IWSCProductList * PtrProductList = nullptr;
 	if (FAILED(CoCreateInstance(__uuidof(WSCProductList), NULL, CLSCTX_INPROC_SERVER,
 		__uuidof(IWSCProductList), reinterpret_cast<LPVOID*> (&PtrProductList))))
 	{
-		return false;
+		return L"Unknown";
 	}
 
 	// initialize the antivirus provider list
 	if (FAILED(PtrProductList->Initialize(WSC_SECURITY_PROVIDER_ANTIVIRUS)))
 	{
 		PtrProductList->Release();
-		return false;
+		return L"Unknown";
 	}
 
 	// get the current product count
@@ -429,7 +418,7 @@ bool CheckIfAntivirusIsActive()
 	if (FAILED(PtrProductList->get_Count(&ProductCount)))
 	{
 		PtrProductList->Release();
-		return false;
+		return L"Unknown";
 	}
 
 	for (LONG i = 0; i < ProductCount; i++)
@@ -439,7 +428,7 @@ bool CheckIfAntivirusIsActive()
 		if (FAILED(PtrProductList->get_Item(i, &PtrProduct)))
 		{
 			PtrProductList->Release();
-			return false;
+			return L"Unknown";
 		}
 
 		// fetch the product state
@@ -448,16 +437,16 @@ bool CheckIfAntivirusIsActive()
 		{
 			PtrProduct->Release();
 			PtrProductList->Release();
-			return false;
+			return L"Unknown";
 		}
 
-		bIsInstalled |= (ProductState == WSC_SECURITY_PRODUCT_STATE_ON);
+		bIsEnabled |= (ProductState == WSC_SECURITY_PRODUCT_STATE_ON);
 		PtrProduct->Release();
 	}
 
 	// return status
 	PtrProductList->Release();
-	return bIsInstalled;
+	return (bIsEnabled) ? L"On" : L"Off";
 }
 
 std::wstring FileTimeToString(LPFILETIME tFileTime)
@@ -468,9 +457,9 @@ std::wstring FileTimeToString(LPFILETIME tFileTime)
 
 	// convert the date to a string and return
 	WCHAR sTime[24];
-	GetDateFormatEx(LOCALE_NAME_INVARIANT, LOCALE_USE_CP_ACP, NULL,
+	GetDateFormatEx(LOCALE_NAME_INVARIANT, LOCALE_USE_CP_ACP, &tTime,
 		L"yyyy'-'MM'-'dd ", sTime, _countof(sTime), NULL);
-	GetTimeFormatEx(LOCALE_NAME_INVARIANT, LOCALE_USE_CP_ACP, NULL,
+	GetTimeFormatEx(LOCALE_NAME_INVARIANT, LOCALE_USE_CP_ACP, &tTime,
 		L"HH':'mm':'ss", sTime + wcslen(sTime), (int)
 		(_countof(sTime) - wcslen(sTime)));
 	return std::wstring(sTime);
