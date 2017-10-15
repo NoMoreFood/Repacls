@@ -141,6 +141,10 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <DebugInformationFormat>None</DebugInformationFormat>
+      <OmitFramePointers>true</OmitFramePointers>
+      <ShowIncludes />
+      <StringPooling>true</StringPooling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -150,6 +154,7 @@
       <Profile>false</Profile>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SetChecksum>true</SetChecksum>
+      <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -168,6 +173,9 @@
       <DisableSpecificWarnings>4100</DisableSpecificWarnings>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <DebugInformationFormat>None</DebugInformationFormat>
+      <OmitFramePointers>true</OmitFramePointers>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <StringPooling>true</StringPooling>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -177,6 +185,7 @@
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <Profile>true</Profile>
       <SetChecksum>true</SetChecksum>
+      <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -194,6 +203,7 @@
     <ClCompile Include="OperationFindNullAcl.cpp" />
     <ClCompile Include="OperationHelp.cpp" />
     <ClCompile Include="OperationLocate.cpp" />
+    <ClCompile Include="OperationReplaceMap.cpp" />
     <ClCompile Include="OperationRestoreSecurity.cpp" />
     <ClCompile Include="OperationInheritChildren.cpp" />
     <ClCompile Include="OperationMoveDomain.cpp" />
@@ -221,6 +231,7 @@
     <ClInclude Include="OperationCopyDomain.h" />
     <ClInclude Include="OperationDomainPaths.h" />
     <ClInclude Include="OperationLocate.h" />
+    <ClInclude Include="OperationReplaceMap.h" />
     <ClInclude Include="OperationRestoreSecurity.h" />
     <ClInclude Include="OperationSharePaths.h" />
     <ClInclude Include="OperationAddAccountIfMissing.h" />

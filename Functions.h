@@ -13,8 +13,20 @@ std::wstring GetDomainNameFromSid(const PSID tSid);
 std::wstring GenerateAccessMask(DWORD iCurrentMask);
 std::wstring GenerateInheritanceFlags(DWORD iCurrentFlags);
 HANDLE RegisterFileHandle(HANDLE hFile, std::wstring sOperation);
-bool CheckIfAntivirusIsActive();
+std::wstring GetAntivirusStateDescription();
 std::wstring FileTimeToString(LPFILETIME tFileTime);
 BOOL WriteToFile(std::wstring & sStringToWrite, HANDLE hFile);
 
+// helper typedefs
+typedef struct SidCompare
+{
+	inline bool operator()(PSID p1, PSID p2) const
+	{
+		const DWORD iLength1 = GetLengthSid(p1);
+		const DWORD iLength2 = GetLengthSid(p2);
+		if (iLength1 != iLength2) return iLength1 < iLength2;
+		return memcmp(p1, p2, iLength1) > 0;
+	}
+}
+SidCompare;
 

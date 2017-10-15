@@ -74,7 +74,10 @@ void OperationLocate::ProcessObjectAction(ObjectEntry & tObjectEntry)
 
 	// fetch file attribute data
 	WIN32_FILE_ATTRIBUTE_DATA tData;
-	GetFileAttributesExW(tObjectEntry.Name.c_str(), GetFileExInfoStandard, &tData);
+	if (GetFileAttributesExW(tObjectEntry.Name.c_str(), GetFileExInfoStandard, &tData) == 0)
+	{
+		InputOutput::AddError(L"ERROR: Unable to read file attributes.");
+	}
 
 	// convert the file size to a string
 	WCHAR sSize[32];
