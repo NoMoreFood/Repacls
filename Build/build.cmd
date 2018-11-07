@@ -1,20 +1,29 @@
 @ECHO OFF
+TITLE Building Repacls...
+CLS
+SET PATH=%WINDIR%\system32;%WINDIR%\system32\WindowsPowerShell\v1.0
 
 :: cert info to use for signing
-SET CERT=9CC90E20ABF21CDEF09EE4C467A79FD454140C5A
+SET CERT=2FA35B20356EFEB88F9E9B5F20221693C57100E5
 set TSAURL=http://time.certum.pl/
 set LIBNAME=Repacls
 set LIBURL=https://github.com/NoMoreFood/Repacls
 
 :: do cleanup
-FOR %%X IN (Debug Temp .vs) DO (
-  FORFILES /S /P "%~dp0.." /M "%%X" /C "CMD /C IF @isdir==TRUE RD /S /Q @path"
-)
-FOR %%X IN (Win32 x64 Debug Release) DO (
-  FORFILES /S /P "%~dp0.." /M "*.*pdb" /C "CMD /C DEL /Q @path"
-  FORFILES /S /P "%~dp0.." /M "*.*obj" /C "CMD /C DEL /Q @path"
-  FORFILES /S /P "%~dp0.." /M "*.log" /C "CMD /C DEL /Q @path"
-)
+RD /S /Q "%~dp0..\.vs" >NUL 2>&1
+RD /S /Q "%~dp0..\Temp" >NUL 2>&1
+RD /S /Q "%~dp0Debug" >NUL 2>&1
+RD /S /Q "%~dp0Release\x86\Temp" >NUL 2>&1
+RD /S /Q "%~dp0Release\x64\Temp" >NUL 2>&1
+FORFILES /S /P "%~dp0." /M "*.*pdb" /C "CMD /C DEL /Q @path" >NUL 2>&1
+FORFILES /S /P "%~dp0." /M "*.*obj" /C "CMD /C DEL /Q @path" >NUL 2>&1
+FORFILES /S /P "%~dp0." /M "*.zip" /C "CMD /C DEL /Q @path" >NUL 2>&1
+FORFILES /S /P "%~dp0." /M "*.log" /C "CMD /C DEL /Q @path" >NUL 2>&1
+FORFILES /S /P "%~dp0." /M "*.lib" /C "CMD /C DEL /Q @path" >NUL 2>&1
+FORFILES /S /P "%~dp0." /M "*.dll" /C "CMD /C DEL /Q @path" >NUL 2>&1
+FORFILES /S /P "%~dp0." /M "*.bsc" /C "CMD /C DEL /Q @path" >NUL 2>&1
+FORFILES /S /P "%~dp0." /M "*.exp" /C "CMD /C DEL /Q @path" >NUL 2>&1
+FORFILES /S /P "%~dp0." /M "*.last*" /C "CMD /C DEL /Q @path" >NUL 2>&1
 
 :: setup environment variables based on location of this script
 SET BINDIR=%~dp0Release
@@ -23,13 +32,17 @@ SET BINDIR=%~dp0Release
 IF DEFINED ProgramFiles SET PX86=%ProgramFiles%
 IF DEFINED ProgramFiles(x86) SET PX86=%ProgramFiles(x86)%
 
-:: setup paths
-SET PATH=%WINDIR%\system32;%WINDIR%\system32\WindowsPowerShell\v1.0
-SET PATH=%PATH%;%PX86%\Windows Kits\10\bin\x64
-SET PATH=%PATH%;%PX86%\Windows Kits\8.1\bin\x64
+:: setup commands and paths
+SET POWERSHELL=POWERSHELL.EXE -NoProfile -NonInteractive -NoLogo
+FOR /F "USEBACKQ DELIMS=" %%X IN (`DIR /OD /B /S "%PX86%\Windows Kits\10\SIGNTOOL.exe" ^| FINDSTR x64`) DO SET SIGNTOOL="%%~X"
 
 :: sign the main executables
-signtool sign /sha1 %CERT% /fd sha1 /tr %TSAURL% /td sha1 /d %LIBNAME% /du %LIBURL% "%BINDIR%\x86\*.exe" "%BINDIR%\x64\*.exe" 
-signtool sign /sha1 %CERT% /as /fd sha256 /tr %TSAURL% /td sha256 /d %LIBNAME% /du %LIBURL% "%BINDIR%\x86\*.exe" "%BINDIR%\x64\*.exe"
+%SIGNTOOL% sign /sha1 %CERT% /fd sha1 /tr %TSAURL% /td sha1 /d %LIBNAME% /du %LIBURL% "%BINDIR%\x86\*.exe" "%BINDIR%\x64\*.exe" 
+%SIGNTOOL% sign /sha1 %CERT% /as /fd sha256 /tr %TSAURL% /td sha256 /d %LIBNAME% /du %LIBURL% "%BINDIR%\x86\*.exe" "%BINDIR%\x64\*.exe"
+
+:: zip up executatables
+PUSHD "%BINDIR%"
+%POWERSHELL% -Command "Compress-Archive -LiteralPath @('x86','x64') -DestinationPath '%~dp0Repacls.zip'"
+POPD
 
 PAUSE

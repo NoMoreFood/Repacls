@@ -9,7 +9,7 @@ new ClassFactory<OperationReport>(GetCommand());
 
 OperationReport::OperationReport(std::queue<std::wstring> & oArgList) : Operation(oArgList)
 {
-	// exit if there are not enough arguments to part
+	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sReportFile = ProcessAndCheckArgs(1, oArgList, L"\\0");
 	std::vector<std::wstring> sMatchAndArgs = ProcessAndCheckArgs(1, oArgList, L":");
 
