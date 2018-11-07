@@ -22,7 +22,7 @@
     <ProjectGuid>{0E11E31A-BE5D-4B31-AA8E-DA9AEEC84F37}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>PermChange</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
     <ProjectName>repacls</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -203,6 +203,7 @@
     <ClCompile Include="OperationFindNullAcl.cpp" />
     <ClCompile Include="OperationHelp.cpp" />
     <ClCompile Include="OperationLocate.cpp" />
+    <ClCompile Include="OperationPathList.cpp" />
     <ClCompile Include="OperationReplaceMap.cpp" />
     <ClCompile Include="OperationRestoreSecurity.cpp" />
     <ClCompile Include="OperationInheritChildren.cpp" />
@@ -231,6 +232,7 @@
     <ClInclude Include="OperationCopyDomain.h" />
     <ClInclude Include="OperationDomainPaths.h" />
     <ClInclude Include="OperationLocate.h" />
+    <ClInclude Include="OperationPathList.h" />
     <ClInclude Include="OperationReplaceMap.h" />
     <ClInclude Include="OperationRestoreSecurity.h" />
     <ClInclude Include="OperationSharePaths.h" />

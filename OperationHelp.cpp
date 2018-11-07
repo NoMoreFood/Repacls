@@ -44,6 +44,12 @@ or end of your command as to not confuse them with ordered parameters.
    and all files and folders under the directory (unless otherwise specified).
    This parameter is mandatory.  This command can be specified multiple times.
 
+/PathList <FileName>
+   Specifies a file that contains a list of files or directories to process.
+   Each path should be listed on a separate line and the file should be UTF-8
+   formatted.  Each path read from the file is processed the same as if it 
+   where passed using /Path (see above). 
+
 /SharePaths <ComputerName>[:AdminOnly|IncludeHidden|Match=<Str>|NoMatch=<Str>]
    Specifies a server that has one or more shares to process.  This command is
    equivalent to specifying /Path for every share on a particular file server.
@@ -103,10 +109,10 @@ Commands That Do Not Alter Security
 
 /CheckCanonical
    This command inspects the DACL and SACL for canonical order compliance
-   (i.e., the rules in the ACL are ordered as explicitly deny, explicitly allow,
-   inherited deny, inherited allow).  If non-canonical entries are detected,
-   it is recommended to inspect the ACL with icacls.exe or Windows Explorer
-   to ensure the ACL is not corrupted in a more significant way.
+   (i.e., the rules in the ACL are ordered as explicitly deny, explicitly 
+   allow, inherited deny, inherited allow).  If non-canonical entries are 
+   detected, it is recommended to inspect the ACL with icacls.exe or Windows
+   Explorer to ensure the ACL is not corrupted in a more significant way.
 
 /BackupSecurity <FileName>
    Export the security descriptor to the file specified.  The file is
@@ -164,17 +170,17 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    inefficiencies.  While there's nothing inherently wrong with these
    entries, it possible for them to result file system is performance
    degradation.
+)";
 
+	std::wcout <<
+		LR"(
 /CopyDomain <SourceDomainName>:<TargetDomainName>
    This command is identical to /MoveDomain except that the original
    entry referring the SourceDomainName is retained instead of replaced.
    This command only applies to the SACL and the DACL.  If this command is
    used multiple times, it is recommended to use /Compact to ensure there
    are not any redundant access control entries.
-)";
 
-	std::wcout <<
-		LR"(
 /MoveDomain <SourceDomainName>:<TargetDomainName>
    This command will look to see whether any account in <SourceDomain>
    has an identically-named account in <TargetDomain>.  If so, any entires

@@ -7,7 +7,7 @@ ClassFactory<OperationPath> * OperationPath::RegisteredFactory =
 
 OperationPath::OperationPath(std::queue<std::wstring> & oArgList) : Operation(oArgList)
 {
-	// exit if there are not enough arguments to part
+	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
 
 	// store off the argument
