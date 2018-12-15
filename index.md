@@ -1,10 +1,10 @@
 # Repacls Usage Information
 
-Link To Latest Binaries (1.9.1.0): [Here](https://github.com/NoMoreFood/Repacls/raw/v1.9.1.0/Build/Repacls.Binaries.1.9.1.0.zip)
+Link To Latest Binaries (1.10.0.0): [Here](https://github.com/NoMoreFood/Repacls/raw/v1.10.0.0/Build/Repacls.zip)
 
 ```
 ===============================================================================
-= Repacls Version 1.9.1.0 by Bryan Berns
+= Repacls Version 1.10.0.0 by Bryan Berns
 ===============================================================================
 
 repacls.exe /Path <Absolute Path> ... other options ....
@@ -38,6 +38,12 @@ or end of your command as to not confuse them with ordered parameters.
    and all files and folders under the directory (unless otherwise specified).
    This parameter is mandatory.  This command can be specified multiple times.
 
+/PathList <FileName>
+   Specifies a file that contains a list of files or directories to process.
+   Each path should be listed on a separate line and the file should be UTF-8
+   formatted.  Each path read from the file is processed the same as if it 
+   where passed using /Path (see above). 
+
 /SharePaths <ComputerName>[:AdminOnly|IncludeHidden|Match=<Str>|NoMatch=<Str>]
    Specifies a server that has one or more shares to process.  This command is
    equivalent to specifying /Path for every share on a particular file server.
@@ -64,11 +70,15 @@ or end of your command as to not confuse them with ordered parameters.
 
 /Threads <NumberOfThreads>
    Specifies the number of threads to use while processing.  The default value
-   of  '5' is usually adequate, but can be increased if performing changes
+   of '5' is usually adequate, but can be increased if performing changes
    over a higher-latency connection.  Since changes to a parent directory
    often affect the inherited security on children, the security of children
    objects are always processed after the security on their parent objects
    are fully processed.
+
+/Log <FileName>
+   Specifies that messages written to the screen should also be written to the
+   designated file. The file is a comma separated value file.
 
 /WhatIf
    This option will analyze security and report on any potential changes
@@ -97,10 +107,10 @@ Commands That Do Not Alter Security
 
 /CheckCanonical
    This command inspects the DACL and SACL for canonical order compliance
-   (i.e., the rules in the ACL are ordered as explicitly deny, explicitly allow,
-   inherited deny, inherited allow).  If non-canonical entries are detected,
-   it is recommended to inspect the ACL with icacls.exe or Windows Explorer
-   to ensure the ACL is not corrupted in a more significant way.
+   (i.e., the rules in the ACL are ordered as explicitly deny, explicitly 
+   allow, inherited deny, inherited allow).  If non-canonical entries are 
+   detected, it is recommended to inspect the ACL with icacls.exe or Windows
+   Explorer to ensure the ACL is not corrupted in a more significant way.
 
 /BackupSecurity <FileName>
    Export the security descriptor to the file specified.  The file is
