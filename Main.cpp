@@ -1,11 +1,12 @@
-#define UMDF_USING_NTSTATUS
+﻿#define UMDF_USING_NTSTATUS
 #include <ntstatus.h>
 
 #include <windows.h>
-#include <stdio.h>
+#include <cstdio>
 #include <queue>
 #include <vector>
-#include <map>
+#include <io.h>
+#include <fcntl.h>
 #include <lmcons.h>
 
 #include <string>
@@ -46,7 +47,7 @@ bool bFetchGroup = false;
 void AnalyzeSecurity(ObjectEntry & oEntry)
 {
 	// update file counter
-	iFilesScanned++;
+	++iFilesScanned;
 
 	// print out file name
 	InputOutput::AddFile(oEntry.Name);
@@ -101,42 +102,41 @@ void AnalyzeSecurity(ObjectEntry & oEntry)
 	DWORD iSpecialCommitMergeFlags = 0;
 
 	// loop through the instruction list
-	for (std::vector<Operation *>::iterator oOperation = oOperationList.begin();
-		oOperation != oOperationList.end(); oOperation++)
+	for (auto& oOperation : oOperationList)
 	{
 		// skip if this operation does not apply to the root/children based on the operation
-		if ((*oOperation)->AppliesToRootOnly && !oEntry.IsRoot ||
-			(*oOperation)->AppliesToChildrenOnly && oEntry.IsRoot)
+		if (oOperation->AppliesToRootOnly && !oEntry.IsRoot ||
+			oOperation->AppliesToChildrenOnly && oEntry.IsRoot)
 		{
 			continue;
 		}
 
 		// merge any special commit flags
-		iSpecialCommitMergeFlags |= (*oOperation)->SpecialCommitFlags;
+		iSpecialCommitMergeFlags |= oOperation->SpecialCommitFlags;
 		
-		if ((*oOperation)->AppliesToObject)
+		if (oOperation->AppliesToObject)
 		{
-			(*oOperation)->ProcessObjectAction(oEntry);
+			oOperation->ProcessObjectAction(oEntry);
 		}
-		if ((*oOperation)->AppliesToDacl)
+		if (oOperation->AppliesToDacl)
 		{
-			bDaclIsDirty |= (*oOperation)->ProcessAclAction(L"DACL", oEntry, tAclDacl, bDaclCleanupRequired);
+			bDaclIsDirty |= oOperation->ProcessAclAction(L"DACL", oEntry, tAclDacl, bDaclCleanupRequired);
 		}
-		if ((*oOperation)->AppliesToSacl)
+		if (oOperation->AppliesToSacl)
 		{
-			bSaclIsDirty |= (*oOperation)->ProcessAclAction(L"SACL", oEntry, tAclSacl, bSaclCleanupRequired);
+			bSaclIsDirty |= oOperation->ProcessAclAction(L"SACL", oEntry, tAclSacl, bSaclCleanupRequired);
 		}
-		if ((*oOperation)->AppliesToOwner)
+		if (oOperation->AppliesToOwner)
 		{
-			bOwnerIsDirty |= (*oOperation)->ProcessSidAction(L"OWNER", oEntry, tOwnerSid, bOwnerCleanupRequired);
+			bOwnerIsDirty |= oOperation->ProcessSidAction(L"OWNER", oEntry, tOwnerSid, bOwnerCleanupRequired);
 		}
-		if ((*oOperation)->AppliesToGroup)
+		if (oOperation->AppliesToGroup)
 		{
-			bGroupIsDirty |= (*oOperation)->ProcessSidAction(L"GROUP", oEntry, tGroupSid, bGroupCleanupRequired);
+			bGroupIsDirty |= oOperation->ProcessSidAction(L"GROUP", oEntry, tGroupSid, bGroupCleanupRequired);
 		}
-		if ((*oOperation)->AppliesToSd)
+		if (oOperation->AppliesToSd)
 		{
-			if ((*oOperation)->ProcessSdAction(oEntry.Name, oEntry, tDesc, bDescCleanupRequired))
+			if (oOperation->ProcessSdAction(oEntry.Name, oEntry, tDesc, bDescCleanupRequired))
 			{
 				// cleanup previous operations if necessary
 				if (bDaclCleanupRequired)  { LocalFree(tAclDacl); bDaclCleanupRequired = false; };
@@ -158,11 +158,9 @@ void AnalyzeSecurity(ObjectEntry & oEntry)
 				GetSecurityDescriptorControl(tDesc, &tControl, &tRevisionInfo);
 
 				// convert inheritance bits to the special flags that control inheritance
-				iSpecialCommitMergeFlags = CheckBitSet(SE_SACL_PROTECTED, tControl) ?
-					PROTECTED_SACL_SECURITY_INFORMATION : UNPROTECTED_SACL_SECURITY_INFORMATION;
 				iSpecialCommitMergeFlags = CheckBitSet(SE_DACL_PROTECTED, tControl) ?
 					PROTECTED_DACL_SECURITY_INFORMATION : UNPROTECTED_DACL_SECURITY_INFORMATION;
-
+				
 				// mark all elements as needing to be updated
 				bDaclIsDirty = true;
 				bSaclIsDirty = true;
@@ -204,11 +202,11 @@ void AnalyzeSecurity(ObjectEntry & oEntry)
 				// clear out any remaining data
 				InputOutput::WriteToScreen();
 
-				iFilesUpdatedFailure++;
+				++iFilesUpdatedFailure;
 			}
 			else
 			{
-				iFilesUpdatedSuccess++;
+				++iFilesUpdatedSuccess;
 			}
 		}
 	}
@@ -238,7 +236,7 @@ void CompleteEntry(ObjectEntry & oEntry, bool bDecreaseCounter = true)
 	InputOutput::WriteToScreen();
 }
 
-void AnalzyingQueue()
+void AnalyzingQueue()
 {
 	// total files processed
 	thread_local BYTE DirectoryInfo[MAX_DIRECTORY_BUFFER];
@@ -249,7 +247,7 @@ void AnalzyingQueue()
 		ObjectEntry oEntry = oScanQueue.pop();
 
 		// break out if entry flags a termination
-		if (oEntry.Name.size() == 0) break;
+		if (oEntry.Name.empty()) break;
 
 		// skip if hidden and system
 		if (!oEntry.IsRoot && IsHiddenSystem(oEntry.Attributes) 
@@ -290,7 +288,7 @@ void AnalzyingQueue()
 		{
 			InputOutput::AddError(L"Access denied error occurred while enumerating directory");
 			CompleteEntry(oEntry);
-			iFilesEnumerationFailures++;
+			++iFilesEnumerationFailures;
 			continue;
 		}
 		else if (Status == STATUS_OBJECT_PATH_NOT_FOUND ||
@@ -298,23 +296,23 @@ void AnalzyingQueue()
 		{
 			InputOutput::AddError(L"Path not found error occurred while enumerating directory");
 			CompleteEntry(oEntry);
-			iFilesEnumerationFailures++;
+			++iFilesEnumerationFailures;
 			continue;
 		}
 		else if (Status != STATUS_SUCCESS)
 		{
 			InputOutput::AddError(L"Unknown error occurred while enumerating directory");
 			CompleteEntry(oEntry);
-			iFilesEnumerationFailures++;
+			++iFilesEnumerationFailures;
 			continue;
 		}
 
 		// enumerate files in the directory
-		for (;;)
+		for (bool bFirstRun = true; true; bFirstRun = false)
 		{
 			Status = NtQueryDirectoryFile(hFindFile, NULL, NULL, NULL, &IoStatusBlock,
 				DirectoryInfo, MAX_DIRECTORY_BUFFER, (FILE_INFORMATION_CLASS)FileDirectoryInformation,
-				FALSE, NULL, FALSE);
+				FALSE, NULL, (bFirstRun) ? TRUE : FALSE);
 
 			// done processing
 			if (Status == STATUS_NO_MORE_FILES) break;
@@ -325,7 +323,7 @@ void AnalzyingQueue()
 				break;
 			}
 
-			for (FILE_DIRECTORY_INFORMATION * oInfo = (FILE_DIRECTORY_INFORMATION *)DirectoryInfo;
+			for (auto* oInfo = (FILE_DIRECTORY_INFORMATION *)DirectoryInfo;
 				oInfo != NULL; oInfo = (FILE_DIRECTORY_INFORMATION *)((BYTE *)oInfo + oInfo->NextEntryOffset))
 			{
 				// continue immediately if we get the '.' or '..' entries
@@ -354,7 +352,7 @@ void AnalzyingQueue()
 				}
 				else
 				{
-					iFilesToProcess++;
+					++iFilesToProcess;
 					oScanQueue.push(oSubEntry);
 				}
 
@@ -374,10 +372,9 @@ VOID BeginFileScan()
 	// startup some threads for processing
 	std::vector<std::thread *> oThreads;
 	for (USHORT iNum = 0; iNum < InputOutput::MaxThreads(); iNum++)
-		oThreads.push_back(new std::thread(AnalzyingQueue));
+		oThreads.push_back(new std::thread(AnalyzingQueue));
 
-	for (std::vector<std::wstring>::iterator sScanPath = InputOutput::ScanPaths().begin();
-		sScanPath != InputOutput::ScanPaths().end(); sScanPath++)
+	for (auto sPath : InputOutput::ScanPaths())
 	{
 		// to get the process started, we need to have one entry so
 		// we will set that to the passed argument
@@ -385,11 +382,9 @@ VOID BeginFileScan()
 		oEntryFirst.IsRoot = true;
 
 		// make a local copy of the path since we may have to alter it
-		std::wstring sPath = *sScanPath;
-
 		// handle special case where a drive root is specified
 		// we must ensure it takes the form x:\. to resolve correctly
-		size_t iSemiColon = sPath.rfind(L":");
+		size_t iSemiColon = sPath.rfind(L':');
 		if (iSemiColon != std::wstring::npos)
 		{
 			std::wstring sEnd = sPath.substr(iSemiColon);
@@ -411,7 +406,7 @@ VOID BeginFileScan()
 		RtlFreeUnicodeString(&tPathU);
 
 		// add this entry to being processing
-		iFilesToProcess++;
+		++iFilesToProcess;
 		oScanQueue.push(oEntryFirst);
 	}
 
@@ -425,21 +420,24 @@ VOID BeginFileScan()
 	// send in some empty entries to tell the thread to stop waiting
 	for (USHORT iNum = 0; iNum < InputOutput::MaxThreads(); iNum++)
 	{
-		ObjectEntry oEntry = { L"" };
+		ObjectEntry oEntry = { L"", 0, FALSE };
 		oScanQueue.push(oEntry);
 	}
 
 	// wait for the threads to complete
-	for (std::vector<std::thread *>::iterator oThread = oThreads.begin();
-		oThread != oThreads.end(); oThread++)
+	for (auto& oThread : oThreads)
 	{
-		(*oThread)->join();
-		delete (*oThread);
+		oThread->join();
+		delete oThread;
 	}
 }
 
 int wmain(int iArgs, WCHAR * aArgs[])
 {
+	// allow output of unicode characters
+	_setmode(_fileno(stderr), _O_U16TEXT);
+	_setmode(_fileno(stdout), _O_U16TEXT);
+
 	// print standard header
 	wprintf(L"===============================================================================\n");
 	wprintf(L"= Repacls Version %hs by Bryan Berns\n", VERSION_STRING);
@@ -497,7 +495,7 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	}
 
 	// verify a path was specified
-	if (InputOutput::ScanPaths().size() == 0)
+	if (InputOutput::ScanPaths().empty())
 	{
 		wprintf(L"%s\n", L"ERROR: No path was specified.");
 		exit(-1);
@@ -511,9 +509,8 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	wprintf(L"===============================================================================\n");
 	wprintf(L"= Initial Scan Details\n");
 	wprintf(L"===============================================================================\n");
-	for (std::vector<std::wstring>::iterator sScanPath = InputOutput::ScanPaths().begin();
-		sScanPath != InputOutput::ScanPaths().end(); sScanPath++)
-		wprintf(L"= Scan Path(s): %s\n", (*sScanPath).c_str());
+	for (auto& sScanPath : InputOutput::ScanPaths())
+		wprintf(L"= Scan Path(s): %s\n", sScanPath.c_str());
 	wprintf(L"= Maximum Threads: %d\n", (int)InputOutput::MaxThreads());
 	wprintf(L"= What If Mode: %s\n", InputOutput::InWhatIfMode() ? L"Yes" : L"No");
 	wprintf(L"= Antivirus Active: %s\n", GetAntivirusStateDescription().c_str());

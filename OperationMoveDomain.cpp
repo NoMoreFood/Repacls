@@ -71,7 +71,7 @@ SidActionResult OperationMoveDomain::DetermineSid(WCHAR * const sSdPart, ObjectE
 		// lookup the target name and see if it exists
 		std::wstring sTargetAccountName = GetNameFromSid(tSidTmp);
 		FreeSid(tSidTmp);
-		if (sTargetAccountName.size() == 0)	return SidActionResult::Nothing;
+		if (sTargetAccountName.empty())	return SidActionResult::Nothing;
 
 		// do a forward lookup on the name in order to get a reference to the 
 		// SID that we do not have to worry about cleaning up
@@ -87,14 +87,19 @@ SidActionResult OperationMoveDomain::DetermineSid(WCHAR * const sSdPart, ObjectE
 	{
 		// translate the old sid to an account name
 		std::wstring sSourceAccountName = GetNameFromSid(tCurrentSid, NULL);
-		if (sSourceAccountName.size() == 0)	return SidActionResult::Nothing;
+		if (sSourceAccountName.empty())	return SidActionResult::Nothing;
 
 		// check to see if an equivalent account exists in the target domain
 		std::wstring sTargetAccountName = sTargetDomain + (wcsstr(sSourceAccountName.c_str(), L"\\") + 1);
 		tResultantSid = GetSidFromName(sTargetAccountName);
 
 		// exit if no match was found
-		if (tResultantSid == nullptr) return SidActionResult::Nothing;
+		if (tResultantSid == nullptr)
+		{
+			InputOutput::AddWarning(L"Could not find matching account in target domain for '" +
+				sSourceAccountName + L"'");
+			return SidActionResult::Nothing;
+		}
 
 		// do a reverse lookup to see if this might be a sid history item
 		if (GetNameFromSidEx(tResultantSid) == sSourceAccountName) return SidActionResult::Nothing;

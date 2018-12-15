@@ -76,11 +76,15 @@ or end of your command as to not confuse them with ordered parameters.
 
 /Threads <NumberOfThreads>
    Specifies the number of threads to use while processing.  The default value
-   of  '5' is usually adequate, but can be increased if performing changes
+   of '5' is usually adequate, but can be increased if performing changes
    over a higher-latency connection.  Since changes to a parent directory
    often affect the inherited security on children, the security of children
    objects are always processed after the security on their parent objects
    are fully processed.
+
+/Log <FileName>
+   Specifies that messages written to the screen should also be written to the
+   designated file. The file is a comma separated value file.
 
 /WhatIf
    This option will analyze security and report on any potential changes
@@ -159,7 +163,10 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    granted.  This command is useful to correct issues where a user or
    administrator has mistakenly removed an administrative group from some
    directories.
+)";
 
+	std::wcout <<
+		LR"(
 /Compact
    This command will look for mergeable entries in the security descriptor and
    merge them.  For example, running icacls.exe <file> /grant Everyone:R
@@ -170,10 +177,7 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    inefficiencies.  While there's nothing inherently wrong with these
    entries, it possible for them to result file system is performance
    degradation.
-)";
 
-	std::wcout <<
-		LR"(
 /CopyDomain <SourceDomainName>:<TargetDomainName>
    This command is identical to /MoveDomain except that the original
    entry referring the SourceDomainName is retained instead of replaced.

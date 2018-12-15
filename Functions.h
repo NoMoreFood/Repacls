@@ -6,7 +6,7 @@
 
 // helper functions
 VOID EnablePrivs();
-const PSID GetSidFromName(std::wstring & sAccountName);
+PSID GetSidFromName(std::wstring & sAccountName);
 std::wstring GetNameFromSid(const PSID tSid, bool * bMarkAsOrphan = nullptr);
 std::wstring GetNameFromSidEx(const PSID tSid, bool * bMarkAsOrphan = nullptr);
 std::wstring GetDomainNameFromSid(const PSID tSid);

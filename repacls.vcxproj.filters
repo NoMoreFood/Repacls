@@ -103,6 +103,12 @@
     <ClCompile Include="OperationPathList.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
+    <ClCompile Include="OperationLocateShortcut.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationLog.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConcurrentQueue.h">
@@ -220,6 +226,12 @@
       <Filter>Includes\Operations</Filter>
     </ClInclude>
     <ClInclude Include="OperationPathList.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationLocateShortcut.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationLog.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>
   </ItemGroup>

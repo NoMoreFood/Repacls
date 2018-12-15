@@ -10,6 +10,9 @@ set LIBNAME=Repacls
 set LIBURL=https://github.com/NoMoreFood/Repacls
 
 :: do cleanup
+DEL "%~dp0*.iobj" /F /S /Q >NUL 2>&1
+DEL "%~dp0*.ipdb" /F /S /Q >NUL 2>&1
+DEL "%~dp0lastcodeanalysissucceeded" /F /S /Q >NUL 2>&1
 RD /S /Q "%~dp0..\.vs" >NUL 2>&1
 RD /S /Q "%~dp0..\Temp" >NUL 2>&1
 RD /S /Q "%~dp0Debug" >NUL 2>&1

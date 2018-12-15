@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <sddl.h>
 #include <lmcons.h>
-#include <stdio.h>
+#include <cstdio>
 #include <ntsecapi.h>
 #include <atlbase.h>
 #include <atlstr.h>
@@ -18,7 +18,7 @@
 #include "Operation.h"
 #include "Functions.h"
 
-const PSID GetSidFromName(std::wstring & sAccountName)
+PSID GetSidFromName(std::wstring & sAccountName)
 {
 	// for caching
 	static std::shared_mutex oMutex;
@@ -27,7 +27,7 @@ const PSID GetSidFromName(std::wstring & sAccountName)
 	// scope lock for thread safety
 	{
 		std::shared_lock<std::shared_mutex> oLock(oMutex);
-		std::map<std::wstring, PSID>::iterator oInteractor = oNameToSidLookup.find(sAccountName);
+		const auto oInteractor = oNameToSidLookup.find(sAccountName);
 		if (oInteractor != oNameToSidLookup.end())
 		{
 			return oInteractor->second;
@@ -59,7 +59,7 @@ const PSID GetSidFromName(std::wstring & sAccountName)
 
 	// reallocate memory and copy sid to a smaller part of memory and
 	// then add the sid to the cache map
-	PSID tSid = (PSID)memcpy(malloc(iSidSize), tSidFromName, iSidSize);
+	auto tSid = (PSID) memcpy(malloc(iSidSize), tSidFromName, iSidSize);
 
 	// scope lock for thread safety
 	{
@@ -83,12 +83,12 @@ std::wstring GetNameFromSid(const PSID tSid, bool * bMarkAsOrphan)
 	// scope lock for thread safety
 	{
 		std::shared_lock<std::shared_mutex> oLock(oMutex);
-		std::map<PSID, std::wstring, SidCompare>::iterator oInteractor = oSidToNameLookup.find(tSid);
+		auto oInteractor = oSidToNameLookup.find(tSid);
 		if (oInteractor != oSidToNameLookup.end())
 		{
 			// if blank that means the account has no associated same
 			// and likely is an orphan
-			if (oInteractor->second == L"" &&
+			if (oInteractor->second.empty() &&
 				bMarkAsOrphan != NULL) *bMarkAsOrphan = true;
 
 			// return the found full name
@@ -126,7 +126,7 @@ std::wstring GetNameFromSid(const PSID tSid, bool * bMarkAsOrphan)
 
 	// copy the sid for storage in our cache table
 	const DWORD iSidLength = GetLengthSid(tSid);
-	PSID tSidCopy = (PSID)memcpy(malloc(iSidLength), tSid, iSidLength);
+	auto tSidCopy = (PSID)memcpy(malloc(iSidLength), tSid, iSidLength);
 
 	// scope lock for thread safety
 	{
@@ -142,7 +142,7 @@ std::wstring GetNameFromSidEx(const PSID tSid, bool * bMarkAsOrphan)
 {
 	// if sid is resolvable then return the account name
 	std::wstring sName = GetNameFromSid(tSid, bMarkAsOrphan);
-	if (sName != L"") return sName;
+	if (!sName.empty()) return sName;
 
 	// if sid is unresolvable then return sid in string form
 	WCHAR * sSidBuf;
@@ -159,7 +159,7 @@ std::wstring GetDomainNameFromSid(const PSID tSid)
 
 	// sometimes the domain will be returned as DOMAIN\DOMAIN instead
 	// of just DOMAIN\ so lets trim off any excess characters
-	std::wstring::size_type nSlash = sDomainName.find(L"\\");
+	const std::wstring::size_type nSlash = sDomainName.find(L'\\');
 	if (nSlash != std::wstring::npos) sDomainName.erase(nSlash + 1);
 	return sDomainName;
 }
@@ -173,7 +173,7 @@ std::wstring GenerateInheritanceFlags(DWORD iCurrentFlags)
 	if (INHERIT_ONLY_ACE & iCurrentFlags) sFlags += L"Inherit Only;";
 
 	// handle the empty case or trim off the trailing semicolon
-	if (sFlags.size() == 0) sFlags = L"None";
+	if (sFlags.empty()) sFlags = L"None";
 	else sFlags.pop_back();
 
 	// return the calculated string
@@ -219,7 +219,7 @@ std::wstring GenerateAccessMask(DWORD iCurrentMask)
 
 	// loop through the mask and construct of string of the names
 	std::wstring sMaskList;
-	for (int iMaskEntry = 0; iMaskEntry < _countof(MaskDefinitions) && iCurrentMask > 0; iMaskEntry++)
+	for (unsigned int iMaskEntry = 0; iMaskEntry < _countof(MaskDefinitions) && iCurrentMask > 0; ++iMaskEntry)
 	{
 		if ((MaskDefinitions[iMaskEntry].Mask & iCurrentMask) == MaskDefinitions[iMaskEntry].Mask)
 		{
@@ -235,7 +235,7 @@ std::wstring GenerateAccessMask(DWORD iCurrentMask)
 	}
 
 	// handle the empty case or trim off the trailing semicolon
-	if (sMaskList.size() == 0) sMaskList = L"None";
+	if (sMaskList.empty()) sMaskList = L"None";
 	else sMaskList.pop_back();
 
 	// return the calculated string
@@ -255,7 +255,7 @@ VOID EnablePrivs()
 
 	// get the current user sid out of the token
 	BYTE aBuffer[sizeof(TOKEN_USER) + SECURITY_MAX_SID_SIZE];
-	PTOKEN_USER tTokenUser = (PTOKEN_USER)(aBuffer);
+	auto tTokenUser = (PTOKEN_USER)(aBuffer);
 	DWORD iBytesFilled = 0;
 	if (GetTokenInformation(hToken, TokenUser, tTokenUser, sizeof(aBuffer), &iBytesFilled) == 0)
 	{
@@ -266,7 +266,7 @@ VOID EnablePrivs()
 
 	WCHAR * sPrivsToSet[] = { SE_RESTORE_NAME, SE_BACKUP_NAME, 
 		SE_TAKE_OWNERSHIP_NAME, SE_CHANGE_NOTIFY_NAME };
-	for (int i = 0; i < sizeof(sPrivsToSet) / sizeof(WCHAR *); i++)
+	for (auto& i : sPrivsToSet)
 	{
 		// populate the privilege adjustment structure
 		TOKEN_PRIVILEGES tPrivEntry;
@@ -274,10 +274,10 @@ VOID EnablePrivs()
 		tPrivEntry.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
 		// translate the privilege name into the binary representation
-		if (LookupPrivilegeValue(NULL, sPrivsToSet[i],
+		if (LookupPrivilegeValue(NULL, i,
 			&tPrivEntry.Privileges[0].Luid) == 0)
 		{
-			wprintf(L"ERROR: Could not lookup privilege: %s\n", sPrivsToSet[i]);
+			wprintf(L"ERROR: Could not lookup privilege: %s\n", i);
 			continue;
 		}
 
@@ -306,9 +306,9 @@ VOID EnablePrivs()
 
 		// convert the privilege name to a unicode string format
 		LSA_UNICODE_STRING sPrivilege;
-		sPrivilege.Buffer = sPrivsToSet[i];
-		sPrivilege.Length = (USHORT)(wcslen(sPrivsToSet[i]) * sizeof(WCHAR));
-		sPrivilege.MaximumLength = (USHORT)((wcslen(sPrivsToSet[i]) + 1) * sizeof(WCHAR));
+		sPrivilege.Buffer = i;
+		sPrivilege.Length = (USHORT)(wcslen(i) * sizeof(WCHAR));
+		sPrivilege.MaximumLength = (USHORT)((wcslen(i) + 1) * sizeof(WCHAR));
 
 		// attempt to add the account to policy
 		if ((iResult = LsaAddAccountRights(hPolicyHandle,
@@ -316,7 +316,7 @@ VOID EnablePrivs()
 		{
 			LsaClose(hPolicyHandle);
 			wprintf(L"ERROR: Privilege '%s' was not able to be added with error '%lu'\n",
-				sPrivsToSet[i], LsaNtStatusToWinError(iResult));
+			        i, LsaNtStatusToWinError(iResult));
 			continue;
 		}
 
@@ -326,14 +326,14 @@ VOID EnablePrivs()
 		if (AdjustTokenPrivileges(hToken, FALSE, &tPrivEntry,
 			sizeof(TOKEN_PRIVILEGES), NULL, NULL) == 0 || GetLastError() != ERROR_NOT_ALL_ASSIGNED)
 		{
-			wprintf(L"ERROR: Could not adjust privilege: %s\n", sPrivsToSet[i]);
+			wprintf(L"ERROR: Could not adjust privilege: %s\n", i);
 			continue;
 		}
 
 		// error if not all items were assigned
 		if (GetLastError() == ERROR_NOT_ALL_ASSIGNED)
 		{
-			wprintf(L"ERROR: Could not enable privilege: %s\n", sPrivsToSet[i]);
+			wprintf(L"ERROR: Could not enable privilege: %s\n", i);
 		}
 	}
 
@@ -347,7 +347,7 @@ HANDLE RegisterFileHandle(HANDLE hFile, std::wstring sOperation)
 	static std::map<std::wstring, std::pair<HANDLE,std::wstring>> oFileLookup;
 
 	// do a reverse lookup on the file name
-	DWORD iSize = GetFinalPathNameByHandle(hFile, NULL, 0, VOLUME_NAME_NT);
+	auto iSize = (size_t) GetFinalPathNameByHandle(hFile, NULL, 0, VOLUME_NAME_NT);
 
 	// create a string that can accommodate that size (plus null terminating character)
 	std::wstring sPath;
@@ -365,7 +365,7 @@ HANDLE RegisterFileHandle(HANDLE hFile, std::wstring sOperation)
 	sPath.resize(iSize);
 
 	// if the handle already exists, then use that one if the parameters match
-	std::map<std::wstring, std::pair<HANDLE,std::wstring>>::iterator oFile = oFileLookup.find(sPath);
+	auto oFile = oFileLookup.find(sPath);
 	if (oFile != oFileLookup.end())
 	{
 		if (oFileLookup[sPath].second == sOperation)
@@ -389,10 +389,10 @@ HANDLE RegisterFileHandle(HANDLE hFile, std::wstring sOperation)
 std::wstring GetAntivirusStateDescription()
 {
 	// initialize COM for checking the antivirus status
-	HRESULT hResult = CoInitializeEx(0, COINIT_APARTMENTTHREADED);
+	const HRESULT hResult = CoInitializeEx(0, COINIT_APARTMENTTHREADED);
 	if (hResult != S_OK && hResult != S_FALSE)
 	{
-		return false;
+		return L"Unknown";
 	}
 
 	// assume not installed by default
@@ -477,7 +477,7 @@ BOOL WriteToFile(std::wstring & sStringToWrite, HANDLE hFile)
 	}
 
 	// allocate and do the conversion
-	BYTE * sString = (BYTE *) malloc(iChars);
+	auto* sString = (BYTE *) malloc(iChars);
     iChars = WideCharToMultiByte(CP_UTF8, 0, 
 		sStringToWrite.c_str(), (int) sStringToWrite.length(),
 		(LPSTR) sString, iChars, NULL, NULL);

@@ -203,6 +203,8 @@
     <ClCompile Include="OperationFindNullAcl.cpp" />
     <ClCompile Include="OperationHelp.cpp" />
     <ClCompile Include="OperationLocate.cpp" />
+    <ClCompile Include="OperationLocateShortcut.cpp" />
+    <ClCompile Include="OperationLog.cpp" />
     <ClCompile Include="OperationPathList.cpp" />
     <ClCompile Include="OperationReplaceMap.cpp" />
     <ClCompile Include="OperationRestoreSecurity.cpp" />
@@ -228,10 +230,12 @@
     <ClInclude Include="ConcurrentQueue.h" />
     <ClInclude Include="DriverKitPartial.h" />
     <ClInclude Include="Functions.h" />
+    <ClInclude Include="OperationLocateShortcut.h" />
     <ClInclude Include="InputOutput.h" />
     <ClInclude Include="OperationCopyDomain.h" />
     <ClInclude Include="OperationDomainPaths.h" />
     <ClInclude Include="OperationLocate.h" />
+    <ClInclude Include="OperationLog.h" />
     <ClInclude Include="OperationPathList.h" />
     <ClInclude Include="OperationReplaceMap.h" />
     <ClInclude Include="OperationRestoreSecurity.h" />
