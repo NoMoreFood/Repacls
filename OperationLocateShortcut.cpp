@@ -1,13 +1,18 @@
-#include "OperationLocate.h"
+#include "OperationLocateShortcut.h"
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationLocate> * OperationLocate::RegisteredFactory =
-new ClassFactory<OperationLocate>(GetCommand());
+#pragma comment(lib, "shlwapi.lib") 
+
+#include <shlobj.h> 
+#include <shlwapi.h> 
+
+ClassFactory<OperationLocateShortcut> * OperationLocateShortcut::RegisteredFactory =
+new ClassFactory<OperationLocateShortcut>(GetCommand());
 
 #define Q(x) L"\"" + (x) + L"\""
 
-OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring> & oArgList) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sReportFile = ProcessAndCheckArgs(1, oArgList, L"\\0");
@@ -42,7 +47,8 @@ OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList) : Operatio
 
 		// write out the header
 		std::wstring sToWrite = std::wstring(L"") + Q(L"Path") + L"," + Q(L"Creation Time") + L"," +
-			Q(L"Modified Time") + L"," + Q(L"Size") + L"," + Q(L"Attributes") + L"\r\n";
+			Q(L"Modified Time") + L"," + Q(L"Size") + L"," + Q(L"Attributes") + L"," + 
+			Q(L"Target Path") + L"," + Q(L"Working Directory") + L"\r\n";
 		if (WriteToFile(sToWrite, hReportFile) == 0)
 		{
 			wprintf(L"ERROR: Could not write header to report file for parameter '%s'.\n", GetCommand().c_str());
@@ -56,7 +62,8 @@ OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList) : Operatio
 	// compile the regular expression
 	try
 	{
-		tRegex = std::wregex(sMatchAndArgs[0], std::wregex::icase | std::wregex::optimize);
+		tRegexTarget = std::wregex(sMatchAndArgs[0], std::wregex::icase | std::wregex::optimize);
+		tRegexLink = std::wregex(L".*\\.lnk", std::wregex::icase | std::wregex::optimize);
 	}
 	catch (const std::regex_error &)
 	{
@@ -65,12 +72,25 @@ OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList) : Operatio
 	}
 }
 
-void OperationLocate::ProcessObjectAction(ObjectEntry & tObjectEntry)
+void OperationLocateShortcut::ProcessObjectAction(ObjectEntry & tObjectEntry)
 {
 	// skip any file names that do not match the regex
 	const WCHAR * sFileName = tObjectEntry.Name.c_str();
 	if (wcsrchr(sFileName, '\\') != NULL) sFileName = wcsrchr(sFileName, '\\') + 1;
-	if (!std::regex_match(sFileName, tRegex)) return;
+	if (!std::regex_match(sFileName, tRegexLink)) return;
+
+	// initialize com for this thread
+	__declspec(thread) static bool bComInitialized = false;
+	if (!bComInitialized)
+	{
+		bComInitialized = true;
+		const HRESULT hComInit = CoInitializeEx(0, COINIT_APARTMENTTHREADED);
+		if (hComInit != S_OK && hComInit != S_FALSE)
+		{
+			wprintf(L"ERROR: Could not initialize COM.\n");
+			exit(-1);
+		}
+	}
 
 	// fetch file attribute data
 	WIN32_FILE_ATTRIBUTE_DATA tData;
@@ -100,12 +120,41 @@ void OperationLocate::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	if (tData.dwFileAttributes & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED) sAttributes += L"N";
 	if (tData.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED) sAttributes += L"E";
 
-	// write the string to a file
-	std::wstring sToWrite = std::wstring(L"") + Q(tObjectEntry.Name) + L"," +
-		Q(FileTimeToString(&tData.ftCreationTime)) + L"," + Q(FileTimeToString(&tData.ftLastWriteTime)) +
-		L"," + Q(sSize) + L"," + Q(sAttributes) + L"\r\n";
-	if (WriteToFile(sToWrite, hReportFile) == 0)
+	// create shortcut interfaces
+	IShellLinkW * oLink = NULL;
+	IPersistFile * oFile = NULL;
+	if (CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (VOID **)&oLink) != S_OK ||
+		oLink->QueryInterface(IID_IPersistFile, (VOID **)&oFile) != S_OK)
 	{
-		InputOutput::AddError(L"ERROR: Unable to write security information to report file.");
+		wprintf(L"ERROR: Could not initialize ShellLink COM instance.\n");
+		return;
 	}
+
+	// load in the shortcut
+	std::wstring sTargetPath = L"<ERROR READING>";
+	std::wstring sWorkingDirectory = L"<ERROR READING>";
+	if (oFile->Load(tObjectEntry.Name.c_str(), STGM_READ) == S_OK)
+	{
+		WCHAR sTargetPathRaw[MAX_PATH];
+		WCHAR sWorkingDirRaw[MAX_PATH];
+		if (oLink->GetPath(sTargetPathRaw, MAX_PATH, NULL, SLGP_RAWPATH) == S_OK) sTargetPath = sTargetPathRaw;
+		if (oLink->GetWorkingDirectory(sWorkingDirRaw, MAX_PATH) == S_OK) sWorkingDirectory = sWorkingDirRaw;
+	}
+
+	// check if the target path matches out regex filter 
+	if (std::regex_match(sTargetPath, tRegexTarget))
+	{
+		// write output to file
+		std::wstring sToWrite = std::wstring(L"") + Q(tObjectEntry.Name) + L"," +
+			Q(FileTimeToString(&tData.ftCreationTime)) + L"," + Q(FileTimeToString(&tData.ftLastWriteTime)) +
+			L"," + Q(sSize) + L"," + Q(sAttributes) + L"," + Q(sTargetPath) + L"," + Q(sWorkingDirectory) + L"\r\n";
+		if (WriteToFile(sToWrite, hReportFile) == 0)
+		{
+			InputOutput::AddError(L"ERROR: Unable to write security information to report file.");
+		}
+	}
+
+	// cleanup
+	oLink->Release();
+	oFile->Release();
 }

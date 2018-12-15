@@ -27,7 +27,7 @@ bool Operation::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEnt
 		PSID const tCurrentSid = &tAce->Sid;
 
 		PSID tResultantSid;
-		SidActionResult tResult = DetermineSid(sSdPart, tObjectEntry, tCurrentSid, tResultantSid);
+		const SidActionResult tResult = DetermineSid(sSdPart, tObjectEntry, tCurrentSid, tResultantSid);
 
 		if (tResult == SidActionResult::Remove)
 		{
@@ -75,6 +75,12 @@ bool Operation::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEnt
 			else
 			{
 				PBYTE const tNewAcl = (PBYTE)LocalAlloc(LMEM_FIXED, tAcl->AclSize + (iNewLen - iOldLen));
+				if (tNewAcl == NULL)
+				{
+					wprintf(L"ERROR: Unable to allocate memory for new SID.\n");
+					exit(-1);
+				}
+
 				memcpy(tNewAcl, tAclLoc, tOldSidLoc - tAclLoc);
 				memcpy(tNewAcl + (tOldSidLoc - tAclLoc), tNewSid, iNewLen);
 				memcpy(tNewAcl + (tOldSidLoc - tAclLoc) + iNewLen, tOldSidLoc + iOldLen, tAcl->AclSize - ((tOldSidLoc - tAclLoc) + iOldLen));
@@ -98,10 +104,10 @@ bool Operation::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEnt
 	return bMadeChange;
 }
 
-std::vector<std::wstring> Operation::SplitArgs(std::wstring sInput, std::wstring sDelimiter)
+std::vector<std::wstring> Operation::SplitArgs(std::wstring sInput, const std::wstring & sDelimiter)
 {
-	std::wregex oRegex(sDelimiter);
-	std::wsregex_token_iterator oFirst{ sInput.begin(), sInput.end(), oRegex, -1 }, oLast;
+	const std::wregex oRegex(sDelimiter);
+	const std::wsregex_token_iterator oFirst{ sInput.begin(), sInput.end(), oRegex, -1 }, oLast;
 	return { oFirst, oLast };
 }
 
@@ -139,10 +145,10 @@ Operation::Operation(std::queue<std::wstring> & oArgList)
 		DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &DefaultSidWhenEmpty);
 };
 
-std::vector<std::wstring> Operation::ProcessAndCheckArgs(int iArgsRequired, std::queue<std::wstring> & oArgList, std::wstring sDelimiter)
+std::vector<std::wstring> Operation::ProcessAndCheckArgs(int iArgsRequired, std::queue<std::wstring> & oArgList, const std::wstring & sDelimiter)
 {
 	// check if around arguments exist yet
-	if (iArgsRequired > 0 && oArgList.size() == 0)
+	if (iArgsRequired > 0 && oArgList.empty())
 	{
 		wprintf(L"ERROR: An option that was specified is missing a required parameter.\n");
 		exit(-1);
@@ -166,8 +172,8 @@ std::vector<std::wstring> Operation::ProcessAndCheckArgs(int iArgsRequired, std:
 void Operation::ProcessGranularTargetting(std::wstring sScope)
 {
 	// parse the parameters, splitting on :
-	std::wregex oRegex(L",");
-	std::wsregex_token_iterator oFirst{ sScope.begin(), sScope.end(), oRegex, -1 }, oLast;
+	const std::wregex oRegex(L",");
+	const std::wsregex_token_iterator oFirst{ sScope.begin(), sScope.end(), oRegex, -1 }, oLast;
 	std::vector<std::wstring> sScopeOpts = { oFirst, oLast };
 
 	// default all to false if calling this method
@@ -177,17 +183,16 @@ void Operation::ProcessGranularTargetting(std::wstring sScope)
 	AppliesToGroup = false;
 	AppliesToObject = false;
 
-	for (std::vector<std::wstring>::iterator oScope = sScopeOpts.begin();
-		oScope != sScopeOpts.end(); oScope++)
+	for (auto& sScopeOpt : sScopeOpts)
 	{
-		if (*oScope == L"DACL") AppliesToDacl = true;
-		else if (*oScope == L"SACL") AppliesToSacl = true;
-		else if (*oScope == L"OWNER") AppliesToOwner = true;
-		else if (*oScope == L"GROUP") AppliesToGroup = true;
+		if (sScopeOpt == L"DACL") AppliesToDacl = true;
+		else if (sScopeOpt == L"SACL") AppliesToSacl = true;
+		else if (sScopeOpt == L"OWNER") AppliesToOwner = true;
+		else if (sScopeOpt == L"GROUP") AppliesToGroup = true;
 		else
 		{
 			// complain
-			wprintf(L"ERROR: Unrecognized scope qualifier '%s'\n", (*oScope).c_str());
+			wprintf(L"ERROR: Unrecognized scope qualifier '%s'\n", sScopeOpt.c_str());
 			exit(-1);
 		}
 	}

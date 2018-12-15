@@ -19,7 +19,7 @@ OperationPathList::OperationPathList(std::queue<std::wstring> & oArgList) : Oper
 	std::wifstream fFile(sSubArgs[0].c_str());
 
 	// adapt the stream to read windows unicode files
-	fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf8<wchar_t,
+	(void) fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf8<wchar_t,
 		0x10ffff, std::consume_header>));
 
 	// read the file line-by-line

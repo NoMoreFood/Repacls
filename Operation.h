@@ -24,7 +24,7 @@ typedef ACCESS_ACE *PACCESS_ACE;
 #define NextAceWithRestart(Acl,Ace,Restart) ((Restart) ? FirstAce(Acl) : NextAce(Ace))
 
 // define our own version of sid length since its faster
-#define GetLengthSid(x) (sizeof(SID) + (((SID *) x)->SubAuthorityCount - 1) * sizeof(((SID *) x)->SubAuthority))
+#define GetLengthSid(x) (sizeof(SID) + (((SID *) (x))->SubAuthorityCount - 1) * sizeof(((SID *) (x))->SubAuthority))
 #define SidMatch(x,y) (memcmp(x,y,min(GetLengthSid(x),GetLengthSid(y))) == 0)
 #define SidNotMatch(x,y) (!SidMatch(x,y))
 
@@ -35,12 +35,12 @@ typedef ACCESS_ACE *PACCESS_ACE;
 #define IsReparsePoint(x) (CheckBitSet(x,FILE_ATTRIBUTE_REPARSE_POINT))
 
 // a few simple defines for convenience
-#define IsInherited(x) CheckBitSet(x->Header.AceFlags,INHERITED_ACE)
-#define HasContainerInherit(x) CheckBitSet(x->Header.AceFlags,CONTAINER_INHERIT_ACE)
-#define HasObjectInherit(x) CheckBitSet(x->Header.AceFlags,OBJECT_INHERIT_ACE)
-#define HasInheritOnly(x) CheckBitSet(x->Header.AceFlags,INHERIT_ONLY_ACE)
-#define HasNoPropogate(x) CheckBitSet(x->Header.AceFlags,NO_PROPAGATE_INHERIT_ACE)
-#define GetNonOiCiIoBits(x) ((~(CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE | INHERIT_ONLY_ACE)) & x->Header.AceFlags)
+#define IsInherited(x) CheckBitSet((x)->Header.AceFlags,INHERITED_ACE)
+#define HasContainerInherit(x) CheckBitSet((x)->Header.AceFlags,CONTAINER_INHERIT_ACE)
+#define HasObjectInherit(x) CheckBitSet((x)->Header.AceFlags,OBJECT_INHERIT_ACE)
+#define HasInheritOnly(x) CheckBitSet((x)->Header.AceFlags,INHERIT_ONLY_ACE)
+#define HasNoPropogate(x) CheckBitSet((x)->Header.AceFlags,NO_PROPAGATE_INHERIT_ACE)
+#define GetNonOiCiIoBits(x) ((~(CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE | INHERIT_ONLY_ACE)) & (x)->Header.AceFlags)
 
 typedef struct ObjectEntry
 {
@@ -63,8 +63,8 @@ class Operation
 {
 protected:
 
-	static std::vector<std::wstring> Operation::SplitArgs(std::wstring sInput, std::wstring sDelimiter);
-	static std::vector<std::wstring> ProcessAndCheckArgs(int iArgsRequired, std::queue<std::wstring> & oArgList, std::wstring sDelimiter = L":");
+	static std::vector<std::wstring> SplitArgs(std::wstring sInput, const std::wstring & sDelimiter);
+	static std::vector<std::wstring> ProcessAndCheckArgs(int iArgsRequired, std::queue<std::wstring> & oArgList, const std::wstring & sDelimiter = L":");
 	void ProcessGranularTargetting(std::wstring sScope);
 
 public:
@@ -90,6 +90,7 @@ public:
 	virtual void ProcessObjectAction(ObjectEntry & tObjectEntry) { return; }
 
 	Operation(std::queue<std::wstring> & oArgList);
+	virtual ~Operation() = default;;
 };
 
 #include "OperationFactory.h"

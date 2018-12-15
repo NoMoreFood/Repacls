@@ -23,7 +23,12 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList) 
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
 
 	// initialize com only
-	static HRESULT hComInit = CoInitializeEx(NULL, 0);
+	static HRESULT hComInit = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	if (hComInit != S_OK && hComInit != S_FALSE)
+	{
+		wprintf(L"ERROR: Could not initialize COM.\n");
+		exit(-1);
+	}
 
 	// find a domain controller for the specified domain
 	PDOMAIN_CONTROLLER_INFO tDomainControllerInfo;
@@ -72,7 +77,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList) 
 	// execute the search.
 	LPWSTR sAttributes[] = { L"cn" };
 	ADS_SEARCH_HANDLE hSearch;
-	if (FAILED(oSearch->ExecuteSearch(sSearchFilter, sAttributes, ARRAYSIZE(sAttributes), &hSearch)))
+	if (FAILED(oSearch->ExecuteSearch(sSearchFilter, sAttributes, _countof(sAttributes), &hSearch)))
 	{
 		wprintf(L"ERROR: Could not execute search for domain '%s'\n", sSubArgs[0].c_str());
 		exit(-1);

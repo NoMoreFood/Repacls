@@ -5,7 +5,7 @@
 ClassFactory<OperationReport> * OperationReport::RegisteredFactory =
 new ClassFactory<OperationReport>(GetCommand());
 
-#define Q(x) L"\"" + x + L"\""
+#define Q(x) L"\"" + (x) + L"\""
 
 OperationReport::OperationReport(std::queue<std::wstring> & oArgList) : Operation(oArgList)
 {

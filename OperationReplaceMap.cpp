@@ -19,7 +19,7 @@ OperationReplaceMap::OperationReplaceMap(std::queue<std::wstring> & oArgList) : 
 	std::wifstream fFile(sSubArgs[0].c_str());
 
 	// adapt the stream to read windows unicode files
-	fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf8<wchar_t,
+	(void) fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf8<wchar_t,
 		0x10ffff, std::consume_header>));
 
 	// read the file line-by-line
@@ -71,7 +71,7 @@ OperationReplaceMap::OperationReplaceMap(std::queue<std::wstring> & oArgList) : 
 SidActionResult OperationReplaceMap::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
 	// check if the sid matches the ace
-	std::map<PSID, PSID, SidCompare>::iterator oInteractor = oReplaceMap.find(tCurrentSid);
+	const auto oInteractor = oReplaceMap.find(tCurrentSid);
 	if (oInteractor == oReplaceMap.end()) return SidActionResult::Nothing;
 	
 	// return the replacement sid

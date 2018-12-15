@@ -19,7 +19,7 @@ OperationRestoreSecurity::OperationRestoreSecurity(std::queue<std::wstring> & oA
 	std::wifstream fFile(sSubArgs[0].c_str());
 
 	// adapt the stream to read windows unicode files
-	fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf8<wchar_t,
+	(void) fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf8<wchar_t,
 		0x10ffff, std::consume_header>));
 
 	// read the file line-by-line
@@ -58,7 +58,7 @@ OperationRestoreSecurity::OperationRestoreSecurity(std::queue<std::wstring> & oA
 
 bool OperationRestoreSecurity::ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement)
 {
-	std::map<std::wstring, PSECURITY_DESCRIPTOR>::iterator oSecInfo = oImportMap.find(sFileName);
+	auto oSecInfo = oImportMap.find(sFileName);
 	if (oSecInfo != oImportMap.end())
 	{
 		// lookup the string in the map

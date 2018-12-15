@@ -29,17 +29,16 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : 
 		std::vector<std::wstring> oShareArgs = SplitArgs(sSubArgs[1], L",");
 
 		// enumerate list 
-		for (std::vector<std::wstring>::iterator sShareArg = oShareArgs.begin();
-			sShareArg != oShareArgs.end(); sShareArg++)
+		for (auto& oShareArg : oShareArgs)
 		{
 			// check to see if a match parameter was passed
 			WCHAR sMatchArg[] = L"MATCH=";
 			WCHAR sNoMatchArg[] = L"NOMATCH=";
-			if (_wcsnicmp((*sShareArg).c_str(), sMatchArg, _countof(sMatchArg) - 1) == 0 ||
-				_wcsnicmp((*sShareArg).c_str(), sNoMatchArg, _countof(sNoMatchArg) - 1) == 0)
+			if (_wcsnicmp(oShareArg.c_str(), sMatchArg, _countof(sMatchArg) - 1) == 0 ||
+				_wcsnicmp(oShareArg.c_str(), sNoMatchArg, _countof(sNoMatchArg) - 1) == 0)
 			{
 				// split the NOMATCH/MATCH= sub parameter to get the regular expression part
-				std::vector<std::wstring> oMatchArgs = SplitArgs(*sShareArg, L"=");
+				std::vector<std::wstring> oMatchArgs = SplitArgs(oShareArg, L"=");
 
 				// verify a regular expression was actually specified
 				if (oMatchArgs.size() != 2)
@@ -51,7 +50,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : 
 				try
 				{
 					// parse the regular expression
-					((_wcsnicmp((*sShareArg).c_str(), sMatchArg, _countof(sMatchArg) - 1) == 0) ? oMatchRegex : oNoMatchRegex) =
+					((_wcsnicmp(oShareArg.c_str(), sMatchArg, _countof(sMatchArg) - 1) == 0) ? oMatchRegex : oNoMatchRegex) =
 						std::wregex(oMatchArgs[1], std::regex_constants::icase);
 				}
 				catch (std::exception &)
@@ -61,21 +60,21 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : 
 					exit(-1);
 				}
 			}
-			else if (_wcsicmp((*sShareArg).c_str(), L"INCLUDEHIDDEN") == 0)
+			else if (_wcsicmp(oShareArg.c_str(), L"INCLUDEHIDDEN") == 0)
 			{
 				bHiddenIncluded = true;
 			}
-			else if (_wcsicmp((*sShareArg).c_str(), L"ADMINONLY") == 0)
+			else if (_wcsicmp(oShareArg.c_str(), L"ADMINONLY") == 0)
 			{
 				bAdminOnly = true;
 			}
-			else if (_wcsicmp((*sShareArg).c_str(), L"STOPONERROR") == 0)
+			else if (_wcsicmp(oShareArg.c_str(), L"STOPONERROR") == 0)
 			{
 				bStopOnErrors = true;
 			}
 			else
 			{
-				wprintf(L"ERROR: Unrecognized share lookup option '%s'\n", (*sShareArg).c_str());
+				wprintf(L"ERROR: Unrecognized share lookup option '%s'\n", oShareArg.c_str());
 				exit(-1);
 			}
 		}
@@ -141,11 +140,11 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : 
 	// enumerate the shares and make sure there are no duplicates 
 	// or child that are contained within parent paths
 	for (std::map<std::wstring, std::wstring>::const_iterator oPathOuter = mPaths.begin(); 
-		oPathOuter != mPaths.end(); oPathOuter++)
+		oPathOuter != mPaths.end(); ++oPathOuter)
 	{
 		bool bAddToPathList = true;
-		for (std::map<std::wstring, std::wstring>::const_iterator oPathInner = oPathOuter;
-			oPathInner != mPaths.end(); oPathInner++)
+		for (auto oPathInner = oPathOuter;
+			oPathInner != mPaths.end(); ++oPathInner)
 		{
 			// see if the path is a sub-path of another path
 			if (oPathInner->first != oPathOuter->first &&

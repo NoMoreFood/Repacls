@@ -11,7 +11,7 @@ private:
 	static ClassFactory<OperationResetChildren> * RegisteredFactory;
 
 	// used for clearing out explicit aces
-	ACL tAclNull = { 0 };
+	ACL tAclNull = { 0, 0, 0, 0, 0 };
 
 public:
 

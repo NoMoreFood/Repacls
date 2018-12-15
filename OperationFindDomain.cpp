@@ -23,7 +23,7 @@ OperationFindDomain::OperationFindDomain(std::queue<std::wstring> & oArgList) : 
 
 	// do a reverse lookup of the name for reporting
 	sDomainName = GetDomainNameFromSid(tDomainSid);
-	sDomainName = sDomainName.substr(0, sDomainName.find(L"\\"));
+	sDomainName = sDomainName.substr(0, sDomainName.find(L'\\'));
 
 	// flag this as being an ace-level action
 	AppliesToDacl = true;

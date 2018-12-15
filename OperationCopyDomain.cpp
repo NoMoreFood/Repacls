@@ -52,6 +52,9 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 		for (LONG iEntry = 0; iEntry < tCurrentAcl->AceCount; tAceDacl = 
 			(iEntry == -1) ? FirstAce(tCurrentAcl) : NextAce(tAceDacl), iEntry++)
 		{
+			// do not bother with inherited aces
+			if (IsInherited(tAceDacl)) continue;
+			
 			// see if this sid in the source domain
 			BOOL bDomainSidsEqual = FALSE;
 			if (EqualDomainSid(&tAceDacl->Sid, tSourceDomain, &bDomainSidsEqual) == 0 ||
@@ -78,7 +81,7 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 				// lookup the target name and see if it exists
 				std::wstring sTargetAccountName = GetNameFromSid(tSidTmp);
 				FreeSid(tSidTmp);
-				if (sTargetAccountName.size() == 0)	continue;
+				if (sTargetAccountName.empty())	continue;
 
 				// do a forward lookup on the name in order to get a reference to the 
 				// SID that we do not have to worry about cleaning up
@@ -94,14 +97,19 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 			{
 				// translate the old sid to an account name
 				std::wstring sSourceAccountName = GetNameFromSid(&tAceDacl->Sid, NULL);
-				if (sSourceAccountName.size() == 0)	continue;
+				if (sSourceAccountName.empty())	continue;
 
 				// check to see if an equivalent account exists in the target domain
 				std::wstring sTargetAccountName = sTargetDomain + (wcsstr(sSourceAccountName.c_str(), L"\\") + 1);
 				tTargetAccountSid = GetSidFromName(sTargetAccountName);
 
 				// continue if no match was found
-				if (tTargetAccountSid == nullptr) continue;
+				if (tTargetAccountSid == nullptr)
+				{
+					InputOutput::AddWarning(L"Could not find matching account in target domain for '" +
+						sSourceAccountName + L"'");
+					continue;
+				}
 
 				// do a reverse lookup to see if this might be a sid history item
 				if (GetNameFromSidEx(tTargetAccountSid) == sSourceAccountName) continue;

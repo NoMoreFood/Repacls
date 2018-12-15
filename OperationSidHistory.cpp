@@ -19,7 +19,7 @@ SidActionResult OperationSidHistory::DetermineSid(WCHAR * const sSdPart, ObjectE
 	// lookup the textual name for this account and
 	// return if it is not found
 	std::wstring sAccountName = GetNameFromSid(tCurrentSid, NULL);
-	if (sAccountName == L"") return SidActionResult::Nothing;
+	if (sAccountName.empty()) return SidActionResult::Nothing;
 
 	// now do a forward lookup on that same account name to see what the
 	// primary sid for the account actually is
