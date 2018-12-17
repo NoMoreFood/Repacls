@@ -73,7 +73,7 @@ public:
 			else iPrefix = 0;
 		}
 
-		GetFileName() = sPrefix + sLine.substr(iPrefix) + L"\n";
+		GetFileName() = sPrefix + sLine.substr(iPrefix);
 		GetDetail() = L"";
 	}
 
@@ -116,7 +116,7 @@ public:
 		// output to screen if there is anything to write
 		if (!GetFileName().empty() && !GetDetail().empty())
 		{
-			wprintf(L"FILE: %s", (GetFileName() + GetDetail()).c_str());
+			wprintf(L"FILE: %s", (GetFileName() + L"\n" + GetDetail()).c_str());
 		}
 
 		// clear out buffer now that it's printed
