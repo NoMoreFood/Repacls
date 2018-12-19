@@ -90,14 +90,14 @@ public:
 		}
 	}
 
-	static void AddWarning(const std::wstring & sLine)
+	static void AddWarning(const std::wstring & sLine, const std::wstring & sPart = L"")
 	{
 		if (Log())
 		{
-			OperationLog::LogFileItem(L"WARNING", GetFileName(), sLine);
+			OperationLog::LogFileItem(L"WARNING", GetFileName(), sLine + ((sPart.empty()) ? L"" : L" in " + sPart));
 		}
 
-		GetDetail() += L"  WARNING: " + sLine + L"\n";
+		GetDetail() += L"  WARNING: " + sLine + ((sPart.empty()) ? L"" : L" in " + sPart) + L"\n";
 	}
 
 	static void AddError(const std::wstring & sLine, const std::wstring & sExtended = L"")
