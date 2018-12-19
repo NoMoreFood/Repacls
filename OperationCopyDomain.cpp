@@ -106,8 +106,8 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 				// continue if no match was found
 				if (tTargetAccountSid == nullptr)
 				{
-					InputOutput::AddWarning(L"Could not find matching account in target domain for '" +
-						sSourceAccountName + L"'");
+					InputOutput::AddWarning(L"Could not find matching account in target domain '" + 
+						sTargetDomain + L"' for '" + sSourceAccountName + L"'", sSdPart);
 					continue;
 				}
 

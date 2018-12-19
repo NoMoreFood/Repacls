@@ -96,8 +96,8 @@ SidActionResult OperationMoveDomain::DetermineSid(WCHAR * const sSdPart, ObjectE
 		// exit if no match was found
 		if (tResultantSid == nullptr)
 		{
-			InputOutput::AddWarning(L"Could not find matching account in target domain for '" +
-				sSourceAccountName + L"'");
+			InputOutput::AddWarning(L"Could not find matching account in target domain '" +
+				sTargetDomain + L"' for '" + sSourceAccountName + L"'", sSdPart);
 			return SidActionResult::Nothing;
 		}
 
