@@ -1,6 +1,6 @@
 # Repacls Usage Information
 
-Link To Latest Binaries (1.10.0.0): [Here](https://github.com/NoMoreFood/Repacls/raw/v1.10.0.2/Build/Repacls.zip)
+Link To Latest Binaries: [Here](https://github.com/NoMoreFood/Repacls/raw/v1.10.0.2/Build/Repacls.zip)
 
 ```
 ===============================================================================
