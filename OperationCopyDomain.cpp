@@ -161,21 +161,33 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 
 			// special case since SetEntriesInAcl does not handle setting both success
 			// and failure types together
-			PACL tNewDacl;
+			PACL tNewDacl = NULL;
+			DWORD iError = 0;
 			if (CheckBitSet(tEa.grfAccessMode, SET_AUDIT_SUCCESS) &&
 				CheckBitSet(tEa.grfAccessMode, SET_AUDIT_FAILURE))
 			{
-				PACL tNewDaclTmp;
+				PACL tNewDaclTmp = NULL;
 				tEa.grfAccessMode = SET_AUDIT_SUCCESS;
-				SetEntriesInAcl(1, &tEa, tCurrentAcl, &tNewDaclTmp);
+				iError = SetEntriesInAcl(1, &tEa, tCurrentAcl, &tNewDaclTmp);
 				tEa.grfAccessMode = SET_AUDIT_FAILURE;
-				SetEntriesInAcl(1, &tEa, tNewDaclTmp, &tNewDacl);
-				LocalFree(tNewDaclTmp);
+				if (iError == ERROR_SUCCESS) {
+					SetEntriesInAcl(1, &tEa, tNewDaclTmp, &tNewDacl);
+					LocalFree(tNewDaclTmp);
+				}
 			}
 			else
 			{
 				// merge the new trustee into the dacl
-				SetEntriesInAcl(1, &tEa, tCurrentAcl, &tNewDacl);
+				iError = SetEntriesInAcl(1, &tEa, tCurrentAcl, &tNewDacl);
+			}
+
+			// verify the new acl could be generated
+			if (iError != ERROR_SUCCESS || tNewDacl == NULL)
+			{
+				std::wstring sTargetAccountName = GetNameFromSid(tTargetAccountSid);
+				InputOutput::AddError(L"Could not add '" + sTargetAccountName + L"' for domain '" 
+					+ sTargetDomain + L"' to access control list (" + std::to_wstring(iError) + L").", sSdPart);
+				continue;
 			}
 
 			// see if the old and new acl match
