@@ -17,25 +17,12 @@ bool OperationCheckCanonical::ProcessAclAction(WCHAR * const sSdPart, ObjectEntr
 	// sanity check (null acl is considered valid)
 	if (tCurrentAcl == NULL) return false;
 
-	enum AceOrder : unsigned char
-	{
-		Unspecified = 0,
-		Explicit = 1 << 0,
-		Deny = 1 << 1,
-		Allow = 1 << 2,
-		Inherited = 1 << 3
-	};
-
-	unsigned char oOrderOverall = Unspecified;
+	AceOrder oOrderOverall = Unspecified;
 	ACCESS_ACE * tAce = FirstAce(tCurrentAcl);
 	for (ULONG iEntry = 0; iEntry < tCurrentAcl->AceCount; tAce = NextAce(tAce), iEntry++)
 	{
 		// check inheritance bits
-		unsigned char oThisAceOrder = (IsInherited(tAce)) ? Inherited : Unspecified;
-
-		// check allow/deny
-		oThisAceOrder |= (tAce->Header.AceType == ACCESS_ALLOWED_ACE_TYPE) ? Allow : Unspecified;
-		oThisAceOrder |= (tAce->Header.AceType == ACCESS_DENIED_ACE_TYPE) ? Deny : Unspecified;
+		AceOrder oThisAceOrder = DetermineAceOrder(tAce);
 
 		// make sure this order is not less then the current order
 		if (oThisAceOrder < oOrderOverall)
@@ -48,4 +35,25 @@ bool OperationCheckCanonical::ProcessAclAction(WCHAR * const sSdPart, ObjectEntr
 
 	// report the
 	return false;
+}
+
+OperationCheckCanonical::AceOrder OperationCheckCanonical::DetermineAceOrder(ACCESS_ACE * tAce)
+{
+	// determine ace order
+	if (IsInherited(tAce))
+	{
+		if (tAce->Header.AceType == ACCESS_ALLOWED_ACE_TYPE) return InheritedAllow;
+		if (tAce->Header.AceType == ACCESS_ALLOWED_CALLBACK_ACE_TYPE) return InheritedAllow;
+		if (tAce->Header.AceType == ACCESS_DENIED_ACE_TYPE) return InheritedDeny;
+		if (tAce->Header.AceType == ACCESS_DENIED_CALLBACK_ACE_TYPE) return InheritedDeny;
+	}
+	else
+	{
+		if (tAce->Header.AceType == ACCESS_ALLOWED_ACE_TYPE) return ExplicitAllow;
+		if (tAce->Header.AceType == ACCESS_ALLOWED_CALLBACK_ACE_TYPE) return ExplicitAllow;
+		if (tAce->Header.AceType == ACCESS_DENIED_ACE_TYPE) return ExplicitDeny;
+		if (tAce->Header.AceType == ACCESS_DENIED_CALLBACK_ACE_TYPE) return ExplicitDeny;
+	}
+
+	return Unspecified;
 }

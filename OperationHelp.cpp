@@ -167,6 +167,11 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
 
 	std::wcout <<
 		LR"(
+/CanonicalizeAcls
+   This command will look for out-of-order ACEs within the DACL and reorder 
+   them to be canonical. Canonical order is as follows: explicit deny, explicit
+   allow, inherited deny, inherited allow.
+
 /Compact
    This command will look for mergeable entries in the security descriptor and
    merge them.  For example, running icacls.exe <file> /grant Everyone:R
