@@ -21,7 +21,6 @@ typedef ACCESS_ACE *PACCESS_ACE;
 // macros to iterate through access control entries
 #define FirstAce(Acl) ((ACCESS_ACE *)((PUCHAR)(Acl) + sizeof(ACL)))
 #define NextAce(Ace) ((ACCESS_ACE *)((PUCHAR)(Ace) + ((PACE_HEADER)(Ace))->AceSize))
-#define NextAceWithRestart(Acl,Ace,Restart) ((Restart) ? FirstAce(Acl) : NextAce(Ace))
 
 // define our own version of sid length since its faster
 #define GetLengthSid(x) (sizeof(SID) + (((SID *) (x))->SubAuthorityCount - 1) * sizeof(((SID *) (x))->SubAuthority))

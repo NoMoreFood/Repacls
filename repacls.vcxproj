@@ -193,6 +193,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Operation.cpp" />
     <ClCompile Include="OperationAddAccountIfMissing.cpp" />
+    <ClCompile Include="OperationCanonicalizeAcls.cpp" />
     <ClCompile Include="OperationCheckCanonical.cpp" />
     <ClCompile Include="OperationCompact.cpp" />
     <ClCompile Include="OperationCopyDomain.cpp" />
@@ -230,6 +231,7 @@
     <ClInclude Include="ConcurrentQueue.h" />
     <ClInclude Include="DriverKitPartial.h" />
     <ClInclude Include="Functions.h" />
+    <ClInclude Include="OperationCanonicalizeAcls.h" />
     <ClInclude Include="OperationLocateShortcut.h" />
     <ClInclude Include="InputOutput.h" />
     <ClInclude Include="OperationCopyDomain.h" />
