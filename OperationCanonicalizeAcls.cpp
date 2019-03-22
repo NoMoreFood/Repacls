@@ -28,7 +28,7 @@ bool OperationCanonicalizeAcls::ProcessAclAction(WCHAR * const sSdPart, ObjectEn
 		OperationCheckCanonical::AceOrder oThisAceOrder = OperationCheckCanonical::DetermineAceOrder(tCheckAce);
 
 		// make sure this order is not less then the current order
-		if (oThisAceOrder < oOrderOverall) break;
+		if (oThisAceOrder < oOrderOverall)
 		{
 			bHasProblems = true;
 			break;
