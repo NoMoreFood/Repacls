@@ -1,10 +1,10 @@
 # Repacls Usage Information
 
-Link To Latest Binaries: [Here](https://github.com/NoMoreFood/Repacls/raw/v1.10.0.2/Build/Repacls.zip)
+Link To Latest Binaries: [Here](https://github.com/NoMoreFood/Repacls/raw/v1.11.0.1/Build/Repacls.zip)
 
 ```
 ===============================================================================
-= Repacls Version 1.10.0.2 by Bryan Berns
+= Repacls Version 1.11.0.1 by Bryan Berns
 ===============================================================================
 
 repacls.exe /Path <Absolute Path> ... other options ....
@@ -157,6 +157,11 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    granted.  This command is useful to correct issues where a user or
    administrator has mistakenly removed an administrative group from some
    directories.
+
+/CanonicalizeAcls
+   This command will look for out-of-order ACEs within the DACL and reorder 
+   them to be canonical. Canonical order is as follows: explicit deny, explicit
+   allow, inherited deny, inherited allow.
 
 /Compact
    This command will look for mergeable entries in the security descriptor and
