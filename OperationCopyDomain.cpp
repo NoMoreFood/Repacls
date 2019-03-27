@@ -1,4 +1,5 @@
 #include "OperationCopyDomain.h"
+#include "OperationCheckCanonical.h"
 #include "InputOutput.h"
 #include "Functions.h"
 
@@ -44,6 +45,9 @@ OperationCopyDomain::OperationCopyDomain(std::queue<std::wstring> & oArgList) : 
 
 bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
+	// check on canonicalization status so if can error if the acl needs to be updated
+	const bool bAclIsCanonical = OperationCheckCanonical::IsAclCanonical(tCurrentAcl);
+
 	// check explicit effective rights from sid (no groups)
 	bool bAclIsDirty = false;
 	if (tCurrentAcl != NULL)
@@ -145,6 +149,16 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 			else
 			{
 				// unknown type; skipping
+				continue;
+			}
+
+			// since SetEntriesInAcl reacts poorly / unexpectedly in cases where the
+			// acl is not canonical, just error out and continue on
+			if (!bAclIsCanonical)
+			{
+				std::wstring sTargetAccountName = GetNameFromSid(tTargetAccountSid);
+				InputOutput::AddError(L"Could not add '" + sTargetAccountName + L"' for domain '"
+					+ sTargetDomain + L"' to access control list since ACL was not canonical.", sSdPart);
 				continue;
 			}
 
