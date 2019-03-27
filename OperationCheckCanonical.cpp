@@ -17,9 +17,24 @@ bool OperationCheckCanonical::ProcessAclAction(WCHAR * const sSdPart, ObjectEntr
 	// sanity check (null acl is considered valid)
 	if (tCurrentAcl == NULL) return false;
 
+	// do the check and report
+	if (!IsAclCanonical(tCurrentAcl))
+	{
+		InputOutput::AddInfo(L"Access control list is not canonical", sSdPart);
+	}
+
+	// report the
+	return false;
+}
+
+bool OperationCheckCanonical::IsAclCanonical(PACL & tAcl)
+{
+	// sanity check (null acl is considered valid)
+	if (tAcl == NULL) return true;
+
 	AceOrder oOrderOverall = Unspecified;
-	ACCESS_ACE * tAce = FirstAce(tCurrentAcl);
-	for (ULONG iEntry = 0; iEntry < tCurrentAcl->AceCount; tAce = NextAce(tAce), iEntry++)
+	ACCESS_ACE * tAce = FirstAce(tAcl);
+	for (ULONG iEntry = 0; iEntry < tAcl->AceCount; tAce = NextAce(tAce), iEntry++)
 	{
 		// check inheritance bits
 		AceOrder oThisAceOrder = DetermineAceOrder(tAce);
@@ -27,14 +42,12 @@ bool OperationCheckCanonical::ProcessAclAction(WCHAR * const sSdPart, ObjectEntr
 		// make sure this order is not less then the current order
 		if (oThisAceOrder < oOrderOverall)
 		{
-			InputOutput::AddInfo(L"Access control list is not canonical", sSdPart);
 			return false;
 		}
 		oOrderOverall = oThisAceOrder;
 	}
 
-	// report the
-	return false;
+	return true;
 }
 
 OperationCheckCanonical::AceOrder OperationCheckCanonical::DetermineAceOrder(ACCESS_ACE * tAce)

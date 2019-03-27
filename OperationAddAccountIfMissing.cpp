@@ -1,4 +1,5 @@
 #include "OperationAddAccountIfMissing.h"
+#include "OperationCheckCanonical.h"
 #include "InputOutput.h"
 #include "Functions.h"
 
@@ -58,6 +59,15 @@ bool OperationAddAccountIfMissing::ProcessAclAction(WCHAR * const sSdPart, Objec
 	// only attempt to add permissions if our flags do not match
 	if (iPermissionMask != FILE_ALL_ACCESS || iInheritMask != iDesiredInheritMask)
 	{
+		// since SetEntriesInAcl reacts poorly / unexpectedly in cases where the
+		// acl is not canonical, just error out and continue on
+		if (!OperationCheckCanonical::IsAclCanonical(tCurrentAcl))
+		{
+			InputOutput::AddError(L"Could not add '" + sAddSid + 
+				L"' to access control list since ACL was not canonical.", sSdPart);
+			return false;
+		}
+
 		EXPLICIT_ACCESS tEa;
 		tEa.grfAccessPermissions = FILE_ALL_ACCESS;
 		tEa.grfAccessMode = GRANT_ACCESS;

@@ -25,6 +25,7 @@ public:
 
 	// public functions
 	static AceOrder DetermineAceOrder(ACCESS_ACE * tAce);
+	static bool IsAclCanonical(PACL & tCurrentAcl);
 
 	// overrides
 	bool ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement) override;

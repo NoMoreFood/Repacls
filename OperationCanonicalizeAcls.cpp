@@ -18,27 +18,8 @@ bool OperationCanonicalizeAcls::ProcessAclAction(WCHAR * const sSdPart, ObjectEn
 	// sanity check (null acl is considered valid)
 	if (tCurrentAcl == NULL) return false;
 
-	// use the simpler algorithm to determine if correct
-	bool bHasProblems = false;
-	OperationCheckCanonical::AceOrder oOrderOverall = OperationCheckCanonical::Unspecified;
-	ACCESS_ACE * tCheckAce = FirstAce(tCurrentAcl);
-	for (ULONG iEntry = 0; iEntry < tCurrentAcl->AceCount; tCheckAce = NextAce(tCheckAce), iEntry++)
-	{
-		// determine the overall over type of this ace
-		OperationCheckCanonical::AceOrder oThisAceOrder = OperationCheckCanonical::DetermineAceOrder(tCheckAce);
-
-		// make sure this order is not less then the current order
-		if (oThisAceOrder < oOrderOverall)
-		{
-			bHasProblems = true;
-			break;
-		}
-
-		oOrderOverall = oThisAceOrder;
-	}
-
-	// if no problem, then no need to perform a sort
-	if (!bHasProblems)
+	// if no problem, then no need to perform a reorder
+	if (OperationCheckCanonical::IsAclCanonical(tCurrentAcl))
 	{
 		return false;
 	}	
