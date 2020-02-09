@@ -8,7 +8,7 @@ private:
 
 	// statics used by command registration utility
 	static std::wstring GetCommand() { return L"SetOwner"; }
-	static ClassFactory<OperationSetOwner> * RegisteredFactory;
+	static ClassFactory<OperationSetOwner> RegisteredFactory;
 
 	// operation specific
 	PSID tOwnerSid = nullptr;
@@ -20,5 +20,5 @@ public:
 	SidActionResult DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) override;
 
 	// constructors
-	OperationSetOwner(std::queue<std::wstring> & oArgList);
+	OperationSetOwner(std::queue<std::wstring> & oArgList, std::wstring sCommand);
 };

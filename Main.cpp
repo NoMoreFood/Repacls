@@ -66,22 +66,22 @@ void AnalyzeSecurity(ObjectEntry & oEntry)
 	bool bGroupIsDirty = false;
 
 	// read security information from the file handle
-	PACL tAclDacl = NULL;
-	PACL tAclSacl = NULL;
-	PSID tOwnerSid = NULL;
-	PSID tGroupSid = NULL;
-	PSECURITY_DESCRIPTOR tDesc = NULL;
+	PACL tAclDacl = nullptr;
+	PACL tAclSacl = nullptr;
+	PSID tOwnerSid = nullptr;
+	PSID tGroupSid = nullptr;
+	PSECURITY_DESCRIPTOR tDesc = nullptr;
 	DWORD iError = 0;
 	if (iInformationToLookup != 0 &&
 		(iError = GetNamedSecurityInfo(oEntry.Name.c_str(), SE_FILE_OBJECT,
-		iInformationToLookup, (bFetchOwner) ? &tOwnerSid : NULL, (bFetchGroup) ? &tGroupSid : NULL,
-		(bFetchDacl) ? &tAclDacl : NULL, (bFetchSacl) ? &tAclSacl : NULL, &tDesc)) != ERROR_SUCCESS)
+		iInformationToLookup, (bFetchOwner) ? &tOwnerSid : nullptr, (bFetchGroup) ? &tGroupSid : nullptr,
+		(bFetchDacl) ? &tAclDacl : nullptr, (bFetchSacl) ? &tAclSacl : nullptr, &tDesc)) != ERROR_SUCCESS)
 	{
 		// attempt to look up error message
-		LPWSTR sError = NULL;
-		size_t iSize = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+		LPWSTR sError = nullptr;
+		const size_t iSize = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
 			FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK,
-			NULL, iError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&sError, 0, NULL);
+			nullptr, iError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&sError, 0, nullptr);
 		InputOutput::AddError(L"Unable to read file security", (iSize == 0) ? L"" : sError);
 		if (iSize > 0) LocalFree(sError);
 
@@ -96,7 +96,7 @@ void AnalyzeSecurity(ObjectEntry & oEntry)
 	bool bSaclCleanupRequired = false;
 	bool bOwnerCleanupRequired = false;
 	bool bGroupCleanupRequired = false;
-	bool bDescCleanupRequired = (tDesc != NULL);
+	bool bDescCleanupRequired = (tDesc != nullptr);
 
 	// used for one-shot operations like reset children or inheritance
 	DWORD iSpecialCommitMergeFlags = 0;
@@ -188,14 +188,14 @@ void AnalyzeSecurity(ObjectEntry & oEntry)
 		if (!InputOutput::InWhatIfMode())
 		{
 			if ((iError = SetNamedSecurityInfo((LPWSTR) oEntry.Name.c_str(), SE_FILE_OBJECT, iInformationToCommit,
-				(bOwnerIsDirty) ? tOwnerSid : NULL, (bGroupIsDirty) ? tGroupSid : NULL,
-				(bDaclIsDirty) ? tAclDacl : NULL, (bSaclIsDirty) ? tAclSacl : NULL)) != ERROR_SUCCESS)
+				(bOwnerIsDirty) ? tOwnerSid : nullptr, (bGroupIsDirty) ? tGroupSid : nullptr,
+				(bDaclIsDirty) ? tAclDacl : nullptr, (bSaclIsDirty) ? tAclSacl : nullptr)) != ERROR_SUCCESS)
 			{
 				// attempt to look up error message
-				LPWSTR sError = NULL;
-				size_t iSize = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+				LPWSTR sError = nullptr;
+				const size_t iSize = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
 					FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK,
-					NULL, iError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &sError, 0, NULL);
+					nullptr, iError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &sError, 0, NULL);
 				InputOutput::AddError(L"Unable to update file security", (iSize == 0) ? L"" : sError);
 				if (iSize > 0) LocalFree(sError);
 
@@ -273,7 +273,7 @@ void AnalyzingQueue()
 
 		// update object attributes object
 		OBJECT_ATTRIBUTES oAttributes;
-		InitializeObjectAttributes(&oAttributes, NULL, OBJ_CASE_INSENSITIVE, NULL, NULL);
+		InitializeObjectAttributes(&oAttributes, nullptr, OBJ_CASE_INSENSITIVE, nullptr, nullptr);
 		oAttributes.ObjectName = &tPathU;
 
 		// get an open file handle
@@ -310,9 +310,9 @@ void AnalyzingQueue()
 		// enumerate files in the directory
 		for (bool bFirstRun = true; true; bFirstRun = false)
 		{
-			Status = NtQueryDirectoryFile(hFindFile, NULL, NULL, NULL, &IoStatusBlock,
+			Status = NtQueryDirectoryFile(hFindFile, nullptr, nullptr, nullptr, &IoStatusBlock,
 				DirectoryInfo, MAX_DIRECTORY_BUFFER, (FILE_INFORMATION_CLASS)FileDirectoryInformation,
-				FALSE, NULL, (bFirstRun) ? TRUE : FALSE);
+				FALSE, nullptr, (bFirstRun) ? TRUE : FALSE);
 
 			// done processing
 			if (Status == STATUS_NO_MORE_FILES) break;
@@ -324,7 +324,7 @@ void AnalyzingQueue()
 			}
 
 			for (auto* oInfo = (FILE_DIRECTORY_INFORMATION *)DirectoryInfo;
-				oInfo != NULL; oInfo = (FILE_DIRECTORY_INFORMATION *)((BYTE *)oInfo + oInfo->NextEntryOffset))
+				oInfo != nullptr; oInfo = (FILE_DIRECTORY_INFORMATION *)((BYTE *)oInfo + oInfo->NextEntryOffset))
 			{
 				// continue immediately if we get the '.' or '..' entries
 				if (IsDirectory(oInfo->FileAttributes))
@@ -384,7 +384,7 @@ VOID BeginFileScan()
 		// make a local copy of the path since we may have to alter it
 		// handle special case where a drive root is specified
 		// we must ensure it takes the form x:\. to resolve correctly
-		size_t iSemiColon = sPath.rfind(L':');
+		const size_t iSemiColon = sPath.rfind(L':');
 		if (iSemiColon != std::wstring::npos)
 		{
 			std::wstring sEnd = sPath.substr(iSemiColon);
@@ -396,7 +396,7 @@ VOID BeginFileScan()
 
 		// convert the path to a long path that is compatible with the other call
 		UNICODE_STRING tPathU;
-		RtlDosPathNameToNtPathName_U(sPath.c_str(), &tPathU, NULL, NULL);
+		RtlDosPathNameToNtPathName_U(sPath.c_str(), &tPathU, nullptr, nullptr);
 
 		// copy it to a null terminated string
 		oEntryFirst.Name = std::wstring(tPathU.Buffer, tPathU.Length / sizeof(WCHAR));
@@ -517,9 +517,9 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	wprintf(L"===============================================================================\n");
 
 	// do the scan
-	ULONGLONG iTimeStart = GetTickCount64();
+	const ULONGLONG iTimeStart = GetTickCount64();
 	BeginFileScan();
-	ULONGLONG iTimeStop = GetTickCount64();
+	const ULONGLONG iTimeStop = GetTickCount64();
 
 	// print out statistics
 	wprintf(L"===============================================================================\n");

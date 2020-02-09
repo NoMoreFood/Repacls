@@ -112,6 +112,9 @@
     <ClCompile Include="OperationCanonicalizeAcls.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
+    <ClCompile Include="OperationGrantDenyPerms.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConcurrentQueue.h">
@@ -238,6 +241,9 @@
       <Filter>Includes\Operations</Filter>
     </ClInclude>
     <ClInclude Include="OperationCanonicalizeAcls.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationGrantDenyPerms.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>
   </ItemGroup>

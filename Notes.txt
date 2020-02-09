@@ -1,15 +1,15 @@
 This file contains various information that may be useful in understanding
-various elements of ACL, ACE, or SID contructs.
+various elements of ACL, ACE, or SID constructs.
 
 IO CI OI  DIR DOB SUB SOB
- 0  0  0    1   0   0   0  icacls Exact /grant Everyone:F
- 0  0  1    1   1   0   1  icacls Exact /grant Everyone:(OI)F
- 0  1  0    1   0   1   0  icacls Exact /grant Everyone:(CI)F
- 0  1  1    1   1   1   1  icacls Exact /grant Everyone:(CI)(OI)F
- 1  0  0    0   0   0   0  icacls Exact /grant Everyone:(IO)F
- 1  0  1    0   1   0   1  icacls Exact /grant Everyone:(OI)(IO)F
- 1  1  0    0   0   1   0  icacls Exact /grant Everyone:(CI)(IO)F
- 1  1  1    0   1   1   1  icacls Exact /grant Everyone:(CI)(OI)(IO)F
+ 0  0  0    1   0   0   0  icacls Exact /grant Everyone:(F)
+ 0  0  1    1   1   0   1  icacls Exact /grant Everyone:(OI)(F)
+ 0  1  0    1   0   1   0  icacls Exact /grant Everyone:(CI)(F)
+ 0  1  1    1   1   1   1  icacls Exact /grant Everyone:(CI)(OI)(F)
+ 1  0  0    0   0   0   0  icacls Exact /grant Everyone:(IO)(F)
+ 1  0  1    0   1   0   1  icacls Exact /grant Everyone:(OI)(IO)(F)
+ 1  1  0    0   0   1   0  icacls Exact /grant Everyone:(CI)(IO)(F)
+ 1  1  1    0   1   1   1  icacls Exact /grant Everyone:(CI)(OI)(IO)(F)
 
 Bit Mapping 
 DIR = ~IO

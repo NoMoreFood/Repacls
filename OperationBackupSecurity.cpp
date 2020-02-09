@@ -2,30 +2,29 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationBackupSecurity> * OperationBackupSecurity::RegisteredFactory =
-new ClassFactory<OperationBackupSecurity>(GetCommand());
+ClassFactory<OperationBackupSecurity> OperationBackupSecurity::RegisteredFactory(GetCommand());
 
-OperationBackupSecurity::OperationBackupSecurity(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationBackupSecurity::OperationBackupSecurity(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
 
 	// fetch params
-	hFile = CreateFile(sSubArgs[0].c_str(), GENERIC_WRITE,
-		FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	hFile = CreateFile(sSubArgs.at(0).c_str(), GENERIC_WRITE,
+		FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 	// see if names could be resolved
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		// complain
-		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sSubArgs[0].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
 		exit(-1);
 	}
 
 	// write out the file type marker
-	BYTE hHeader[] = { 0xEF,0xBB,0xBF };
+	const BYTE hHeader[] = { 0xEF,0xBB,0xBF };
 	DWORD iBytes = 0;
-	if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, NULL) == 0)
+	if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 	{
 		wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
 		exit(-1);

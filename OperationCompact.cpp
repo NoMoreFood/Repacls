@@ -5,11 +5,9 @@
 
 #include <atomic>
 
-ClassFactory<OperationCompact> * OperationCompact::RegisteredFactory =
-new ClassFactory<OperationCompact>(GetCommand());
-std::atomic<ULONGLONG> iTestCount;
+ClassFactory<OperationCompact> OperationCompact::RegisteredFactory(GetCommand());
 
-OperationCompact::OperationCompact(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationCompact::OperationCompact(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// flag this as being an ace-level action
 	AppliesToDacl = true;
@@ -19,7 +17,7 @@ OperationCompact::OperationCompact(std::queue<std::wstring> & oArgList) : Operat
 bool OperationCompact::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// sanity check
-	if (tCurrentAcl == NULL) return false;
+	if (tCurrentAcl == nullptr) return false;
 
 	// track whether the acl was actually change so the caller may decide
 	// that the change needs to be persisted

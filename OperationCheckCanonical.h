@@ -8,7 +8,7 @@ private:
 
 	// statics used by command registration utility
 	static std::wstring GetCommand() { return L"CheckCanonical"; }
-	static ClassFactory<OperationCheckCanonical> * RegisteredFactory;
+	static ClassFactory<OperationCheckCanonical> RegisteredFactory;
 
 public:
 
@@ -31,6 +31,6 @@ public:
 	bool ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement) override;
 
 	// constructors
-	OperationCheckCanonical(std::queue<std::wstring> & oArgList);
+	OperationCheckCanonical(std::queue<std::wstring> & oArgList, std::wstring sCommand);
 };
 

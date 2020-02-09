@@ -2,10 +2,9 @@
 #include "DriverKitPartial.h"
 #include "InputOutput.h"
 
-ClassFactory<OperationFindNullAcl> * OperationFindNullAcl::RegisteredFactory =
-new ClassFactory<OperationFindNullAcl>(GetCommand());
+ClassFactory<OperationFindNullAcl> OperationFindNullAcl::RegisteredFactory(GetCommand());
 
-OperationFindNullAcl::OperationFindNullAcl(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationFindNullAcl::OperationFindNullAcl(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// flag this as being an ace-level action
 	AppliesToDacl = true;
@@ -14,7 +13,7 @@ OperationFindNullAcl::OperationFindNullAcl(std::queue<std::wstring> & oArgList) 
 bool OperationFindNullAcl::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// sanity check (null acl is considered valid)
-	if (tCurrentAcl == NULL)
+	if (tCurrentAcl == nullptr)
 	{
 		InputOutput::AddInfo(L"Access control list is null", sSdPart);
 	}

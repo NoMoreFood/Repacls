@@ -2,23 +2,22 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationReplaceAccount> * OperationReplaceAccount::RegisteredFactory =
-	new ClassFactory<OperationReplaceAccount>(GetCommand());
+ClassFactory<OperationReplaceAccount> OperationReplaceAccount::RegisteredFactory(GetCommand());
 
-OperationReplaceAccount::OperationReplaceAccount(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationReplaceAccount::OperationReplaceAccount(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(2, oArgList);
 
 	// fetch params
-	tSearchAccount = GetSidFromName(sSubArgs[0]);
-	tReplaceAccount = GetSidFromName(sSubArgs[1]);
+	tSearchAccount = GetSidFromName(sSubArgs.at(0));
+	tReplaceAccount = GetSidFromName(sSubArgs.at(1));
 
 	// see if names could be resolved
 	if (tSearchAccount == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid search account '%s' specified for parameter '%s'.\n", sSubArgs[0].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Invalid search account '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
 		exit(0);
 	}
 
@@ -26,7 +25,7 @@ OperationReplaceAccount::OperationReplaceAccount(std::queue<std::wstring> & oArg
 	if (tReplaceAccount == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid replace account '%s' specified for parameter '%s'.\n", sSubArgs[1].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Invalid replace account '%s' specified for parameter '%s'.\n", sSubArgs.at(1).c_str(), GetCommand().c_str());
 		exit(0);
 	}
 
@@ -41,7 +40,7 @@ OperationReplaceAccount::OperationReplaceAccount(std::queue<std::wstring> & oArg
 	AppliesToOwner = true;
 
 	// target certain parts of the security descriptor
-	if (sSubArgs.size() > 2) ProcessGranularTargetting(sSubArgs[2]);
+	if (sSubArgs.size() > 2) ProcessGranularTargetting(sSubArgs.at(2));
 }
 
 SidActionResult OperationReplaceAccount::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)

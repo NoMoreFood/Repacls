@@ -3,23 +3,22 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationCopyDomain> * OperationCopyDomain::RegisteredFactory =
-new ClassFactory<OperationCopyDomain>(GetCommand());
+ClassFactory<OperationCopyDomain> OperationCopyDomain::RegisteredFactory(GetCommand());
 
-OperationCopyDomain::OperationCopyDomain(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationCopyDomain::OperationCopyDomain(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(2, oArgList);
 
 	// fetch params
-	tSourceDomain = GetSidFromName(sSubArgs[0]);
-	tTargetDomain = GetSidFromName(sSubArgs[1]);
+	tSourceDomain = GetSidFromName(sSubArgs.at(0));
+	tTargetDomain = GetSidFromName(sSubArgs.at(1));
 
 	// see if names could be resolved
 	if (tSourceDomain == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid source domain '%s' specified for parameter '%s'.\n", sSubArgs[0].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Invalid source domain '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
 		exit(0);
 	}
 
@@ -27,7 +26,7 @@ OperationCopyDomain::OperationCopyDomain(std::queue<std::wstring> & oArgList) : 
 	if (tTargetDomain == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid target domain '%s' specified for parameter '%s'.\n", sSubArgs[1].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Invalid target domain '%s' specified for parameter '%s'.\n", sSubArgs.at(1).c_str(), GetCommand().c_str());
 		exit(0);
 	}
 
@@ -40,7 +39,7 @@ OperationCopyDomain::OperationCopyDomain(std::queue<std::wstring> & oArgList) : 
 	AppliesToSacl = true;
 
 	// target certain parts of the security descriptor
-	if (sSubArgs.size() > 2) ProcessGranularTargetting(sSubArgs[2]);
+	if (sSubArgs.size() > 2) ProcessGranularTargetting(sSubArgs.at(2));
 }
 
 bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
@@ -50,7 +49,7 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 
 	// check explicit effective rights from sid (no groups)
 	bool bAclIsDirty = false;
-	if (tCurrentAcl != NULL)
+	if (tCurrentAcl != nullptr)
 	{
 		ACCESS_ACE * tAceDacl = FirstAce(tCurrentAcl);
 		for (LONG iEntry = 0; iEntry < tCurrentAcl->AceCount; tAceDacl = 
@@ -70,14 +69,14 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 
 			const PISID tSidStruct = (PISID) &tAceDacl->Sid;
 			const PISID tSidTargetDomain = (PISID)tTargetDomain;
-			PSID tTargetAccountSid = NULL;
+			PSID tTargetAccountSid = nullptr;
 			std::wstring sInfoToReport = L"";
 			if (tSidStruct->SubAuthorityCount == 5 &&
 				tSidStruct->SubAuthority[0] == 21 &&
 				tSidStruct->SubAuthority[4] < 1000)
 			{
 				// create a new sid that has the domain identifier of the target domain
-				PSID tSidTmp = NULL;
+				PSID tSidTmp = nullptr;
 				AllocateAndInitializeSid(&tSidStruct->IdentifierAuthority, tSidStruct->SubAuthorityCount,
 					tSidStruct->SubAuthority[0], tSidTargetDomain->SubAuthority[1], tSidTargetDomain->SubAuthority[2],
 					tSidTargetDomain->SubAuthority[3], tSidStruct->SubAuthority[4], 0, 0, 0, &tSidTmp);
@@ -100,7 +99,7 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 			else
 			{
 				// translate the old sid to an account name
-				std::wstring sSourceAccountName = GetNameFromSid(&tAceDacl->Sid, NULL);
+				std::wstring sSourceAccountName = GetNameFromSid(&tAceDacl->Sid, nullptr);
 				if (sSourceAccountName.empty())	continue;
 
 				// check to see if an equivalent account exists in the target domain
@@ -126,7 +125,7 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 			}
 
 			// determine access mode
-			ACCESS_MODE tMode = NOT_USED_ACCESS;
+			ACCESS_MODE tMode = ACCESS_MODE::NOT_USED_ACCESS;
 			if (tAceDacl->Header.AceType == ACCESS_ALLOWED_ACE_TYPE)
 			{
 				tMode = GRANT_ACCESS;
@@ -158,7 +157,7 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 			{
 				std::wstring sTargetAccountName = GetNameFromSid(tTargetAccountSid);
 				InputOutput::AddError(L"Could not add '" + sTargetAccountName + L"' for domain '"
-					+ sTargetDomain + L"' to access control list since ACL was not canonical.", sSdPart);
+					+ sTargetDomain + L"' because access control list is not canonical.", sSdPart);
 				continue;
 			}
 
@@ -168,19 +167,19 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 			tEa.grfAccessMode = tMode;
 			tEa.grfInheritance = VALID_INHERIT_FLAGS & tAceDacl->Header.AceFlags;
 			tEa.Trustee.MultipleTrusteeOperation = NO_MULTIPLE_TRUSTEE;
-			tEa.Trustee.pMultipleTrustee = NULL;
+			tEa.Trustee.pMultipleTrustee = nullptr;
 			tEa.Trustee.ptstrName = (LPWSTR) tTargetAccountSid;
 			tEa.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 			tEa.Trustee.TrusteeType = TRUSTEE_IS_UNKNOWN;
 
 			// special case since SetEntriesInAcl does not handle setting both success
 			// and failure types together
-			PACL tNewDacl = NULL;
+			PACL tNewDacl = nullptr;
 			DWORD iError = 0;
 			if (CheckBitSet(tEa.grfAccessMode, SET_AUDIT_SUCCESS) &&
 				CheckBitSet(tEa.grfAccessMode, SET_AUDIT_FAILURE))
 			{
-				PACL tNewDaclTmp = NULL;
+				PACL tNewDaclTmp = nullptr;
 				tEa.grfAccessMode = SET_AUDIT_SUCCESS;
 				iError = SetEntriesInAcl(1, &tEa, tCurrentAcl, &tNewDaclTmp);
 				tEa.grfAccessMode = SET_AUDIT_FAILURE;
@@ -196,7 +195,7 @@ bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & 
 			}
 
 			// verify the new acl could be generated
-			if (iError != ERROR_SUCCESS || tNewDacl == NULL)
+			if (iError != ERROR_SUCCESS || tNewDacl == nullptr)
 			{
 				std::wstring sTargetAccountName = GetNameFromSid(tTargetAccountSid);
 				InputOutput::AddError(L"Could not add '" + sTargetAccountName + L"' for domain '" 

@@ -3,10 +3,9 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationPrintDescriptor> * OperationPrintDescriptor::RegisteredFactory =
-new ClassFactory<OperationPrintDescriptor>(GetCommand());
+ClassFactory<OperationPrintDescriptor> OperationPrintDescriptor::RegisteredFactory(GetCommand());
 
-OperationPrintDescriptor::OperationPrintDescriptor(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationPrintDescriptor::OperationPrintDescriptor(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// flag this as being an ace-level action
 	AppliesToSd = true;
@@ -19,7 +18,7 @@ OperationPrintDescriptor::OperationPrintDescriptor(std::queue<std::wstring> & oA
 bool OperationPrintDescriptor::ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement)
 {
 	// convert the current security descriptor to a string
-	WCHAR * sInfo = NULL;
+	WCHAR * sInfo = nullptr;
 	if (ConvertSecurityDescriptorToStringSecurityDescriptor(tDescriptor, SDDL_REVISION_1,
 		DACL_SECURITY_INFORMATION | SACL_SECURITY_INFORMATION | OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION,
 		&sInfo, NULL) == 0)

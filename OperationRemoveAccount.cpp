@@ -2,22 +2,21 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationRemoveAccount> * OperationRemoveAccount::RegisteredFactory =
-new ClassFactory<OperationRemoveAccount>(GetCommand());
+ClassFactory<OperationRemoveAccount> OperationRemoveAccount::RegisteredFactory(GetCommand());
 
-OperationRemoveAccount::OperationRemoveAccount(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationRemoveAccount::OperationRemoveAccount(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
 
 	// fetch params
-	tRemoveSid = GetSidFromName(sSubArgs[0]);
+	tRemoveSid = GetSidFromName(sSubArgs.at(0));
 
 	// see if names could be resolved
 	if (tRemoveSid == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid account '%s' specified for parameter '%s'.\n", sSubArgs[0].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Invalid account '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
 		exit(-1);
 	}
 
@@ -31,7 +30,7 @@ OperationRemoveAccount::OperationRemoveAccount(std::queue<std::wstring> & oArgLi
 	AppliesToOwner = true;
 
 	// target certain parts of the security descriptor
-	if (sSubArgs.size() > 1) ProcessGranularTargetting(sSubArgs[1]);
+	if (sSubArgs.size() > 1) ProcessGranularTargetting(sSubArgs.at(1));
 }
 
 SidActionResult OperationRemoveAccount::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
@@ -44,6 +43,6 @@ SidActionResult OperationRemoveAccount::DetermineSid(WCHAR * const sSdPart, Obje
 
 	// update the sid in the ace
 	InputOutput::AddInfo(L"Removing account '" + sRemoveSid + L"'", sSdPart);
-	tResultantSid = NULL;
+	tResultantSid = nullptr;
 	return SidActionResult::Remove;
 }

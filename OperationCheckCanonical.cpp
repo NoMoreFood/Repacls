@@ -3,10 +3,9 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationCheckCanonical> * OperationCheckCanonical::RegisteredFactory =
-new ClassFactory<OperationCheckCanonical>(GetCommand());
+ClassFactory<OperationCheckCanonical> OperationCheckCanonical::RegisteredFactory(GetCommand());
 
-OperationCheckCanonical::OperationCheckCanonical(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationCheckCanonical::OperationCheckCanonical(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// flag this as being an ace-level action
 	AppliesToDacl = true;
@@ -15,7 +14,7 @@ OperationCheckCanonical::OperationCheckCanonical(std::queue<std::wstring> & oArg
 bool OperationCheckCanonical::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// sanity check (null acl is considered valid)
-	if (tCurrentAcl == NULL) return false;
+	if (tCurrentAcl == nullptr) return false;
 
 	// do the check and report
 	if (!IsAclCanonical(tCurrentAcl))
@@ -30,14 +29,14 @@ bool OperationCheckCanonical::ProcessAclAction(WCHAR * const sSdPart, ObjectEntr
 bool OperationCheckCanonical::IsAclCanonical(PACL & tAcl)
 {
 	// sanity check (null acl is considered valid)
-	if (tAcl == NULL) return true;
+	if (tAcl == nullptr) return true;
 
 	AceOrder oOrderOverall = Unspecified;
 	ACCESS_ACE * tAce = FirstAce(tAcl);
 	for (ULONG iEntry = 0; iEntry < tAcl->AceCount; tAce = NextAce(tAce), iEntry++)
 	{
 		// check inheritance bits
-		AceOrder oThisAceOrder = DetermineAceOrder(tAce);
+		const AceOrder oThisAceOrder = DetermineAceOrder(tAce);
 
 		// make sure this order is not less then the current order
 		if (oThisAceOrder < oOrderOverall)

@@ -14,16 +14,15 @@
 #include "OperationSharePaths.h"
 #include "InputOutput.h"
 
-ClassFactory<OperationDomainPaths> * OperationDomainPaths::RegisteredFactory =
-new ClassFactory<OperationDomainPaths>(GetCommand());
+ClassFactory<OperationDomainPaths> OperationDomainPaths::RegisteredFactory(GetCommand());
 
-OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
 
 	// initialize com only
-	static HRESULT hComInit = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	static HRESULT hComInit = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 	if (hComInit != S_OK && hComInit != S_FALSE)
 	{
 		wprintf(L"ERROR: Could not initialize COM.\n");
@@ -32,11 +31,11 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList) 
 
 	// find a domain controller for the specified domain
 	PDOMAIN_CONTROLLER_INFO tDomainControllerInfo;
-	if (DsGetDcName(NULL, sSubArgs[0].c_str(), NULL, NULL,
+	if (DsGetDcName(nullptr, sSubArgs.at(0).c_str(), nullptr, nullptr,
 		DS_IS_FLAT_NAME | DS_RETURN_DNS_NAME | DS_TRY_NEXTCLOSEST_SITE | DS_FORCE_REDISCOVERY,
 		&tDomainControllerInfo) != ERROR_SUCCESS)
 	{
-		wprintf(L"ERROR: Could not locate domain controller for domain '%s'\n", sSubArgs[0].c_str());
+		wprintf(L"ERROR: Could not locate domain controller for domain '%s'\n", sSubArgs.at(0).c_str());
 		exit(-1);
 	}
 
@@ -49,10 +48,10 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList) 
 
 	// bind to global catalog
 	CComPtr<IDirectorySearch> oSearch;
-	if (FAILED(ADsOpenObject(sPath.c_str(), NULL, NULL, ADS_SECURE_AUTHENTICATION,
+	if (FAILED(ADsOpenObject(sPath.c_str(), nullptr, NULL, ADS_SECURE_AUTHENTICATION,
 		IID_IDirectorySearch, (void**)&oSearch)))
 	{
-		wprintf(L"ERROR: Could not establish search for domain '%s'\n", sSubArgs[0].c_str());
+		wprintf(L"ERROR: Could not establish search for domain '%s'\n", sSubArgs.at(0).c_str());
 		exit(-1);
 	}
 
@@ -65,7 +64,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList) 
 	// set the search preference.
 	if (FAILED(oSearch->SetSearchPreference(&SearchPref, 1)))
 	{
-		wprintf(L"ERROR: Could not set search preference for domain '%s'\n", sSubArgs[0].c_str());
+		wprintf(L"ERROR: Could not set search preference for domain '%s'\n", sSubArgs.at(0).c_str());
 		exit(-1);
 
 	}
@@ -79,7 +78,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList) 
 	ADS_SEARCH_HANDLE hSearch;
 	if (FAILED(oSearch->ExecuteSearch(sSearchFilter, sAttributes, _countof(sAttributes), &hSearch)))
 	{
-		wprintf(L"ERROR: Could not execute search for domain '%s'\n", sSubArgs[0].c_str());
+		wprintf(L"ERROR: Could not execute search for domain '%s'\n", sSubArgs.at(0).c_str());
 		exit(-1);
 	}
 
@@ -98,7 +97,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList) 
 		// add the server to our list
 		oArgList.push(L"/SharePaths");
 		oArgList.push(std::wstring(oColumn.pADsValues->CaseIgnoreString) + L"." + sSuffix + 
-			((sSubArgs.size() == 2) ? (L":" + sSubArgs[1]) : L""));
+			((sSubArgs.size() == 2) ? (L":" + sSubArgs.at(1)) : L""));
 
 		// free the column.
 		oSearch->FreeColumn(&oColumn);
@@ -107,7 +106,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList) 
 	// close search handle
 	if (oSearch->CloseSearchHandle(hSearch) != NULL)
 	{
-		wprintf(L"ERROR: Could not close search for domain '%s'\n", sSubArgs[0].c_str());
+		wprintf(L"ERROR: Could not close search for domain '%s'\n", sSubArgs.at(0).c_str());
 		exit(-1);
 	}
 };

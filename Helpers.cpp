@@ -106,7 +106,7 @@ std::wstring GetNameFromSid(const PSID tSid, bool * bMarkAsOrphan)
 	if (LookupAccountSid(NULL, tSid, sAccountName,
 		&iAccountNameSize, sDomainName, &iDomainName, &tNameUse) == 0)
 	{
-		DWORD iError = GetLastError();
+		const DWORD iError = GetLastError();
 		if (iError == ERROR_NONE_MAPPED)
 		{
 			if (bMarkAsOrphan != NULL) *bMarkAsOrphan = true;
@@ -347,7 +347,7 @@ HANDLE RegisterFileHandle(HANDLE hFile, std::wstring sOperation)
 	static std::map<std::wstring, std::pair<HANDLE,std::wstring>> oFileLookup;
 
 	// do a reverse lookup on the file name
-	auto iSize = (size_t) GetFinalPathNameByHandle(hFile, NULL, 0, VOLUME_NAME_NT);
+	const auto iSize = (size_t) GetFinalPathNameByHandle(hFile, NULL, 0, VOLUME_NAME_NT);
 
 	// create a string that can accommodate that size (plus null terminating character)
 	std::wstring sPath;
@@ -449,7 +449,7 @@ std::wstring GetAntivirusStateDescription()
 	return (bIsEnabled) ? L"On" : L"Off";
 }
 
-std::wstring FileTimeToString(LPFILETIME tFileTime)
+std::wstring FileTimeToString(LPFILETIME const tFileTime)
 {
 	// the date format function require system time structure
 	SYSTEMTIME tTime;
@@ -465,11 +465,11 @@ std::wstring FileTimeToString(LPFILETIME tFileTime)
 	return std::wstring(sTime);
 }
 
-BOOL WriteToFile(std::wstring & sStringToWrite, HANDLE hFile)
+BOOL WriteToFile(const std::wstring& sStringToWrite, HANDLE hFile)
 {
 	// see how many characters we need to store as utf-8
 	int iChars = WideCharToMultiByte(CP_UTF8, 0,
-		sStringToWrite.c_str(), (int) sStringToWrite.length(), 
+		sStringToWrite.c_str(), (int)sStringToWrite.length(),
 		NULL, 0, NULL, NULL);
 	if (iChars == 0)
 	{
@@ -477,10 +477,10 @@ BOOL WriteToFile(std::wstring & sStringToWrite, HANDLE hFile)
 	}
 
 	// allocate and do the conversion
-	auto* sString = (BYTE *) malloc(iChars);
-    iChars = WideCharToMultiByte(CP_UTF8, 0, 
-		sStringToWrite.c_str(), (int) sStringToWrite.length(),
-		(LPSTR) sString, iChars, NULL, NULL);
+	auto* sString = (BYTE*)malloc(iChars);
+	iChars = WideCharToMultiByte(CP_UTF8, 0,
+		sStringToWrite.c_str(), (int)sStringToWrite.length(),
+		(LPSTR)sString, iChars, NULL, NULL);
 	if (iChars == 0)
 	{
 		free(sString);
@@ -489,7 +489,7 @@ BOOL WriteToFile(std::wstring & sStringToWrite, HANDLE hFile)
 
 	// write to file, free memory, and return result
 	DWORD iBytes = 0;
-	BOOL bResult = WriteFile(hFile, sString, iChars, &iBytes, NULL);
+	const BOOL bResult = WriteFile(hFile, sString, iChars, &iBytes, NULL);
 	free(sString);
 	return bResult;
 }

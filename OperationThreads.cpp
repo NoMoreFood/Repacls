@@ -2,16 +2,15 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationThreads> * OperationThreads::RegisteredFactory =
-new ClassFactory<OperationThreads>(GetCommand());
+ClassFactory<OperationThreads> OperationThreads::RegisteredFactory(GetCommand());
 
-OperationThreads::OperationThreads(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationThreads::OperationThreads(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
 
 	// store off the argument
-	InputOutput::MaxThreads() = (short)_wtoi(sSubArgs[0].c_str());
+	InputOutput::MaxThreads() = (short)_wtoi(sSubArgs.at(0).c_str());
 	if (InputOutput::MaxThreads() == 0 || InputOutput::MaxThreads() > 100)
 	{
 		// complain

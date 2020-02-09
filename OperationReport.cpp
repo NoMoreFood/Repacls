@@ -2,26 +2,25 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationReport> * OperationReport::RegisteredFactory =
-new ClassFactory<OperationReport>(GetCommand());
+ClassFactory<OperationReport> OperationReport::RegisteredFactory(GetCommand());
 
 #define Q(x) L"\"" + (x) + L"\""
 
-OperationReport::OperationReport(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationReport::OperationReport(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sReportFile = ProcessAndCheckArgs(1, oArgList, L"\\0");
 	std::vector<std::wstring> sMatchAndArgs = ProcessAndCheckArgs(1, oArgList, L":");
 
 	// fetch params
-	HANDLE hFile = CreateFile(sReportFile[0].c_str(), GENERIC_WRITE,
-		FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE hFile = CreateFile(sReportFile.at(0).c_str(), GENERIC_WRITE,
+		FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 	// see if names could be resolved
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		// complain
-		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sReportFile[0].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sReportFile.at(0).c_str(), GetCommand().c_str());
 		exit(-1);
 	}
 
@@ -32,9 +31,9 @@ OperationReport::OperationReport(std::queue<std::wstring> & oArgList) : Operatio
 	if (hFile == hReportFile)
 	{
 		// write out the file type marker
-		BYTE hHeader[] = { 0xEF,0xBB,0xBF };
+		const BYTE hHeader[] = { 0xEF,0xBB,0xBF };
 		DWORD iBytes = 0;
-		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, NULL) == 0)
+		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 		{
 			wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
 			exit(-1);
@@ -53,11 +52,11 @@ OperationReport::OperationReport(std::queue<std::wstring> & oArgList) : Operatio
 	// compile the regular expression
 	try
 	{
-		tRegex = std::wregex(sMatchAndArgs[0], std::wregex::icase | std::wregex::optimize);
+		tRegex = std::wregex(sMatchAndArgs.at(0), std::wregex::icase | std::wregex::optimize);
 	}
 	catch (const std::regex_error &)
 	{
-		wprintf(L"ERROR: Invalid regular expression '%s' specified for parameter '%s'.\n", sMatchAndArgs[0].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Invalid regular expression '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(0).c_str(), GetCommand().c_str());
 		exit(-1);
 	}
 
@@ -74,7 +73,7 @@ OperationReport::OperationReport(std::queue<std::wstring> & oArgList) : Operatio
 SidActionResult OperationReport::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
 	// do not report null sids
-	if (tCurrentSid == NULL) return SidActionResult::Nothing;
+	if (tCurrentSid == nullptr) return SidActionResult::Nothing;
 
 	// fetch the account from the sid
 	std::wstring sAccount = GetNameFromSidEx(tCurrentSid);
@@ -95,7 +94,7 @@ SidActionResult OperationReport::DetermineSid(WCHAR * const sSdPart, ObjectEntry
 bool OperationReport::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// do not report null acls
-	if (tCurrentAcl == NULL) return false;
+	if (tCurrentAcl == nullptr) return false;
 
 	ACCESS_ACE * tAce = FirstAce(tCurrentAcl);
 	for (ULONG iEntry = 0; iEntry < tCurrentAcl->AceCount; tAce = NextAce(tAce), iEntry++)

@@ -8,10 +8,10 @@ private:
 
 	// statics used by command registration utility
 	static std::wstring GetCommand() { return L"PathList"; }
-	static ClassFactory<OperationPathList> * RegisteredFactory;
+	static ClassFactory<OperationPathList> RegisteredFactory;
 
 public:
 
 	// constructors
-	OperationPathList(std::queue<std::wstring> & oArgList);
+	OperationPathList(std::queue<std::wstring> & oArgList, std::wstring sCommand);
 };
