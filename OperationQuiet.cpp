@@ -1,10 +1,9 @@
 #include "OperationQuiet.h"
 #include "InputOutput.h"
 
-ClassFactory<OperationQuiet> * OperationQuiet::RegisteredFactory =
-new ClassFactory<OperationQuiet>(GetCommand());
+ClassFactory<OperationQuiet> OperationQuiet::RegisteredFactory(GetCommand());
 
-OperationQuiet::OperationQuiet(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationQuiet::OperationQuiet(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	InputOutput::InQuietMode() = true;
 }

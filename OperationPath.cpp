@@ -2,14 +2,13 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationPath> * OperationPath::RegisteredFactory =
-	new ClassFactory<OperationPath>(GetCommand());
+ClassFactory<OperationPath> OperationPath::RegisteredFactory(GetCommand());
 
-OperationPath::OperationPath(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationPath::OperationPath(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
 
 	// store off the argument
-	InputOutput::ScanPaths().push_back(sSubArgs[0]);
+	InputOutput::ScanPaths().push_back(sSubArgs.at(0));
 };

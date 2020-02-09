@@ -2,10 +2,9 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationSidHistory> * OperationSidHistory::RegisteredFactory =
-new ClassFactory<OperationSidHistory>(GetCommand());
+ClassFactory<OperationSidHistory> OperationSidHistory::RegisteredFactory(GetCommand());
 
-OperationSidHistory::OperationSidHistory(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationSidHistory::OperationSidHistory(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// flag this as being an ace-level action
 	AppliesToDacl = true;
@@ -18,7 +17,7 @@ SidActionResult OperationSidHistory::DetermineSid(WCHAR * const sSdPart, ObjectE
 {
 	// lookup the textual name for this account and
 	// return if it is not found
-	std::wstring sAccountName = GetNameFromSid(tCurrentSid, NULL);
+	std::wstring sAccountName = GetNameFromSid(tCurrentSid, nullptr);
 	if (sAccountName.empty()) return SidActionResult::Nothing;
 
 	// now do a forward lookup on that same account name to see what the

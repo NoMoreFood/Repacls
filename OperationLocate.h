@@ -10,7 +10,7 @@ private:
 
 	// statics used by command registration utility
 	static std::wstring GetCommand() { return L"Locate"; }
-	static ClassFactory<OperationLocate> * RegisteredFactory;
+	static ClassFactory<OperationLocate> RegisteredFactory;
 
 	// operation specific
 	HANDLE hReportFile = INVALID_HANDLE_VALUE;
@@ -22,5 +22,5 @@ public:
 	void ProcessObjectAction(ObjectEntry & tObjectEntry) override;
 
 	// constructors
-	OperationLocate(std::queue<std::wstring> & oArgList);
+	OperationLocate(std::queue<std::wstring> & oArgList, std::wstring sCommand);
 };

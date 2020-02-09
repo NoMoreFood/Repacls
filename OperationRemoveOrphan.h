@@ -8,7 +8,7 @@ private:
 
 	// statics used by command registration utility
 	static std::wstring GetCommand() { return L"RemoveOrphans"; }
-	static ClassFactory<OperationRemoveOrphan> * RegisteredFactory;
+	static ClassFactory<OperationRemoveOrphan> RegisteredFactory;
 
 	// operation specific
 	PSID tDomainSid = nullptr;
@@ -20,5 +20,5 @@ public:
 	SidActionResult DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) override;
 
 	// constructors
-	OperationRemoveOrphan(std::queue<std::wstring> & oArgList);
+	OperationRemoveOrphan(std::queue<std::wstring> & oArgList, std::wstring sCommand);
 };

@@ -9,10 +9,9 @@
 #include "OperationSharePaths.h"
 #include "InputOutput.h"
 
-ClassFactory<OperationSharePaths> * OperationSharePaths::RegisteredFactory =
-	new ClassFactory<OperationSharePaths>(GetCommand());
+ClassFactory<OperationSharePaths> OperationSharePaths::RegisteredFactory(GetCommand());
 
-OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
@@ -26,14 +25,14 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : 
 	if (sSubArgs.size() == 2)
 	{
 		// further split the second arg into a command delimited list
-		std::vector<std::wstring> oShareArgs = SplitArgs(sSubArgs[1], L",");
+		std::vector<std::wstring> oShareArgs = SplitArgs(sSubArgs.at(1), L",");
 
 		// enumerate list 
 		for (auto& oShareArg : oShareArgs)
 		{
 			// check to see if a match parameter was passed
-			WCHAR sMatchArg[] = L"MATCH=";
-			WCHAR sNoMatchArg[] = L"NOMATCH=";
+			const WCHAR sMatchArg[] = L"MATCH=";
+			const WCHAR sNoMatchArg[] = L"NOMATCH=";
 			if (_wcsnicmp(oShareArg.c_str(), sMatchArg, _countof(sMatchArg) - 1) == 0 ||
 				_wcsnicmp(oShareArg.c_str(), sNoMatchArg, _countof(sNoMatchArg) - 1) == 0)
 			{
@@ -43,7 +42,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : 
 				// verify a regular expression was actually specified
 				if (oMatchArgs.size() != 2)
 				{
-					wprintf(L"ERROR: No regular expression specified for parameter '%s'\n", sSubArgs[0].c_str());
+					wprintf(L"ERROR: No regular expression specified for parameter '%s'\n", sSubArgs.at(0).c_str());
 					exit(-1);
 				}
 
@@ -51,12 +50,12 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : 
 				{
 					// parse the regular expression
 					((_wcsnicmp(oShareArg.c_str(), sMatchArg, _countof(sMatchArg) - 1) == 0) ? oMatchRegex : oNoMatchRegex) =
-						std::wregex(oMatchArgs[1], std::regex_constants::icase);
+						std::wregex(oMatchArgs.at(1), std::regex_constants::icase);
 				}
 				catch (std::exception &)
 				{
 					// regular expression could no be parsed
-					wprintf(L"ERROR: Invalid regular expression '%s'\n", oMatchArgs[1].c_str());
+					wprintf(L"ERROR: Invalid regular expression '%s'\n", oMatchArgs.at(1).c_str());
 					exit(-1);
 				}
 			}
@@ -90,13 +89,13 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : 
 		DWORD iTotalEntries = 0;
 
 		// enumerate file share
-		iReturn = NetShareEnum((LPWSTR)sSubArgs[0].c_str(), 2, (LPBYTE*)&tInfo,
+		iReturn = NetShareEnum((LPWSTR)sSubArgs.at(0).c_str(), 2, (LPBYTE*)&tInfo,
 			MAX_PREFERRED_LENGTH, &iEntries, &iTotalEntries, &hResumeHandle);
 
 		// check for unknown error
 		if (iReturn != ERROR_SUCCESS && iReturn != ERROR_MORE_DATA)
 		{
-			wprintf(L"ERROR: Could not enumerate shares on '%s'\n", sSubArgs[0].c_str());
+			wprintf(L"ERROR: Could not enumerate shares on '%s'\n", sSubArgs.at(0).c_str());
 			if (bStopOnErrors) exit(-1); else return;
 		}
 
@@ -111,16 +110,13 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : 
 				!bAdminOnly && CheckBitSet(tInfo[iEntry].shi2_type, STYPE_SPECIAL)) continue;
 
 			// skip hidden shares unless hidden command was specified
-			WCHAR * cEnd = (wcsrchr(tInfo[iEntry].shi2_netname, '$'));
-			if (!bAdminOnly && !bHiddenIncluded && (cEnd != NULL && *(cEnd + 1) == '\0')) continue;
+			const WCHAR * cEnd = (wcsrchr(tInfo[iEntry].shi2_netname, '$'));
+			if (!bAdminOnly && !bHiddenIncluded && (cEnd != nullptr && *(cEnd + 1) == '\0')) continue;
 
 			// add a trailing path if the path does not have one
 			std::wstring sLocalPath = tInfo[iEntry].shi2_path;
 			if (sLocalPath.back() != L'\\') sLocalPath += L'\\';
-
-			// convert to uppercase
-			std::transform(sLocalPath.begin(), sLocalPath.end(), sLocalPath.begin(), 
-				[](const WCHAR c) { return static_cast<WCHAR>(::toupper(c)); });
+			ConvertToUpper(sLocalPath);
 
 			// see if the share name matches the regular expression
 			if (!std::regex_search(tInfo[iEntry].shi2_netname, oMatchRegex)) continue;
@@ -151,7 +147,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : 
 				oPathOuter->second.find(oPathInner->second) != std::wstring::npos)
 			{
 				wprintf(L"NOTE: Share '%s' is included in '%s' on '%s'; skipping\n",
-					oPathOuter->first.c_str(), oPathInner->first.c_str(), sSubArgs[0].c_str());
+					oPathOuter->first.c_str(), oPathInner->first.c_str(), sSubArgs.at(0).c_str());
 				bAddToPathList = false;
 				break;
 			}
@@ -161,7 +157,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList) : 
 		if (bAddToPathList)
 		{
 			InputOutput::ScanPaths().push_back(
-				L"\\\\" + sSubArgs[0] + L"\\" + oPathOuter->first);
+				L"\\\\" + sSubArgs.at(0) + L"\\" + oPathOuter->first);
 		}
 	}
 };

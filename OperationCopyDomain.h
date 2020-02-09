@@ -8,7 +8,7 @@ private:
 
 	// statics used by command registration utility
 	static std::wstring GetCommand() { return L"CopyDomain"; }
-	static ClassFactory<OperationCopyDomain> * RegisteredFactory;
+	static ClassFactory<OperationCopyDomain> RegisteredFactory;
 
 	// operation specific
 	PSID tSourceDomain = nullptr;
@@ -22,5 +22,5 @@ public:
 	bool ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement) override;
 
 	// constructors
-	OperationCopyDomain(std::queue<std::wstring> & oArgList);
+	OperationCopyDomain(std::queue<std::wstring> & oArgList, std::wstring sCommand);
 };

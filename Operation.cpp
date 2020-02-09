@@ -7,7 +7,7 @@
 bool Operation::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// return immediately if acl is null
-	if (tCurrentAcl == NULL) return false;
+	if (tCurrentAcl == nullptr) return false;
 
 	// flag to note whether a change was actually made
 	bool bMadeChange = false;
@@ -75,7 +75,7 @@ bool Operation::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEnt
 			else
 			{
 				PBYTE const tNewAcl = (PBYTE)LocalAlloc(LMEM_FIXED, tAcl->AclSize + (iNewLen - iOldLen));
-				if (tNewAcl == NULL)
+				if (tNewAcl == nullptr)
 				{
 					wprintf(L"ERROR: Unable to allocate memory for new SID.\n");
 					exit(-1);

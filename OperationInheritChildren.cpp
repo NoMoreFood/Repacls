@@ -3,10 +3,9 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationInheritChildren> * OperationInheritChildren::RegisteredFactory =
-new ClassFactory<OperationInheritChildren>(GetCommand());
+ClassFactory<OperationInheritChildren> OperationInheritChildren::RegisteredFactory(GetCommand());
 
-OperationInheritChildren::OperationInheritChildren(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationInheritChildren::OperationInheritChildren(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// flag this as being an ace-level action
 	AppliesToDacl = true;

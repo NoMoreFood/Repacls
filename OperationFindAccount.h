@@ -8,7 +8,7 @@ private:
 
 	// statics used by command registration utility
 	static std::wstring GetCommand() { return L"FindAccount";  }
-	static ClassFactory<OperationFindAccount> * RegisteredFactory;
+	static ClassFactory<OperationFindAccount> RegisteredFactory;
 
 	// operation specific
 	PSID tFindSid = nullptr;
@@ -20,5 +20,5 @@ public:
 	SidActionResult DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) override;
 
 	// constructors
-	OperationFindAccount(std::queue<std::wstring> & oArgList);
+	OperationFindAccount(std::queue<std::wstring> & oArgList, std::wstring sCommand);
 };

@@ -2,23 +2,22 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationMoveDomain> * OperationMoveDomain::RegisteredFactory =
-new ClassFactory<OperationMoveDomain>(GetCommand());
+ClassFactory<OperationMoveDomain> OperationMoveDomain::RegisteredFactory(GetCommand());
 
-OperationMoveDomain::OperationMoveDomain(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationMoveDomain::OperationMoveDomain(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(2, oArgList);
 
 	// fetch params
-	tSourceDomain = GetSidFromName(sSubArgs[0]);
-	tTargetDomain = GetSidFromName(sSubArgs[1]);
+	tSourceDomain = GetSidFromName(sSubArgs.at(0));
+	tTargetDomain = GetSidFromName(sSubArgs.at(1));
 
 	// see if names could be resolved
 	if (tSourceDomain == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid source domain '%s' specified for parameter '%s'.\n", sSubArgs[0].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Invalid source domain '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
 		exit(0);
 	}
 
@@ -26,7 +25,7 @@ OperationMoveDomain::OperationMoveDomain(std::queue<std::wstring> & oArgList) : 
 	if (tTargetDomain == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid target domain '%s' specified for parameter '%s'.\n", sSubArgs[1].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Invalid target domain '%s' specified for parameter '%s'.\n", sSubArgs.at(1).c_str(), GetCommand().c_str());
 		exit(0);
 	}
 
@@ -41,7 +40,7 @@ OperationMoveDomain::OperationMoveDomain(std::queue<std::wstring> & oArgList) : 
 	AppliesToOwner = true;
 
 	// target certain parts of the security descriptor
-	if (sSubArgs.size() > 2) ProcessGranularTargetting(sSubArgs[2]);
+	if (sSubArgs.size() > 2) ProcessGranularTargetting(sSubArgs.at(2));
 }
 
 SidActionResult OperationMoveDomain::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
@@ -63,7 +62,7 @@ SidActionResult OperationMoveDomain::DetermineSid(WCHAR * const sSdPart, ObjectE
 		tSidStruct->SubAuthority[4] < 1000)
 	{
 		// create a new sid that has the domain identifier of the target domain
-		PSID tSidTmp = NULL;
+		PSID tSidTmp = nullptr;
 		AllocateAndInitializeSid(&tSidStruct->IdentifierAuthority, tSidStruct->SubAuthorityCount,
 			tSidStruct->SubAuthority[0], tSidTargetDomain->SubAuthority[1], tSidTargetDomain->SubAuthority[2],
 			tSidTargetDomain->SubAuthority[3], tSidStruct->SubAuthority[4], 0, 0, 0, &tSidTmp);
@@ -86,7 +85,7 @@ SidActionResult OperationMoveDomain::DetermineSid(WCHAR * const sSdPart, ObjectE
 	else
 	{
 		// translate the old sid to an account name
-		std::wstring sSourceAccountName = GetNameFromSid(tCurrentSid, NULL);
+		std::wstring sSourceAccountName = GetNameFromSid(tCurrentSid, nullptr);
 		if (sSourceAccountName.empty())	return SidActionResult::Nothing;
 
 		// check to see if an equivalent account exists in the target domain

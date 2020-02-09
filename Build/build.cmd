@@ -4,7 +4,7 @@ CLS
 SET PATH=%WINDIR%\system32;%WINDIR%\system32\WindowsPowerShell\v1.0
 
 :: cert info to use for signing
-SET CERT=2FA35B20356EFEB88F9E9B5F20221693C57100E5
+SET CERT=D4C06C609230B7BC433A428BFFD6EDC4F77FD166
 set TSAURL=http://time.certum.pl/
 set LIBNAME=Repacls
 set LIBURL=https://github.com/NoMoreFood/Repacls

@@ -4,10 +4,9 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationCanonicalizeAcls> * OperationCanonicalizeAcls::RegisteredFactory =
-new ClassFactory<OperationCanonicalizeAcls>(GetCommand());
+ClassFactory<OperationCanonicalizeAcls> OperationCanonicalizeAcls::RegisteredFactory(GetCommand());
 
-OperationCanonicalizeAcls::OperationCanonicalizeAcls(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationCanonicalizeAcls::OperationCanonicalizeAcls(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// flag this as being an ace-level action
 	AppliesToDacl = true;
@@ -16,7 +15,7 @@ OperationCanonicalizeAcls::OperationCanonicalizeAcls(std::queue<std::wstring> & 
 bool OperationCanonicalizeAcls::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// sanity check (null acl is considered valid)
-	if (tCurrentAcl == NULL) return false;
+	if (tCurrentAcl == nullptr) return false;
 
 	// if no problem, then no need to perform a reorder
 	if (OperationCheckCanonical::IsAclCanonical(tCurrentAcl))
@@ -31,11 +30,8 @@ bool OperationCanonicalizeAcls::ProcessAclAction(WCHAR * const sSdPart, ObjectEn
 		ACCESS_ACE * tAce = FirstAce(tCurrentAcl);
 		for (ULONG iEntry = 0; iEntry < tCurrentAcl->AceCount; tAce = NextAce(tAce), iEntry++)
 		{
-			// determine the overall over type of this ace
-			OperationCheckCanonical::AceOrder oThisAceOrder = OperationCheckCanonical::DetermineAceOrder(tAce);
-
 			// copy the ace if it matches the sequential order (explicit deny, explicit allow, ...)
-			if (iAceOrder == oThisAceOrder)
+			if (iAceOrder == OperationCheckCanonical::DetermineAceOrder(tAce))
 			{
 				memcpy(tNewAce, tAce, tAce->Header.AceSize);
 				tNewAce = NextAce(tNewAce);

@@ -2,22 +2,21 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationRemoveOrphan> * OperationRemoveOrphan::RegisteredFactory =
-new ClassFactory<OperationRemoveOrphan>(GetCommand());
+ClassFactory<OperationRemoveOrphan> OperationRemoveOrphan::RegisteredFactory(GetCommand());
 
-OperationRemoveOrphan::OperationRemoveOrphan(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationRemoveOrphan::OperationRemoveOrphan(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
 
 	// decode the passed parameter to an account name
-	tDomainSid = GetSidFromName(sSubArgs[0]);
+	tDomainSid = GetSidFromName(sSubArgs.at(0));
 
 	// see if names could be resolved
 	if (tDomainSid == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid domain '%s' specified for parameter '%s'.\n", sSubArgs[0].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Invalid domain '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
 		exit(0);
 	}
 
@@ -31,13 +30,13 @@ OperationRemoveOrphan::OperationRemoveOrphan(std::queue<std::wstring> & oArgList
 	AppliesToOwner = true;
 
 	// target certain parts of the security descriptor
-	if (sSubArgs.size() > 1) ProcessGranularTargetting(sSubArgs[1]);
+	if (sSubArgs.size() > 1) ProcessGranularTargetting(sSubArgs.at(1));
 }
 
 SidActionResult OperationRemoveOrphan::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
 	// only bother doing a domain check if a domain was specified
-	if (tDomainSid != NULL)
+	if (tDomainSid != nullptr)
 	{
 		// see if this sid in the source domain
 		BOOL bDomainSidsEqual = FALSE;
@@ -56,6 +55,6 @@ SidActionResult OperationRemoveOrphan::DetermineSid(WCHAR * const sSdPart, Objec
 
 	// update the sid in the ace
 	InputOutput::AddInfo(L"Removing orphan of security identifier '" + sSid + L"' from domain '" + sDomainName + L"'", sSdPart);
-	tResultantSid = NULL;
+	tResultantSid = nullptr;
 	return SidActionResult::Remove;
 }

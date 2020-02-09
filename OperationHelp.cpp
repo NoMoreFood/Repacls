@@ -2,14 +2,11 @@
 
 #include <iostream>
 
-ClassFactory<OperationHelp> * OperationHelp::RegisteredFactory =
-	new ClassFactory<OperationHelp>(GetCommand());
-ClassFactory<OperationHelp> * OperationHelp::RegisteredFactoryAltOne =
-	new ClassFactory<OperationHelp>(GetCommandAltOne());
-ClassFactory<OperationHelp> * OperationHelp::RegisteredFactoryAltTwo =
-	new ClassFactory<OperationHelp>(GetCommandAltTwo());
+ClassFactory<OperationHelp> OperationHelp::RegisteredFactory(GetCommand());
+ClassFactory<OperationHelp> OperationHelp::RegisteredFactoryAltOne(GetCommandAltOne());
+ClassFactory<OperationHelp> OperationHelp::RegisteredFactoryAltTwo(GetCommandAltTwo());
 
-OperationHelp::OperationHelp(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationHelp::OperationHelp(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	std::wcout <<
 		LR"(
@@ -48,7 +45,7 @@ or end of your command as to not confuse them with ordered parameters.
    Specifies a file that contains a list of files or directories to process.
    Each path should be listed on a separate line and the file should be UTF-8
    formatted.  Each path read from the file is processed the same as if it 
-   where passed using /Path (see above). 
+   were passed using /Path (see above). 
 
 /SharePaths <ComputerName>[:AdminOnly|IncludeHidden|Match=<Str>|NoMatch=<Str>]
    Specifies a server that has one or more shares to process.  This command is
@@ -154,15 +151,16 @@ Commands That Do Not Alter Security
 
 Commands That Can Alter Security (When /WhatIf Is Not Present)
 --------------------------------
-/AddAccountIfMissing <Name|Sid>
-   This command will ensure the account specified has full control access to
-   path and all directories/files under the path either via explicit or
-   inherited permissions.  This command does not take into account any
-   permissions that would be granted to the specified user via group
-   membership.  If the account does not have access, access is
-   granted.  This command is useful to correct issues where a user or
-   administrator has mistakenly removed an administrative group from some
-   directories.
+/GrantPerms <Name|Sid>:<Flags>
+/DenyPerms <Name|Sid>:<Flags>
+   This command will ensure the account specified has the specified access to
+   the path and all subdirectories/files within the path either via explicit or
+   inherited permissions.  The syntax of <Name|Sid>:<Flags> is the same of that
+   from ICACLS.  For example, /GrantPerms SYSTEM:(F)(CI)(OI) will check if 
+   SYSTEM has Full Control to all subdirectories and, if it does not, will add
+   full control with inheritance enabled.  This command is often useful to 
+   correct issues where a user or administrator has mistakenly removed an group
+   from subdirectories with broken inheritance.
 )";
 
 	std::wcout <<
@@ -176,11 +174,11 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    This command will look for mergeable entries in the security descriptor and
    merge them.  For example, running icacls.exe <file> /grant Everyone:R
    followed by icacls.exe <file> /grant Everyone:(CI)(OI)(R) will produce
-   two entries even those the second command supersedes the first one.
-   Windows Explorer automatically merges these entries when display security
+   two entries even though the second command supersedes the first one.
+   Windows Explorer automatically merges these entries when displaying security
    information so you have to use other utilities to detect these
    inefficiencies.  While there's nothing inherently wrong with these
-   entries, it possible for them to result file system is performance
+   entries, it is possible for them to result in file system performance
    degradation.
 
 /CopyDomain <SourceDomainName>:<TargetDomainName>
@@ -192,7 +190,7 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
 
 /MoveDomain <SourceDomainName>:<TargetDomainName>
    This command will look to see whether any account in <SourceDomain>
-   has an identically-named account in <TargetDomain>.  If so, any entires
+   has an identically-named account in <TargetDomain>.  If so, any entries
    are converted to use the new domain.  For example,
    'OldDomain\Domain Admins' would become 'NewDomain\Domain Admins'.  Since
    this operation relies on the names being resolvable, specifying a SID
@@ -203,7 +201,7 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    is found as the file owner, the owner is replaced by the built-in
    Administrators group.  If the specified name is found as the group owner
    (a defunct attribute that has no function in terms of security), it is
-   also replace with the built-in Administrators group.
+   also replaced with the built-in Administrators group.
 
 /RemoveOrphans <Domain|Sid>
    Remove any account whose SID is derived from the <Domain> specified
@@ -211,8 +209,8 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
 
 /RemoveRedundant
    This command will remove any explicit permission that is redundant of
-   of the permissions its already given through inheritance.  This option
-   helps recovered from the many individual explicit permissions that may
+   the permissions it is already given through inheritance.  This option
+   helps recover from the many individual explicit permissions that may
    have been littered from the old cacls.exe command that didn't understand
    how to set up inheritance.
 
@@ -233,10 +231,10 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    Will set the owner of the file to the name specified.
 
 /UpdateHistoricalSids
-   Will update any SIDs that present in the security descriptor and are part
-   of a SID history with the primary SID that is associated an account.  This
-   is especially useful after a domain migration and prior to removing
-   excess SID history on accounts.
+   Will update any SIDs that are present in the security descriptor and are
+   part of a SID history with the primary SID that is associated with an
+   account. This is especially useful after a domain migration and prior to 
+   removing excess SID history on accounts.
 
 Exclusive Options
 =================
@@ -248,19 +246,19 @@ Exclusive options cannot be combined with any other security operations.
 /ResetChildren
    This will reset all children of path to the to inherit from the parent.  It
    will not affect the security of the parent.  This command does not affect
-   the security the root directory as specified by the /Path argument.
+   the security of the root directory as specified by the /Path argument.
 
 /InheritChildren
    This will cause any parent that is currently set to block inheritance to
    start allowing inheritance.  Any explicit entries on the children are
-   preserved.  This command does not will not affect the security the root
-   directory as specified by the /Path argument.
+   preserved.  This command will not affect the security of the root directory
+   as specified by the /Path argument.
 
 Other Notes & Limitations
 =========================
 - To only affect a particular part of a security descriptor, you can add on an
   optional ':X' parameter after the end of the account name where X is a comma
-  separated list of DACL,SACL, OWNER, or GROUP.  For example,
+  separated list of DACL, SACL, OWNER, or GROUP.  For example,
   '/RemoveAccount "DOM\joe:DACL,OWNER"' will only cause the designated account
   to be removed from the DACL and OWNER parts of the security descriptor.
 

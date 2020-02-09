@@ -2,12 +2,11 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationLocate> * OperationLocate::RegisteredFactory =
-new ClassFactory<OperationLocate>(GetCommand());
+ClassFactory<OperationLocate> OperationLocate::RegisteredFactory(GetCommand());
 
 #define Q(x) L"\"" + (x) + L"\""
 
-OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sReportFile = ProcessAndCheckArgs(1, oArgList, L"\\0");
@@ -15,7 +14,7 @@ OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList) : Operatio
 
 	// fetch params
 	HANDLE hFile = CreateFile(sReportFile[0].c_str(), GENERIC_WRITE,
-		FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 	// see if names could be resolved
 	if (hFile == INVALID_HANDLE_VALUE)
@@ -34,7 +33,7 @@ OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList) : Operatio
 		// write out the file type marker
 		const BYTE hHeader[] = { 0xEF,0xBB,0xBF };
 		DWORD iBytes = 0;
-		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, NULL) == 0)
+		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 		{
 			wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
 			exit(-1);
@@ -56,11 +55,11 @@ OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList) : Operatio
 	// compile the regular expression
 	try
 	{
-		tRegex = std::wregex(sMatchAndArgs[0], std::wregex::icase | std::wregex::optimize);
+		tRegex = std::wregex(sMatchAndArgs.at(0), std::wregex::icase | std::wregex::optimize);
 	}
 	catch (const std::regex_error &)
 	{
-		wprintf(L"ERROR: Invalid regular expression '%s' specified for parameter '%s'.\n", sMatchAndArgs[0].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Invalid regular expression '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(0).c_str(), GetCommand().c_str());
 		exit(-1);
 	}
 }
@@ -69,7 +68,7 @@ void OperationLocate::ProcessObjectAction(ObjectEntry & tObjectEntry)
 {
 	// skip any file names that do not match the regex
 	const WCHAR * sFileName = tObjectEntry.Name.c_str();
-	if (wcsrchr(sFileName, '\\') != NULL) sFileName = wcsrchr(sFileName, '\\') + 1;
+	if (wcsrchr(sFileName, '\\') != nullptr) sFileName = wcsrchr(sFileName, '\\') + 1;
 	if (!std::regex_match(sFileName, tRegex)) return;
 
 	// fetch file attribute data

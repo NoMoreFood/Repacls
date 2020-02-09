@@ -2,10 +2,9 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationResetChildren> * OperationResetChildren::RegisteredFactory =
-new ClassFactory<OperationResetChildren>(GetCommand());
+ClassFactory<OperationResetChildren> OperationResetChildren::RegisteredFactory(GetCommand());
 
-OperationResetChildren::OperationResetChildren(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationResetChildren::OperationResetChildren(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// setup null ace for allowing inheritance
 	InitializeAcl(&tAclNull, sizeof(tAclNull), ACL_REVISION);

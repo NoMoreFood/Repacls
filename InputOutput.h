@@ -23,37 +23,37 @@ private:
 
 public:
 
-	static bool & InQuietMode()
+	static bool & InQuietMode() noexcept
 	{
 		static bool bQuietMode = false;
 		return bQuietMode;
 	}
 
-	static bool & InWhatIfMode()
+	static bool & InWhatIfMode() noexcept
 	{
 		static bool bWhatIfMode = false;
 		return bWhatIfMode;
 	}
 
-	static bool & ExcludeHiddenSystem()
+	static bool & ExcludeHiddenSystem() noexcept
 	{
 		static bool bExcludeHiddenSystem = false;
 		return bExcludeHiddenSystem;
 	}
 
-	static short & MaxThreads()
+	static short & MaxThreads() noexcept
 	{
 		static short iMaxThreads = 5;
 		return iMaxThreads;
 	}
 
-	static bool & Log()
+	static bool & Log() noexcept
 	{
 		static bool bLog = false;
 		return bLog;
 	}
 
-	static std::vector<std::wstring> & ScanPaths()
+	static std::vector<std::wstring> & ScanPaths() noexcept
 	{
 		static std::vector<std::wstring> vScanPaths;
 		return vScanPaths;

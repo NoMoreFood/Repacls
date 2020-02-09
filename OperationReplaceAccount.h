@@ -8,7 +8,7 @@ private:
 
 	// statics used by command registration utility
 	static std::wstring GetCommand() { return L"ReplaceAccount"; }
-	static ClassFactory<OperationReplaceAccount> * RegisteredFactory;
+	static ClassFactory<OperationReplaceAccount> RegisteredFactory;
 
 	// operation specific
 	PSID tSearchAccount = nullptr;
@@ -22,5 +22,5 @@ public:
 	SidActionResult DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) override;
 
 	// constructors
-	OperationReplaceAccount(std::queue<std::wstring> & oArgList);
+	OperationReplaceAccount(std::queue<std::wstring> & oArgList, std::wstring sCommand);
 };

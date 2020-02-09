@@ -41,6 +41,10 @@ typedef ACCESS_ACE *PACCESS_ACE;
 #define HasNoPropogate(x) CheckBitSet((x)->Header.AceFlags,NO_PROPAGATE_INHERIT_ACE)
 #define GetNonOiCiIoBits(x) ((~(CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE | INHERIT_ONLY_ACE)) & (x)->Header.AceFlags)
 
+// string helper operations
+#define ConvertToUpper(_x) std::transform(_x.begin(), _x.end(), _x.begin(),	\
+	[](const WCHAR c) noexcept { return static_cast<WCHAR>(::toupper(c)); });
+
 typedef struct ObjectEntry
 {
 	std::wstring Name;
@@ -80,7 +84,7 @@ public:
 	bool ExclusiveOperation = false;
 
 	DWORD SpecialCommitFlags = false;
-	PSID DefaultSidWhenEmpty = NULL;
+	PSID DefaultSidWhenEmpty = nullptr;
 
 	virtual bool ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement) { return false; }
 	virtual bool ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement);
@@ -89,7 +93,7 @@ public:
 	virtual void ProcessObjectAction(ObjectEntry & tObjectEntry) { return; }
 
 	Operation(std::queue<std::wstring> & oArgList);
-	virtual ~Operation() = default;;
+	virtual ~Operation() = default;
 };
 
 #include "OperationFactory.h"

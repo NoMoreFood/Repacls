@@ -6,7 +6,7 @@ class FactoryPlant
 {
 protected:
 
-	virtual Operation * CreateInstanceSub(std::queue<std::wstring> & oArgList) = 0;
+	virtual Operation * CreateInstanceSub(std::queue<std::wstring> & oArgList, std::wstring sCommand) = 0;
 
 	static std::map<std::wstring, FactoryPlant *> & GetCommands()
 	{
@@ -32,8 +32,7 @@ public:
 		}
 
 		// convert to uppercase for map matching
-		std::transform(sCommand.begin(), sCommand.end(), sCommand.begin(), 
-			[](const WCHAR c) { return static_cast<WCHAR>(::toupper(c)); });
+		ConvertToUpper(sCommand);
 
 		// remove the first character
 		sCommand.erase(0, 1);
@@ -49,7 +48,7 @@ public:
 		}
 
 		// create the the new class
-		return GetCommands()[sCommand]->CreateInstanceSub(oArgList);
+		return GetCommands()[sCommand]->CreateInstanceSub(oArgList, sCommand);
 	}
 };
 
@@ -57,17 +56,16 @@ template <class SubType> class ClassFactory : public FactoryPlant
 {
 private:
 
-	Operation * CreateInstanceSub(std::queue<std::wstring> & oArgList) override
+	Operation * CreateInstanceSub(std::queue<std::wstring> & oArgList, std::wstring sCommand) override
 	{
-		return new SubType(oArgList);
+		return new SubType(oArgList, sCommand);
 	}
 
 public:
 
 	ClassFactory(std::wstring sCommand)
 	{
-		std::transform(sCommand.begin(), sCommand.end(), sCommand.begin(), 
-			[](const WCHAR c) { return static_cast<WCHAR>(::toupper(c)); });
+		ConvertToUpper(sCommand);
 		GetCommands()[sCommand] = this;
 	};
 };

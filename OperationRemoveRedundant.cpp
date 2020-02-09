@@ -3,10 +3,9 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationRemoveRedundant> * OperationRemoveRedundant::RegisteredFactory =
-new ClassFactory<OperationRemoveRedundant>(GetCommand());
+ClassFactory<OperationRemoveRedundant> OperationRemoveRedundant::RegisteredFactory(GetCommand());
 
-OperationRemoveRedundant::OperationRemoveRedundant(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationRemoveRedundant::OperationRemoveRedundant(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// flag this as being an ace-level action
 	AppliesToDacl = true;
@@ -16,7 +15,7 @@ OperationRemoveRedundant::OperationRemoveRedundant(std::queue<std::wstring> & oA
 bool OperationRemoveRedundant::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// sanity check
-	if (tCurrentAcl == NULL) return false;
+	if (tCurrentAcl == nullptr) return false;
 
 	// track whether the acl was actually change so the caller may decide
 	// that the change needs to be persisted

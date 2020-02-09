@@ -7,26 +7,25 @@
 #include <shlobj.h> 
 #include <shlwapi.h> 
 
-ClassFactory<OperationLocateShortcut> * OperationLocateShortcut::RegisteredFactory =
-new ClassFactory<OperationLocateShortcut>(GetCommand());
+ClassFactory<OperationLocateShortcut> OperationLocateShortcut::RegisteredFactory(GetCommand());
 
 #define Q(x) L"\"" + (x) + L"\""
 
-OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sReportFile = ProcessAndCheckArgs(1, oArgList, L"\\0");
 	std::vector<std::wstring> sMatchAndArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
 
 	// fetch params
-	HANDLE hFile = CreateFile(sReportFile[0].c_str(), GENERIC_WRITE,
-		FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE hFile = CreateFile(sReportFile.at(0).c_str(), GENERIC_WRITE,
+		FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 	// see if names could be resolved
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		// complain
-		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sReportFile[0].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sReportFile.at(0).c_str(), GetCommand().c_str());
 		exit(-1);
 	}
 
@@ -39,7 +38,7 @@ OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring> & oArg
 		// write out the file type marker
 		const BYTE hHeader[] = { 0xEF,0xBB,0xBF };
 		DWORD iBytes = 0;
-		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, NULL) == 0)
+		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 		{
 			wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
 			exit(-1);
@@ -62,7 +61,7 @@ OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring> & oArg
 	// compile the regular expression
 	try
 	{
-		tRegexTarget = std::wregex(sMatchAndArgs[0], std::wregex::icase | std::wregex::optimize);
+		tRegexTarget = std::wregex(sMatchAndArgs.at(0), std::wregex::icase | std::wregex::optimize);
 		tRegexLink = std::wregex(L".*\\.lnk", std::wregex::icase | std::wregex::optimize);
 	}
 	catch (const std::regex_error &)
@@ -76,7 +75,7 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry & tObjectEntry)
 {
 	// skip any file names that do not match the regex
 	const WCHAR * sFileName = tObjectEntry.Name.c_str();
-	if (wcsrchr(sFileName, '\\') != NULL) sFileName = wcsrchr(sFileName, '\\') + 1;
+	if (wcsrchr(sFileName, '\\') != nullptr) sFileName = wcsrchr(sFileName, '\\') + 1;
 	if (!std::regex_match(sFileName, tRegexLink)) return;
 
 	// initialize com for this thread
@@ -84,7 +83,7 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	if (!bComInitialized)
 	{
 		bComInitialized = true;
-		const HRESULT hComInit = CoInitializeEx(0, COINIT_APARTMENTTHREADED);
+		const HRESULT hComInit = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 		if (hComInit != S_OK && hComInit != S_FALSE)
 		{
 			wprintf(L"ERROR: Could not initialize COM.\n");
@@ -121,9 +120,9 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	if (tData.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED) sAttributes += L"E";
 
 	// create shortcut interfaces
-	IShellLinkW * oLink = NULL;
-	IPersistFile * oFile = NULL;
-	if (CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (VOID **)&oLink) != S_OK ||
+	IShellLinkW * oLink = nullptr;
+	IPersistFile * oFile = nullptr;
+	if (CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (VOID **)&oLink) != S_OK ||
 		oLink->QueryInterface(IID_IPersistFile, (VOID **)&oFile) != S_OK)
 	{
 		wprintf(L"ERROR: Could not initialize ShellLink COM instance.\n");
@@ -137,7 +136,7 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	{
 		WCHAR sTargetPathRaw[MAX_PATH];
 		WCHAR sWorkingDirRaw[MAX_PATH];
-		if (oLink->GetPath(sTargetPathRaw, MAX_PATH, NULL, SLGP_RAWPATH) == S_OK) sTargetPath = sTargetPathRaw;
+		if (oLink->GetPath(sTargetPathRaw, MAX_PATH, nullptr, SLGP_RAWPATH) == S_OK) sTargetPath = sTargetPathRaw;
 		if (oLink->GetWorkingDirectory(sWorkingDirRaw, MAX_PATH) == S_OK) sWorkingDirectory = sWorkingDirRaw;
 	}
 

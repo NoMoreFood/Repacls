@@ -7,16 +7,15 @@
 #include <locale>
 #include <codecvt>
 
-ClassFactory<OperationPathList> * OperationPathList::RegisteredFactory =
-new ClassFactory<OperationPathList>(GetCommand());
+ClassFactory<OperationPathList> OperationPathList::RegisteredFactory(GetCommand());
 
-OperationPathList::OperationPathList(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationPathList::OperationPathList(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
 
 	// open the file
-	std::wifstream fFile(sSubArgs[0].c_str());
+	std::wifstream fFile(sSubArgs.at(0).c_str());
 
 	// adapt the stream to read windows unicode files
 	(void) fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf8<wchar_t,

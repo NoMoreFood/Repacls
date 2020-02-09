@@ -2,22 +2,21 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-ClassFactory<OperationFindAccount> * OperationFindAccount::RegisteredFactory =
-	new ClassFactory<OperationFindAccount>(GetCommand());
+ClassFactory<OperationFindAccount> OperationFindAccount::RegisteredFactory(GetCommand());
 
-OperationFindAccount::OperationFindAccount(std::queue<std::wstring> & oArgList) : Operation(oArgList)
+OperationFindAccount::OperationFindAccount(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
 
 	// decode the passed parameter to an account name
-	tFindSid = GetSidFromName(sSubArgs[0]);
+	tFindSid = GetSidFromName(sSubArgs.at(0));
 
 	// see if names could be resolved
 	if (tFindSid == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid account '%s' specified for parameter '%s'.\n", sSubArgs[0].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Invalid account '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
 		exit(0);
 	}
 
@@ -31,7 +30,7 @@ OperationFindAccount::OperationFindAccount(std::queue<std::wstring> & oArgList) 
 	AppliesToOwner = true;
 
 	// target certain parts of the security descriptor
-	if (sSubArgs.size() > 1) ProcessGranularTargetting(sSubArgs[1]);
+	if (sSubArgs.size() > 1) ProcessGranularTargetting(sSubArgs.at(1));
 }
 
 SidActionResult OperationFindAccount::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
