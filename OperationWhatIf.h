@@ -13,5 +13,5 @@ private:
 public:
 
 	// constructors
-	OperationWhatIf(std::queue<std::wstring> & oArgList, std::wstring sCommand);
+	OperationWhatIf(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 };

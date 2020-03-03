@@ -22,5 +22,5 @@ public:
 	void ProcessObjectAction(ObjectEntry & tObjectEntry) override;
 
 	// constructors
-	OperationLocate(std::queue<std::wstring> & oArgList, std::wstring sCommand);
+	OperationLocate(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 };

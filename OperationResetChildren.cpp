@@ -4,7 +4,7 @@
 
 ClassFactory<OperationResetChildren> OperationResetChildren::RegisteredFactory(GetCommand());
 
-OperationResetChildren::OperationResetChildren(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
+OperationResetChildren::OperationResetChildren(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// setup null ace for allowing inheritance
 	InitializeAcl(&tAclNull, sizeof(tAclNull), ACL_REVISION);

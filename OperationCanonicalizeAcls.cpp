@@ -2,11 +2,10 @@
 #include "OperationCheckCanonical.h"
 #include "DriverKitPartial.h"
 #include "InputOutput.h"
-#include "Functions.h"
 
 ClassFactory<OperationCanonicalizeAcls> OperationCanonicalizeAcls::RegisteredFactory(GetCommand());
 
-OperationCanonicalizeAcls::OperationCanonicalizeAcls(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
+OperationCanonicalizeAcls::OperationCanonicalizeAcls(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// flag this as being an ace-level action
 	AppliesToDacl = true;

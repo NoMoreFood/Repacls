@@ -4,7 +4,7 @@
 
 ClassFactory<OperationSidHistory> OperationSidHistory::RegisteredFactory(GetCommand());
 
-OperationSidHistory::OperationSidHistory(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
+OperationSidHistory::OperationSidHistory(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// flag this as being an ace-level action
 	AppliesToDacl = true;

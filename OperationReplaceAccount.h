@@ -22,5 +22,5 @@ public:
 	SidActionResult DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) override;
 
 	// constructors
-	OperationReplaceAccount(std::queue<std::wstring> & oArgList, std::wstring sCommand);
+	OperationReplaceAccount(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 };

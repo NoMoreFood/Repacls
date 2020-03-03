@@ -13,5 +13,5 @@ private:
 public:
 
 	// constructors
-	OperationThreads(std::queue<std::wstring> & oArgList, std::wstring sCommand);
+	OperationThreads(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 };

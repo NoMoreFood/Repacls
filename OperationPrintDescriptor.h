@@ -16,6 +16,6 @@ public:
 	bool ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement) override;
 
 	// constructors
-	OperationPrintDescriptor(std::queue<std::wstring> & oArgList, std::wstring sCommand);
+	OperationPrintDescriptor(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 };
 

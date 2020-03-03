@@ -16,6 +16,6 @@ public:
 	bool ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement) override;
 
 	// constructors
-	OperationRemoveRedundant(std::queue<std::wstring> & oArgList, std::wstring sCommand);
+	OperationRemoveRedundant(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 };
 

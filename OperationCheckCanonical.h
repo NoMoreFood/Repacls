@@ -31,6 +31,6 @@ public:
 	bool ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement) override;
 
 	// constructors
-	OperationCheckCanonical(std::queue<std::wstring> & oArgList, std::wstring sCommand);
+	OperationCheckCanonical(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 };
 

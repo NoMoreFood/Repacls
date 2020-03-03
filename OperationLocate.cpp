@@ -6,7 +6,7 @@ ClassFactory<OperationLocate> OperationLocate::RegisteredFactory(GetCommand());
 
 #define Q(x) L"\"" + (x) + L"\""
 
-OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
+OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sReportFile = ProcessAndCheckArgs(1, oArgList, L"\\0");

@@ -14,14 +14,13 @@
 #include <condition_variable>
 
 #include "Operation.h"
-#include "OperationHelp.h"
 #include "InputOutput.h"
 #include "ConcurrentQueue.h"
 #include "DriverKitPartial.h"
 #include "Functions.h"
 #include "Version.h"
 
-#define MAX_DIRECTORY_BUFFER 65536
+constexpr ULONG MAX_DIRECTORY_BUFFER = 65536;
 
 std::vector<Operation *> oOperationList;
 

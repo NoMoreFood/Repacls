@@ -2,10 +2,7 @@
 #include "InputOutput.h"
 #include "Functions.h"
 
-#include <fstream>
-#include <iostream>
 #include <locale>
-#include <codecvt>
 
 ClassFactory<OperationLog> OperationLog::RegisteredFactory(GetCommand());
 
@@ -13,7 +10,7 @@ ClassFactory<OperationLog> OperationLog::RegisteredFactory(GetCommand());
 
 HANDLE OperationLog::hLogHandle = INVALID_HANDLE_VALUE;
 
-OperationLog::OperationLog(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
+OperationLog::OperationLog(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sLogFile = ProcessAndCheckArgs(1, oArgList, L"\\0");

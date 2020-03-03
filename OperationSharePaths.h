@@ -13,5 +13,5 @@ private:
 public:
 
 	// constructors
-	OperationSharePaths(std::queue<std::wstring> & oArgList, std::wstring sCommand);
+	OperationSharePaths(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 };

@@ -9,7 +9,7 @@
 ClassFactory<OperationGrantDenyPerms> OperationGrantDenyPerms::RegisteredFactoryGrant(GetCommandAdd());
 ClassFactory<OperationGrantDenyPerms> OperationGrantDenyPerms::RegisteredFactoryDeny(GetCommandDeny());
 
-OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgList, std::wstring sCommand) : Operation(oArgList)
+OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(2, oArgList);
@@ -23,20 +23,21 @@ OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgL
 	std::vector<std::wstring> aPermList;
 	const std::wregex oPermsRegex(LR"(\(([A-Z]+)\))");
 	for (std::wsregex_iterator oPermsIterator(sPerms.begin(), sPerms.end(), oPermsRegex,
-		std::regex_constants::match_continuous); oPermsIterator != std::wsregex_iterator(); oPermsIterator++) {
+		std::regex_constants::match_continuous); oPermsIterator != std::wsregex_iterator(); ++oPermsIterator) {
 		aPermList.push_back((*oPermsIterator).str(1));
 	}
 
 	// error if no options set
-	if (aPermList.size() == 0)
+	if (aPermList.empty())
 	{
 		wprintf(L"ERROR: Invalid or no permissions string specified for parameter '%s'.\n", GetCommandAdd().c_str());
 		exit(-1);
 	}
 
 	// populate default values
-	ConvertToUpper(sCommand);
-	tEa.grfAccessMode = (sCommand == GetCommandAdd()) ? GRANT_ACCESS : DENY_ACCESS;
+	std::wstring sCommandUpper(sCommand);
+	ConvertToUpper(sCommandUpper);
+	tEa.grfAccessMode = (sCommandUpper == GetCommandAdd()) ? GRANT_ACCESS : DENY_ACCESS;
 	tEa.grfInheritance = NO_INHERITANCE;
 	tEa.grfAccessPermissions = 0;
 	tEa.Trustee.MultipleTrusteeOperation = NO_MULTIPLE_TRUSTEE;
@@ -98,7 +99,7 @@ OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgL
 	};
 
 	// decode the permissions string to their binary values
-	for (const std::wstring sKey : aPermList)
+	for (const std::wstring & sKey : aPermList)
 	{
 		if (aInheritMap.find(sKey) != aInheritMap.end()) tEa.grfInheritance |= aInheritMap.at(sKey);
 		else if (aPermsMap.find(sKey) != aPermsMap.end()) tEa.grfAccessPermissions |= aPermsMap.at(sKey);
@@ -123,7 +124,7 @@ bool OperationGrantDenyPerms::ProcessAclAction(WCHAR* const sSdPart, ObjectEntry
 	const DWORD iObjectTypeMask = IsDirectory(tObjectEntry.Attributes)
 		? ~0 : ~(CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE);
 
-	// verify this is not alraedy part of the ace as an inherited or explicit entry
+	// verify this is not already part of the ace as an inherited or explicit entry
 	if (tCurrentAcl != nullptr)
 	{
 		ACCESS_ACE* tAceDacl = FirstAce(tCurrentAcl);
