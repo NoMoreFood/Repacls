@@ -19,6 +19,6 @@ public:
 	bool ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement) override;
 
 	// constructors
-	OperationBackupSecurity(std::queue<std::wstring> & oArgList, std::wstring sCommand);
+	OperationBackupSecurity(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 };
 

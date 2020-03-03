@@ -13,5 +13,5 @@ private:
 public:
 
 	// constructors
-	OperationQuiet(std::queue<std::wstring> & oArgList, std::wstring sCommand);
+	OperationQuiet(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 };

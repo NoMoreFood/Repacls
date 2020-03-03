@@ -3,7 +3,7 @@
 
 ClassFactory<OperationNoHiddenSystem> OperationNoHiddenSystem::RegisteredFactory(GetCommand());
 
-OperationNoHiddenSystem::OperationNoHiddenSystem(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
+OperationNoHiddenSystem::OperationNoHiddenSystem(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	InputOutput::ExcludeHiddenSystem() = true;
 }

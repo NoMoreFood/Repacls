@@ -5,7 +5,7 @@
 
 ClassFactory<OperationCopyDomain> OperationCopyDomain::RegisteredFactory(GetCommand());
 
-OperationCopyDomain::OperationCopyDomain(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
+OperationCopyDomain::OperationCopyDomain(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(2, oArgList);

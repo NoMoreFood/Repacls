@@ -15,7 +15,7 @@ private:
 public:
 
 	// constructors
-	OperationLog(std::queue<std::wstring> & oArgList, std::wstring sCommand);
+	OperationLog(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 
 	// functions
 	static void LogFileItem(const std::wstring & sInfoLevel, const std::wstring & sPath, const std::wstring & sMessage);

@@ -341,7 +341,7 @@ VOID EnablePrivs()
 	return;
 }
 
-HANDLE RegisterFileHandle(HANDLE hFile, std::wstring sOperation)
+HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring & sOperation)
 {
 	// lookup do a reverse lookup on file name
 	static std::map<std::wstring, std::pair<HANDLE,std::wstring>> oFileLookup;

@@ -5,7 +5,7 @@
 
 ClassFactory<OperationCheckCanonical> OperationCheckCanonical::RegisteredFactory(GetCommand());
 
-OperationCheckCanonical::OperationCheckCanonical(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
+OperationCheckCanonical::OperationCheckCanonical(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// flag this as being an ace-level action
 	AppliesToDacl = true;

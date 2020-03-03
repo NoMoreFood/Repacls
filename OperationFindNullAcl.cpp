@@ -4,7 +4,7 @@
 
 ClassFactory<OperationFindNullAcl> OperationFindNullAcl::RegisteredFactory(GetCommand());
 
-OperationFindNullAcl::OperationFindNullAcl(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
+OperationFindNullAcl::OperationFindNullAcl(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// flag this as being an ace-level action
 	AppliesToDacl = true;

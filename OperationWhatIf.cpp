@@ -3,7 +3,7 @@
 
 ClassFactory<OperationWhatIf> OperationWhatIf::RegisteredFactory(GetCommand());
 
-OperationWhatIf::OperationWhatIf(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
+OperationWhatIf::OperationWhatIf(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	InputOutput::InWhatIfMode() = true;
 }

@@ -12,7 +12,7 @@ std::wstring GetNameFromSidEx(const PSID tSid, bool * bMarkAsOrphan = nullptr);
 std::wstring GetDomainNameFromSid(const PSID tSid);
 std::wstring GenerateAccessMask(DWORD iCurrentMask);
 std::wstring GenerateInheritanceFlags(DWORD iCurrentFlags);
-HANDLE RegisterFileHandle(HANDLE hFile, std::wstring sOperation);
+HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring & sOperation);
 std::wstring GetAntivirusStateDescription();
 std::wstring FileTimeToString(LPFILETIME const tFileTime);
 BOOL WriteToFile(const std::wstring & sStringToWrite, HANDLE hFile);

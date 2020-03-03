@@ -6,7 +6,7 @@ ClassFactory<OperationHelp> OperationHelp::RegisteredFactory(GetCommand());
 ClassFactory<OperationHelp> OperationHelp::RegisteredFactoryAltOne(GetCommandAltOne());
 ClassFactory<OperationHelp> OperationHelp::RegisteredFactoryAltTwo(GetCommandAltTwo());
 
-OperationHelp::OperationHelp(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
+OperationHelp::OperationHelp(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	std::wcout <<
 		LR"(

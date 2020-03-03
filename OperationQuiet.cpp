@@ -3,7 +3,7 @@
 
 ClassFactory<OperationQuiet> OperationQuiet::RegisteredFactory(GetCommand());
 
-OperationQuiet::OperationQuiet(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
+OperationQuiet::OperationQuiet(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	InputOutput::InQuietMode() = true;
 }

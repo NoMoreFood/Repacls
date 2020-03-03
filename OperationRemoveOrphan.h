@@ -20,5 +20,5 @@ public:
 	SidActionResult DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) override;
 
 	// constructors
-	OperationRemoveOrphan(std::queue<std::wstring> & oArgList, std::wstring sCommand);
+	OperationRemoveOrphan(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 };

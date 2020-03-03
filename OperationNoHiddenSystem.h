@@ -13,5 +13,5 @@ private:
 public:
 
 	// constructors
-	OperationNoHiddenSystem(std::queue<std::wstring> & oArgList, std::wstring sCommand);
+	OperationNoHiddenSystem(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 };

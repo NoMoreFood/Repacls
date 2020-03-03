@@ -17,5 +17,5 @@ private:
 public:
 
 	// constructors
-	OperationHelp(std::queue<std::wstring> & oArgList, std::wstring sCommand);
+	OperationHelp(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 };

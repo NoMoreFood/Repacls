@@ -23,5 +23,5 @@ public:
 	bool ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement) override;
 
 	// constructors
-	OperationReport(std::queue<std::wstring> & oArgList, std::wstring sCommand);
+	OperationReport(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 };

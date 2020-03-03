@@ -5,7 +5,7 @@
 
 ClassFactory<OperationPrintDescriptor> OperationPrintDescriptor::RegisteredFactory(GetCommand());
 
-OperationPrintDescriptor::OperationPrintDescriptor(std::queue<std::wstring> & oArgList, std::wstring sCommand) : Operation(oArgList)
+OperationPrintDescriptor::OperationPrintDescriptor(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// flag this as being an ace-level action
 	AppliesToSd = true;

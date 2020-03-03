@@ -6,7 +6,7 @@ class FactoryPlant
 {
 protected:
 
-	virtual Operation * CreateInstanceSub(std::queue<std::wstring> & oArgList, std::wstring sCommand) = 0;
+	virtual Operation * CreateInstanceSub(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) = 0;
 
 	static std::map<std::wstring, FactoryPlant *> & GetCommands()
 	{
@@ -15,6 +15,8 @@ protected:
 	}
 
 public:
+	
+	virtual ~FactoryPlant() = default;
 
 	static Operation * CreateInstance(std::queue<std::wstring> & oArgList)
 	{
@@ -52,11 +54,11 @@ public:
 	}
 };
 
-template <class SubType> class ClassFactory : public FactoryPlant
+template <class SubType> class ClassFactory final : public FactoryPlant
 {
 private:
 
-	Operation * CreateInstanceSub(std::queue<std::wstring> & oArgList, std::wstring sCommand) override
+	Operation * CreateInstanceSub(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) override
 	{
 		return new SubType(oArgList, sCommand);
 	}
