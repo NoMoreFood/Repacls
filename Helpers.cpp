@@ -10,6 +10,7 @@
 #include <atlstr.h>
 #include <wscapi.h>
 #include <iwscapi.h>
+#include <locale.h>
 
 #include <string>
 #include <map>
@@ -18,7 +19,7 @@
 #include "Operation.h"
 #include "Functions.h"
 
-PSID GetSidFromName(std::wstring & sAccountName)
+PSID GetSidFromName(const std::wstring & sAccountName)
 {
 	// for caching
 	static std::shared_mutex oMutex;
@@ -449,11 +450,11 @@ std::wstring GetAntivirusStateDescription()
 	return (bIsEnabled) ? L"On" : L"Off";
 }
 
-std::wstring FileTimeToString(LPFILETIME const tFileTime)
+std::wstring FileTimeToString(const FILETIME tFileTime)
 {
 	// the date format function require system time structure
 	SYSTEMTIME tTime;
-	FileTimeToSystemTime(tFileTime, &tTime);
+	FileTimeToSystemTime(&tFileTime, &tTime);
 
 	// convert the date to a string and return
 	WCHAR sTime[24];
@@ -465,7 +466,33 @@ std::wstring FileTimeToString(LPFILETIME const tFileTime)
 	return std::wstring(sTime);
 }
 
-BOOL WriteToFile(const std::wstring& sStringToWrite, HANDLE hFile)
+std::wstring FileSizeToString(const LARGE_INTEGER iFileSize)
+{
+	// convert the file size to a string
+	WCHAR sSize[32];
+	_wsetlocale(LC_NUMERIC, L"");
+	wsprintf(sSize, L"%I64u", iFileSize.QuadPart);
+	return std::wstring(sSize);
+}
+
+std::wstring FileAttributesToString(const DWORD iAttributes)
+{
+	// decode attributes
+	std::wstring sAttributes;
+	if (iAttributes & FILE_ATTRIBUTE_READONLY) sAttributes += L"R";
+	if (iAttributes & FILE_ATTRIBUTE_HIDDEN) sAttributes += L"H";
+	if (iAttributes & FILE_ATTRIBUTE_SYSTEM) sAttributes += L"S";
+	if (iAttributes & FILE_ATTRIBUTE_DIRECTORY) sAttributes += L"D";
+	if (iAttributes & FILE_ATTRIBUTE_ARCHIVE) sAttributes += L"A";
+	if (iAttributes & FILE_ATTRIBUTE_TEMPORARY) sAttributes += L"T";
+	if (iAttributes & FILE_ATTRIBUTE_COMPRESSED) sAttributes += L"C";
+	if (iAttributes & FILE_ATTRIBUTE_OFFLINE) sAttributes += L"O";
+	if (iAttributes & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED) sAttributes += L"N";
+	if (iAttributes & FILE_ATTRIBUTE_ENCRYPTED) sAttributes += L"E";
+	return sAttributes;
+}
+
+BOOL WriteToFile(const std::wstring& sStringToWrite, HANDLE hFile) noexcept
 {
 	// see how many characters we need to store as utf-8
 	int iChars = WideCharToMultiByte(CP_UTF8, 0,

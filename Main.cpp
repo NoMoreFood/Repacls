@@ -338,7 +338,10 @@ void AnalyzingQueue()
 				// construct the entry
 				ObjectEntry oSubEntry;
 				oSubEntry.IsRoot = false;
+				oSubEntry.FileSize = { oInfo->EndOfFile.LowPart, oInfo->EndOfFile.HighPart };
 				oSubEntry.Attributes = oInfo->FileAttributes;
+				oSubEntry.CreationTime = { oInfo->CreationTime.LowPart, (DWORD) oInfo->CreationTime.HighPart };
+				oSubEntry.ModifiedTime = { oInfo->LastWriteTime.LowPart, (DWORD) oInfo->LastWriteTime.HighPart };
 				oSubEntry.Name += oEntry.Name + ((oEntry.IsRoot && oEntry.Name.back() == '\\') ? L"" : L"\\")
 					+ std::wstring(oInfo->FileName, oInfo->FileNameLength / sizeof(WCHAR));
 
@@ -399,7 +402,14 @@ VOID BeginFileScan()
 
 		// copy it to a null terminated string
 		oEntryFirst.Name = std::wstring(tPathU.Buffer, tPathU.Length / sizeof(WCHAR));
-		oEntryFirst.Attributes = GetFileAttributes(oEntryFirst.Name.c_str());
+		
+		// get common file attributes
+		WIN32_FILE_ATTRIBUTE_DATA tData;
+		GetFileAttributesExW(oEntryFirst.Name.c_str(), GetFileExInfoStandard, &tData);
+		oEntryFirst.FileSize = { tData.nFileSizeLow, (LONG) tData.nFileSizeHigh };
+		oEntryFirst.Attributes = tData.dwFileAttributes;
+		oEntryFirst.CreationTime = tData.ftCreationTime;
+		oEntryFirst.ModifiedTime = tData.ftLastWriteTime;
 
 		// free the buffer returned previously
 		RtlFreeUnicodeString(&tPathU);

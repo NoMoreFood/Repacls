@@ -132,14 +132,21 @@ Commands That Do Not Alter Security
    Reports any instance of a null ACL.  A null ACL, unlike an empty ACL, allows
    all access (i.e., similar to an ACE with 'Everyone' with 'Full Control')
 
-/Locate <FileName> <RegularExpression>
+/Locate <FileName> <FileRegularExpression>
    This command will write a comma separated value file with the fields of
    filename, creation time, file modified time, file size and file attributes.
    The regular expression will perform a case insensitive regular expression
    search against file name or directory name.  To report all data, pass .*
    as the regular expression.
 
-/Report <FileName> <RegularExpression>
+/LocateHash <FileName> <FileRegularExpression>[:<SearchHash>[:<SearchSize>]]
+   Similar to /Locate, but the report file will also contain the SHA256 hash  
+   of files that match the search criteria. The search criteria can optionally
+   include a SHA256 hash (in hex) and file size.  Specifying file size can 
+   dramatically increase search performance since only files with matching 
+   sizes are read for hash comparison.
+
+/Report <FileName> <AccountRegularExpression>
    This command will write a comma separated value file with the fields of
    filename, security descriptor part (e.g., DACL), account name, permissions,
    and inheritance flags.  The regular expression will perform a case
