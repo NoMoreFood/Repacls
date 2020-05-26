@@ -6,7 +6,7 @@
 
 // helper functions
 VOID EnablePrivs();
-PSID GetSidFromName(std::wstring & sAccountName);
+PSID GetSidFromName(const std::wstring & sAccountName);
 std::wstring GetNameFromSid(const PSID tSid, bool * bMarkAsOrphan = nullptr);
 std::wstring GetNameFromSidEx(const PSID tSid, bool * bMarkAsOrphan = nullptr);
 std::wstring GetDomainNameFromSid(const PSID tSid);
@@ -14,8 +14,10 @@ std::wstring GenerateAccessMask(DWORD iCurrentMask);
 std::wstring GenerateInheritanceFlags(DWORD iCurrentFlags);
 HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring & sOperation);
 std::wstring GetAntivirusStateDescription();
-std::wstring FileTimeToString(LPFILETIME const tFileTime);
-BOOL WriteToFile(const std::wstring & sStringToWrite, HANDLE hFile);
+std::wstring FileTimeToString(const FILETIME tFileTime);
+std::wstring FileSizeToString(const LARGE_INTEGER iFileSize);
+std::wstring FileAttributesToString(const DWORD iAttributes);
+BOOL WriteToFile(const std::wstring & sStringToWrite, HANDLE hFile) noexcept;
 
 // helper typedefs
 typedef struct SidCompare

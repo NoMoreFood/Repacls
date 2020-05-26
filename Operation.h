@@ -49,6 +49,9 @@ typedef struct ObjectEntry
 {
 	std::wstring Name;
 	DWORD Attributes;
+	FILETIME CreationTime;
+	FILETIME ModifiedTime;
+	LARGE_INTEGER FileSize;
 	bool IsRoot;
 }
 ObjectEntry;

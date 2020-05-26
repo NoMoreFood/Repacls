@@ -71,37 +71,15 @@ void OperationLocate::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	if (wcsrchr(sFileName, '\\') != nullptr) sFileName = wcsrchr(sFileName, '\\') + 1;
 	if (!std::regex_match(sFileName, tRegex)) return;
 
-	// fetch file attribute data
-	WIN32_FILE_ATTRIBUTE_DATA tData;
-	if (GetFileAttributesExW(tObjectEntry.Name.c_str(), GetFileExInfoStandard, &tData) == 0)
-	{
-		InputOutput::AddError(L"ERROR: Unable to read file attributes.");
-	}
-
-	// convert the file size to a string
-	WCHAR sSize[32] = { 0 };
-	ULARGE_INTEGER iFileSize;
-	iFileSize.LowPart = tData.nFileSizeLow;
-	iFileSize.HighPart = tData.nFileSizeHigh;
-	setlocale(LC_NUMERIC, "");
-	wsprintf(sSize, L"%I64u", iFileSize.QuadPart);
-
-	// decode attributes
-	std::wstring sAttributes = L"";
-	if (tData.dwFileAttributes & FILE_ATTRIBUTE_READONLY) sAttributes += L"R";
-	if (tData.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) sAttributes += L"H";
-	if (tData.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM) sAttributes += L"S";
-	if (tData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) sAttributes += L"D";
-	if (tData.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE) sAttributes += L"A";
-	if (tData.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY) sAttributes += L"T";
-	if (tData.dwFileAttributes & FILE_ATTRIBUTE_COMPRESSED) sAttributes += L"C";
-	if (tData.dwFileAttributes & FILE_ATTRIBUTE_OFFLINE) sAttributes += L"O";
-	if (tData.dwFileAttributes & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED) sAttributes += L"N";
-	if (tData.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED) sAttributes += L"E";
+	// get common file attributes
+	const std::wstring sSize = FileSizeToString(tObjectEntry.FileSize);
+	const std::wstring sAttributes = FileAttributesToString(tObjectEntry.Attributes);
+	const std::wstring sModifiedTime = FileTimeToString(tObjectEntry.ModifiedTime);
+	const std::wstring sCreationTime = FileTimeToString(tObjectEntry.CreationTime);
 
 	// write the string to a file
 	std::wstring sToWrite = std::wstring(L"") + Q(tObjectEntry.Name) + L"," +
-		Q(FileTimeToString(&tData.ftCreationTime)) + L"," + Q(FileTimeToString(&tData.ftLastWriteTime)) +
+		Q(sCreationTime) + L"," + Q(sModifiedTime) +
 		L"," + Q(sSize) + L"," + Q(sAttributes) + L"\r\n";
 	if (WriteToFile(sToWrite, hReportFile) == 0)
 	{

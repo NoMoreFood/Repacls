@@ -205,6 +205,7 @@
     <ClCompile Include="OperationFindNullAcl.cpp" />
     <ClCompile Include="OperationHelp.cpp" />
     <ClCompile Include="OperationLocate.cpp" />
+    <ClCompile Include="OperationLocateHash.cpp" />
     <ClCompile Include="OperationLocateShortcut.cpp" />
     <ClCompile Include="OperationLog.cpp" />
     <ClCompile Include="OperationPathList.cpp" />
@@ -234,6 +235,7 @@
     <ClInclude Include="Functions.h" />
     <ClInclude Include="OperationGrantDenyPerms.h" />
     <ClInclude Include="OperationCanonicalizeAcls.h" />
+    <ClInclude Include="OperationLocateHash.h" />
     <ClInclude Include="OperationLocateShortcut.h" />
     <ClInclude Include="InputOutput.h" />
     <ClInclude Include="OperationCopyDomain.h" />

@@ -35,9 +35,7 @@ OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgL
 	}
 
 	// populate default values
-	std::wstring sCommandUpper(sCommand);
-	ConvertToUpper(sCommandUpper);
-	tEa.grfAccessMode = (sCommandUpper == GetCommandAdd()) ? GRANT_ACCESS : DENY_ACCESS;
+	tEa.grfAccessMode = (_wcsicmp(sCommand.c_str(), GetCommandAdd().c_str()) == 0) ? GRANT_ACCESS : DENY_ACCESS;
 	tEa.grfInheritance = NO_INHERITANCE;
 	tEa.grfAccessPermissions = 0;
 	tEa.Trustee.MultipleTrusteeOperation = NO_MULTIPLE_TRUSTEE;

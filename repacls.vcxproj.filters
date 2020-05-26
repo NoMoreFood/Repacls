@@ -115,6 +115,9 @@
     <ClCompile Include="OperationGrantDenyPerms.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
+    <ClCompile Include="OperationLocateHash.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConcurrentQueue.h">
@@ -245,6 +248,9 @@
     </ClInclude>
     <ClInclude Include="OperationGrantDenyPerms.h">
       <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationLocateHash.h">
+      <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
