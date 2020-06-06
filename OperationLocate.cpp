@@ -13,14 +13,14 @@ OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList, const std:
 	std::vector<std::wstring> sMatchAndArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
 
 	// fetch params
-	HANDLE hFile = CreateFile(sReportFile[0].c_str(), GENERIC_WRITE,
+	HANDLE hFile = CreateFile(sReportFile.at(0).c_str(), GENERIC_WRITE,
 		FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 	// see if names could be resolved
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		// complain
-		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sReportFile[0].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sReportFile.at(0).c_str(), GetCommand().c_str());
 		exit(-1);
 	}
 

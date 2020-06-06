@@ -67,7 +67,7 @@ OperationReport::OperationReport(std::queue<std::wstring> & oArgList, const std:
 	AppliesToOwner = true;
 
 	// target certain parts of the security descriptor
-	if (sMatchAndArgs.size() > 1) ProcessGranularTargetting(sMatchAndArgs[1]);
+	if (sMatchAndArgs.size() > 1) ProcessGranularTargetting(sMatchAndArgs.at(1));
 }
 
 SidActionResult OperationReport::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
