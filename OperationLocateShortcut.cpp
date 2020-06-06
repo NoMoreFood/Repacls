@@ -66,7 +66,7 @@ OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring> & oArg
 	}
 	catch (const std::regex_error &)
 	{
-		wprintf(L"ERROR: Invalid regular expression '%s' specified for parameter '%s'.\n", sMatchAndArgs[0].c_str(), GetCommand().c_str());
+		wprintf(L"ERROR: Invalid regular expression '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(0).c_str(), GetCommand().c_str());
 		exit(-1);
 	}
 }

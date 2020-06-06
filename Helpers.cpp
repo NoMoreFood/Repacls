@@ -185,7 +185,7 @@ std::wstring GenerateInheritanceFlags(DWORD iCurrentFlags)
 std::wstring GenerateAccessMask(DWORD iCurrentMask)
 {
 	// define the aesthetic names of permission 
-	static struct
+	static struct MaskDefinitionsType
 	{
 		const DWORD Mask;
 		const std::wstring Description;
@@ -471,7 +471,7 @@ std::wstring FileSizeToString(const LARGE_INTEGER iFileSize)
 	// convert the file size to a string
 	WCHAR sSize[32];
 	_wsetlocale(LC_NUMERIC, L"");
-	wsprintf(sSize, L"%I64u", iFileSize.QuadPart);
+	wsprintf(sSize, L"%I64u", (ULONGLONG) iFileSize.QuadPart);
 	return std::wstring(sSize);
 }
 

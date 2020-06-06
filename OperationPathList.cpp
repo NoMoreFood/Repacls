@@ -35,7 +35,7 @@ OperationPathList::OperationPathList(std::queue<std::wstring> & oArgList, const 
 		}
 
 		// store off the argument
-		InputOutput::ScanPaths().push_back(oLineItems[0]);
+		InputOutput::ScanPaths().push_back(oLineItems.at(0));
 	}
 
 	// cleanup
