@@ -33,7 +33,7 @@ OperationRemoveOrphan::OperationRemoveOrphan(std::queue<std::wstring> & oArgList
 	if (sSubArgs.size() > 1) ProcessGranularTargetting(sSubArgs.at(1));
 }
 
-SidActionResult OperationRemoveOrphan::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
+SidActionResult OperationRemoveOrphan::DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
 	// only bother doing a domain check if a domain was specified
 	if (tDomainSid != nullptr)

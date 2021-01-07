@@ -33,7 +33,7 @@ OperationFindAccount::OperationFindAccount(std::queue<std::wstring> & oArgList, 
 	if (sSubArgs.size() > 1) ProcessGranularTargetting(sSubArgs.at(1));
 }
 
-SidActionResult OperationFindAccount::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
+SidActionResult OperationFindAccount::DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 { 
 	// check if the sid matches the ace
 	if (SidMatch(tCurrentSid, tFindSid))

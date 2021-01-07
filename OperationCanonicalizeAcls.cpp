@@ -11,7 +11,7 @@ OperationCanonicalizeAcls::OperationCanonicalizeAcls(std::queue<std::wstring> & 
 	AppliesToDacl = true;
 }
 
-bool OperationCanonicalizeAcls::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
+bool OperationCanonicalizeAcls::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// sanity check (null acl is considered valid)
 	if (tCurrentAcl == nullptr) return false;

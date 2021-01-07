@@ -5,7 +5,7 @@
 #include <string>
 
 // helper functions
-VOID EnablePrivs();
+VOID EnablePrivs() noexcept;
 PSID GetSidFromName(const std::wstring & sAccountName);
 std::wstring GetNameFromSid(const PSID tSid, bool * bMarkAsOrphan = nullptr);
 std::wstring GetNameFromSidEx(const PSID tSid, bool * bMarkAsOrphan = nullptr);

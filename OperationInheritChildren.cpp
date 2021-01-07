@@ -15,7 +15,7 @@ OperationInheritChildren::OperationInheritChildren(std::queue<std::wstring> & oA
 	SpecialCommitFlags = UNPROTECTED_SACL_SECURITY_INFORMATION | UNPROTECTED_DACL_SECURITY_INFORMATION;
 }
 
-bool OperationInheritChildren::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
+bool OperationInheritChildren::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// nothing to do -- the special commit flags will take care of it
 	return true;

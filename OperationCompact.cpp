@@ -14,7 +14,7 @@ OperationCompact::OperationCompact(std::queue<std::wstring> & oArgList, const st
 	AppliesToSacl = true;
 }
 
-bool OperationCompact::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
+bool OperationCompact::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// sanity check
 	if (tCurrentAcl == nullptr) return false;

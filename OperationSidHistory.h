@@ -13,7 +13,7 @@ private:
 public:
 
 	// overrides
-	SidActionResult DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) override;
+	SidActionResult DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) override;
 
 	// constructors
 	OperationSidHistory(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);

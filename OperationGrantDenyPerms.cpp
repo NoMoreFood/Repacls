@@ -116,7 +116,7 @@ OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgL
 	AppliesToDacl = true;
 }
 
-bool OperationGrantDenyPerms::ProcessAclAction(WCHAR* const sSdPart, ObjectEntry& tObjectEntry, PACL& tCurrentAcl, bool& bAclReplacement)
+bool OperationGrantDenyPerms::ProcessAclAction(const WCHAR* const sSdPart, ObjectEntry& tObjectEntry, PACL& tCurrentAcl, bool& bAclReplacement)
 {
 	// define what constitutes 'full control' based on the object
 	const DWORD iObjectTypeMask = IsDirectory(tObjectEntry.Attributes)

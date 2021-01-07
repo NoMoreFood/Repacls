@@ -34,7 +34,7 @@ OperationFindDomain::OperationFindDomain(std::queue<std::wstring> & oArgList, co
 	if (sSubArgs.size() > 1) ProcessGranularTargetting(sSubArgs.at(1));
 }
 
-SidActionResult OperationFindDomain::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
+SidActionResult OperationFindDomain::DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
 	// see if this sid in the source domain
 	BOOL bDomainSidsEqual = FALSE;

@@ -30,7 +30,7 @@ OperationSetOwner::OperationSetOwner(std::queue<std::wstring> & oArgList, const 
 	if (sSubArgs.size() > 1) ProcessGranularTargetting(sSubArgs.at(1));
 }
 
-SidActionResult OperationSetOwner::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
+SidActionResult OperationSetOwner::DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
 	// only process if sid does not matches
 	if (SidMatch(tCurrentSid, tOwnerSid))

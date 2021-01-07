@@ -195,6 +195,13 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    used multiple times, it is recommended to use /Compact to ensure there
    are not any redundant access control entries.
 
+/CopyMap <FileName>
+   This command will read in the specified file that contains a list of 
+   account mappings in <SearchName>:<CopyName> format.  This command only
+   affects the DACL and SACL.  This common is similiar to the /ReplaceMap 
+   command but it does not affect the owner and does not removed the original
+   account.
+
 /MoveDomain <SourceDomainName>:<TargetDomainName>
    This command will look to see whether any account in <SourceDomain>
    has an identically-named account in <TargetDomain>.  If so, any entries

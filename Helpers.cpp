@@ -243,7 +243,7 @@ std::wstring GenerateAccessMask(DWORD iCurrentMask)
 	return sMaskList;
 }
 
-VOID EnablePrivs()
+VOID EnablePrivs() noexcept
 {
 	// open the current token
 	HANDLE hToken = NULL;
@@ -265,7 +265,7 @@ VOID EnablePrivs()
 		return;
 	}
 
-	WCHAR * sPrivsToSet[] = { SE_RESTORE_NAME, SE_BACKUP_NAME, 
+	const WCHAR * sPrivsToSet[] = { SE_RESTORE_NAME, SE_BACKUP_NAME, 
 		SE_TAKE_OWNERSHIP_NAME, SE_CHANGE_NOTIFY_NAME };
 	for (auto& i : sPrivsToSet)
 	{
@@ -307,7 +307,7 @@ VOID EnablePrivs()
 
 		// convert the privilege name to a unicode string format
 		LSA_UNICODE_STRING sPrivilege;
-		sPrivilege.Buffer = i;
+		sPrivilege.Buffer = (PWSTR) i;
 		sPrivilege.Length = (USHORT)(wcslen(i) * sizeof(WCHAR));
 		sPrivilege.MaximumLength = (USHORT)((wcslen(i) + 1) * sizeof(WCHAR));
 
