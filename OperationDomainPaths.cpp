@@ -74,9 +74,9 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList, 
 		"(!(userAccountControl:1.2.840.113556.1.4.803:=8192))(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(msDS-isRODC=true)))";
 
 	// execute the search.
-	LPWSTR sAttributes[] = { L"cn" };
+	LPCWSTR sAttributes[] = { L"cn" };
 	ADS_SEARCH_HANDLE hSearch;
-	if (FAILED(oSearch->ExecuteSearch(sSearchFilter, sAttributes, _countof(sAttributes), &hSearch)))
+	if (FAILED(oSearch->ExecuteSearch(sSearchFilter, (LPWSTR*) sAttributes, _countof(sAttributes), &hSearch)))
 	{
 		wprintf(L"ERROR: Could not execute search for domain '%s'\n", sSubArgs.at(0).c_str());
 		exit(-1);
@@ -88,7 +88,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList, 
 	{
 		// get the data from the column
 		ADS_SEARCH_COLUMN oColumn;
-		if (FAILED(oSearch->GetColumn(hSearch, sAttributes[0], &oColumn)) ||
+		if (FAILED(oSearch->GetColumn(hSearch, (LPWSTR) sAttributes[0], &oColumn)) ||
 			oColumn.dwADsType != ADSTYPE_CASE_IGNORE_STRING)
 		{
 			continue;

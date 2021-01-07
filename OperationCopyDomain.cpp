@@ -42,7 +42,7 @@ OperationCopyDomain::OperationCopyDomain(std::queue<std::wstring> & oArgList, co
 	if (sSubArgs.size() > 2) ProcessGranularTargetting(sSubArgs.at(2));
 }
 
-bool OperationCopyDomain::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
+bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// check on canonicalization status so if can error if the acl needs to be updated
 	const bool bAclIsCanonical = OperationCheckCanonical::IsAclCanonical(tCurrentAcl);

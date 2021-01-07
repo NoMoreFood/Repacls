@@ -43,7 +43,7 @@ OperationReplaceAccount::OperationReplaceAccount(std::queue<std::wstring> & oArg
 	if (sSubArgs.size() > 2) ProcessGranularTargetting(sSubArgs.at(2));
 }
 
-SidActionResult OperationReplaceAccount::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
+SidActionResult OperationReplaceAccount::DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
 	// check if the sid matches the ace
 	if (SidMatch(tCurrentSid, tSearchAccount))

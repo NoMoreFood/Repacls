@@ -4,7 +4,7 @@
 
 #include <regex>
 
-bool Operation::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
+bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// return immediately if acl is null
 	if (tCurrentAcl == nullptr) return false;
@@ -111,7 +111,7 @@ std::vector<std::wstring> Operation::SplitArgs(std::wstring sInput, const std::w
 	return { oFirst, oLast };
 }
 
-bool Operation::ProcessSidAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID & tCurrentSid, bool & bSidReplacement)
+bool Operation::ProcessSidAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID & tCurrentSid, bool & bSidReplacement)
 {
 	PSID tResultantSid;
 	const SidActionResult tResult = DetermineSid(sSdPart, tObjectEntry, tCurrentSid, tResultantSid);

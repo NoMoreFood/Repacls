@@ -28,7 +28,7 @@ public:
 	static bool IsAclCanonical(PACL & tCurrentAcl);
 
 	// overrides
-	bool ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement) override;
+	bool ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement) override;
 
 	// constructors
 	OperationCheckCanonical(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);

@@ -12,7 +12,7 @@ OperationRemoveRedundant::OperationRemoveRedundant(std::queue<std::wstring> & oA
 	AppliesToSacl = true;
 }
 
-bool OperationRemoveRedundant::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
+bool OperationRemoveRedundant::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// sanity check
 	if (tCurrentAcl == nullptr) return false;

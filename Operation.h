@@ -1,5 +1,8 @@
 #pragma once
 
+// mute compatibility concerns
+#define _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS
+
 #include <windows.h>
 #include <accctrl.h>
 #include <aclapi.h>
@@ -60,8 +63,7 @@ typedef enum SidActionResult : char
 {
 	Nothing = 0,
 	Replace = 1 << 0,
-	Remove = 1 << 1,
-	Add = 1 << 2
+	Remove = 1 << 1
 }
 SidActionResult;
 
@@ -90,9 +92,9 @@ public:
 	PSID DefaultSidWhenEmpty = nullptr;
 
 	virtual bool ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement) { return false; }
-	virtual bool ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement);
-	virtual bool ProcessSidAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID & tCurrentSid, bool & bSidReplacement);
-	virtual SidActionResult DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) { return SidActionResult::Nothing; }
+	virtual bool ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement);
+	virtual bool ProcessSidAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID & tCurrentSid, bool & bSidReplacement);
+	virtual SidActionResult DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) { return SidActionResult::Nothing; }
 	virtual void ProcessObjectAction(ObjectEntry & tObjectEntry) { return; }
 
 	Operation(std::queue<std::wstring> & oArgList);

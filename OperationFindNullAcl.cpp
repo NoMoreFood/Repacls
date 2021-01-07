@@ -10,7 +10,7 @@ OperationFindNullAcl::OperationFindNullAcl(std::queue<std::wstring> & oArgList, 
 	AppliesToDacl = true;
 }
 
-bool OperationFindNullAcl::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
+bool OperationFindNullAcl::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// sanity check (null acl is considered valid)
 	if (tCurrentAcl == nullptr)

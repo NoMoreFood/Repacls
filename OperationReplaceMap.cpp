@@ -25,7 +25,7 @@ OperationReplaceMap::OperationReplaceMap(std::queue<std::wstring> & oArgList, co
 	std::wstring sLine;
 	while (std::getline(fFile, sLine))
 	{
-		// parse the search and replace account which are separated by a '=' character
+		// parse the search and replace account which are separated by a ':' character
 		// also, sometimes a carriage return appears in the input stream so adding
 		// it here ensures it is stripped from the very end
 		std::vector<std::wstring> oLineItems = SplitArgs(sLine, L":|\r");
@@ -67,7 +67,7 @@ OperationReplaceMap::OperationReplaceMap(std::queue<std::wstring> & oArgList, co
 	AppliesToOwner = true;
 }
 
-SidActionResult OperationReplaceMap::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
+SidActionResult OperationReplaceMap::DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
 	// check if the sid matches the ace
 	const auto oInteractor = oReplaceMap.find(tCurrentSid);

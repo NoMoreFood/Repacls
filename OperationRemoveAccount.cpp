@@ -33,7 +33,7 @@ OperationRemoveAccount::OperationRemoveAccount(std::queue<std::wstring> & oArgLi
 	if (sSubArgs.size() > 1) ProcessGranularTargetting(sSubArgs.at(1));
 }
 
-SidActionResult OperationRemoveAccount::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
+SidActionResult OperationRemoveAccount::DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
 	// only process if sid matches
 	if (SidNotMatch(tCurrentSid, tRemoveSid))

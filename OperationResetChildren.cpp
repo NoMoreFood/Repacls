@@ -17,7 +17,7 @@ OperationResetChildren::OperationResetChildren(std::queue<std::wstring> & oArgLi
 	SpecialCommitFlags = UNPROTECTED_SACL_SECURITY_INFORMATION | UNPROTECTED_DACL_SECURITY_INFORMATION;
 }
 
-bool OperationResetChildren::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
+bool OperationResetChildren::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// cleanup existing if it had been reallocated
 	if (bAclReplacement) LocalFree(tCurrentAcl);

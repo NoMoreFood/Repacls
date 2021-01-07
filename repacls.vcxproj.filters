@@ -118,6 +118,9 @@
     <ClCompile Include="OperationLocateHash.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
+    <ClCompile Include="OperationCopyMap.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConcurrentQueue.h">
@@ -251,6 +254,9 @@
     </ClInclude>
     <ClInclude Include="OperationLocateHash.h">
       <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationCopyMap.h">
+      <Filter>Includes\Operations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

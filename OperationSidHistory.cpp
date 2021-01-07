@@ -13,7 +13,7 @@ OperationSidHistory::OperationSidHistory(std::queue<std::wstring> & oArgList, co
 	AppliesToOwner = true;
 }
 
-SidActionResult OperationSidHistory::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
+SidActionResult OperationSidHistory::DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
 	// lookup the textual name for this account and
 	// return if it is not found

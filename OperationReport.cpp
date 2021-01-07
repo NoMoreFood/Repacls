@@ -70,7 +70,7 @@ OperationReport::OperationReport(std::queue<std::wstring> & oArgList, const std:
 	if (sMatchAndArgs.size() > 1) ProcessGranularTargetting(sMatchAndArgs.at(1));
 }
 
-SidActionResult OperationReport::DetermineSid(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
+SidActionResult OperationReport::DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
 	// do not report null sids
 	if (tCurrentSid == nullptr) return SidActionResult::Nothing;
@@ -91,7 +91,7 @@ SidActionResult OperationReport::DetermineSid(WCHAR * const sSdPart, ObjectEntry
 	return SidActionResult::Nothing;
 }
 
-bool OperationReport::ProcessAclAction(WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
+bool OperationReport::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	// do not report null acls
 	if (tCurrentAcl == nullptr) return false;
