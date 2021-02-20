@@ -18,6 +18,6 @@ bool OperationFindNullAcl::ProcessAclAction(const WCHAR * const sSdPart, ObjectE
 		InputOutput::AddInfo(L"Access control list is null", sSdPart);
 	}
 
-	// report the
+	// report the acl has been updated
 	return false;
 }

@@ -12,7 +12,7 @@ ClassFactory<OperationReplaceMap> OperationReplaceMap::RegisteredFactory(GetComm
 OperationReplaceMap::OperationReplaceMap(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
+	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\|");
 
 	// open the file
 	std::wifstream fFile(sSubArgs.at(0).c_str());
@@ -65,6 +65,9 @@ OperationReplaceMap::OperationReplaceMap(std::queue<std::wstring> & oArgList, co
 	AppliesToSacl = true;
 	AppliesToGroup = true;
 	AppliesToOwner = true;
+
+	// target certain parts of the security descriptor
+	if (sSubArgs.size() > 1) ProcessGranularTargetting(sSubArgs.at(1));
 }
 
 SidActionResult OperationReplaceMap::DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
