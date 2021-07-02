@@ -46,7 +46,7 @@ bool OperationBackupSecurity::ProcessSdAction(std::wstring & sFileName, ObjectEn
 		DACL_SECURITY_INFORMATION | SACL_SECURITY_INFORMATION | OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION,
 		&sInfo, NULL) == 0)
 	{
-		InputOutput::AddError(L"ERROR: Unable to generate string security descriptor.");
+		InputOutput::AddError(L"Unable to generate string security descriptor.");
 		return false;
 	}
 
@@ -55,7 +55,7 @@ bool OperationBackupSecurity::ProcessSdAction(std::wstring & sFileName, ObjectEn
 	if (WriteToFile(sToWrite, hFile) == 0)
 	{
 		LocalFree(sInfo);
-		InputOutput::AddError(L"ERROR: Unable to write security descriptor to file.");
+		InputOutput::AddError(L"Unable to write security descriptor to file.");
 		return false;
 	}
 

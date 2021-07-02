@@ -106,10 +106,10 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 
 	// initialize hash for this thread
 	static constexpr size_t iFileBuffer = 2 * 1024 * 1024;
-	__declspec(thread) static BCRYPT_HASH_HANDLE HashHandle = NULL;
-	__declspec(thread) static PBYTE Hash = nullptr;
-	__declspec(thread) static PBYTE FileBuffer = nullptr; 
-	__declspec(thread) static DWORD HashLength = 0;
+	thread_local static BCRYPT_HASH_HANDLE HashHandle = NULL;
+	thread_local static PBYTE Hash = nullptr;
+	thread_local static PBYTE FileBuffer = nullptr; 
+	thread_local static DWORD HashLength = 0;
 	if (Hash == nullptr)
 	{
 		BCRYPT_ALG_HANDLE AlgHandle = NULL;

@@ -85,7 +85,7 @@ SidActionResult OperationReport::DetermineSid(const WCHAR * const sSdPart, Objec
 	std::wstring sToWrite = Q(tObjectEntry.Name) + L"," + Q(sSdPart) + L"," + Q(sAccount) + L"\r\n";
 	if (WriteToFile(sToWrite, hReportFile) == 0)
 	{
-		InputOutput::AddError(L"ERROR: Unable to write security information to report file.");
+		InputOutput::AddError(L"Unable to write security information to report file.");
 	}
 
 	return SidActionResult::Nothing;
@@ -117,7 +117,7 @@ bool OperationReport::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry 
 			Q(sAccount) + L"," + Q(sMask) + L"," + Q(sFlags) + L"\r\n";
 		if (WriteToFile(sToWrite, hReportFile) == 0)
 		{
-			InputOutput::AddError(L"ERROR: Unable to write security information to report file.");
+			InputOutput::AddError(L"Unable to write security information to report file.");
 		}
 	}
 

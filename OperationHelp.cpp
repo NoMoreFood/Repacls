@@ -101,7 +101,7 @@ this way is preferable to multiple commands because the security descriptor is
 only read and written once for the entire command which is especially helpful
 for large volumes.
 
-Commands That Do Not Alter Security
+Commands That Do Not Alter Settings
 -----------------------------------
 /PrintDescriptor
    Prints out the security descriptor to the screen.  This is somewhat useful
@@ -156,7 +156,7 @@ Commands That Do Not Alter Security
    regular expression to refine what part of the security descriptor to scan.
    See Other Notes & Limitations section for more information.
 
-Commands That Can Alter Security (When /WhatIf Is Not Present)
+Commands That Can Alter Settings (When /WhatIf Is Not Present)
 --------------------------------
 /GrantPerms <Name|Sid>:<Flags>
 /DenyPerms <Name|Sid>:<Flags>
@@ -227,6 +227,9 @@ Commands That Can Alter Security (When /WhatIf Is Not Present)
    helps recover from the many individual explicit permissions that may
    have been littered from the old cacls.exe command that didn't understand
    how to set up inheritance.
+
+/RemoveStreams
+   Removes any alternate data streams on targeted files.
 
 /ReplaceAccount <SearchName|SearchSid>:<ReplaceName|ReplaceSid>
    Search for an account and replace it with another account.

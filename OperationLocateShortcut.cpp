@@ -82,14 +82,14 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	if (!std::regex_match(sFileName, tRegexLink)) return;
 
 	// initialize com for this thread
-	__declspec(thread) static bool bComInitialized = false;
+	thread_local static bool bComInitialized = false;
 	if (!bComInitialized)
 	{
 		bComInitialized = true;
 		const HRESULT hComInit = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 		if (hComInit != S_OK && hComInit != S_FALSE)
 		{
-			wprintf(L"ERROR: Could not initialize COM.\n");
+			wprintf(L"Could not initialize COM.\n");
 			exit(-1);
 		}
 	}
@@ -98,7 +98,7 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	WIN32_FILE_ATTRIBUTE_DATA tData;
 	if (GetFileAttributesExW(tObjectEntry.Name.c_str(), GetFileExInfoStandard, &tData) == 0)
 	{
-		InputOutput::AddError(L"ERROR: Unable to read file attributes.");
+		InputOutput::AddError(L"Unable to read file attributes.");
 	}
 
 	// get common file attributes
@@ -137,7 +137,7 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry & tObjectEntry)
 			Q(sAttributes) + L"," + Q(sTargetPath) + L"," + Q(sWorkingDirectory) + L"\r\n";
 		if (WriteToFile(sToWrite, hReportFile) == 0)
 		{
-			InputOutput::AddError(L"ERROR: Unable to write security information to report file.");
+			InputOutput::AddError(L"Unable to write security information to report file.");
 		}
 	}
 

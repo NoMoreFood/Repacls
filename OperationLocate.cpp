@@ -83,6 +83,6 @@ void OperationLocate::ProcessObjectAction(ObjectEntry & tObjectEntry)
 		L"," + Q(sSize) + L"," + Q(sAttributes) + L"\r\n";
 	if (WriteToFile(sToWrite, hReportFile) == 0)
 	{
-		InputOutput::AddError(L"ERROR: Unable to write security information to report file.");
+		InputOutput::AddError(L"Unable to write security information to report file.");
 	}
 }
