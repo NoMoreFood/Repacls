@@ -121,6 +121,9 @@
     <ClCompile Include="OperationCopyMap.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
+    <ClCompile Include="OperationRemoveStreams.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConcurrentQueue.h">
@@ -256,6 +259,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="OperationCopyMap.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationRemoveStreams.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>
   </ItemGroup>

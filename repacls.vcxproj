@@ -214,6 +214,7 @@
     <ClCompile Include="OperationLocateShortcut.cpp" />
     <ClCompile Include="OperationLog.cpp" />
     <ClCompile Include="OperationPathList.cpp" />
+    <ClCompile Include="OperationRemoveStreams.cpp" />
     <ClCompile Include="OperationReplaceMap.cpp" />
     <ClCompile Include="OperationRestoreSecurity.cpp" />
     <ClCompile Include="OperationInheritChildren.cpp" />
@@ -249,6 +250,7 @@
     <ClInclude Include="OperationLocate.h" />
     <ClInclude Include="OperationLog.h" />
     <ClInclude Include="OperationPathList.h" />
+    <ClInclude Include="OperationRemoveStreams.h" />
     <ClInclude Include="OperationReplaceMap.h" />
     <ClInclude Include="OperationRestoreSecurity.h" />
     <ClInclude Include="OperationSharePaths.h" />
