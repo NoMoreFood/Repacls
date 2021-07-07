@@ -31,19 +31,19 @@ void OperationRemoveStreams::ProcessObjectAction(ObjectEntry& tObjectEntry)
 	}
 
 	// loop until we can fill the stream into a buffer
+	IO_STATUS_BLOCK tIOStatus = {};
 	NTSTATUS iStatus;
 	thread_local std::vector<BYTE> sInfoBuffer(16 * 1024, 0);
 	for (iStatus = STATUS_BUFFER_OVERFLOW; iStatus == STATUS_BUFFER_OVERFLOW;
 		sInfoBuffer.resize(sInfoBuffer.size() * 2, 0))
 	{
-		IO_STATUS_BLOCK tIOStatus = {};
 		iStatus = NtQueryInformationFile(hFile, &tIOStatus, sInfoBuffer.data(), (ULONG) sInfoBuffer.size(), FileStreamInformation);
 		if (iStatus == STATUS_SUCCESS) break;
 	}
 
 	// cleanup and verify we got the data we needed
 	CloseHandle(hFile);
-	if (iStatus != STATUS_SUCCESS) return;
+	if (iStatus != STATUS_SUCCESS || tIOStatus.Information == 0) return;
 
 	// Loop for all streams
 	for (PFILE_STREAM_INFORMATION pStreamInfo = (PFILE_STREAM_INFORMATION)sInfoBuffer.data(); pStreamInfo->StreamNameLength != 0;
@@ -67,7 +67,7 @@ void OperationRemoveStreams::ProcessObjectAction(ObjectEntry& tObjectEntry)
 		}
 		else
 		{
-			InputOutput::AddError(L"Unable delete stream: " + sStream); 
+			InputOutput::AddError(L"Unable delete stream: " + sStream + L" (" + std::to_wstring(GetLastError()) + L")");
 		}
 
 		// break if no next stream

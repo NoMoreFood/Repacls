@@ -213,9 +213,6 @@
     <ClInclude Include="OperationReport.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>
-    <ClInclude Include="Version.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
     <ClInclude Include="OperationSharePaths.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>

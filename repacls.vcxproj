@@ -281,7 +281,6 @@
     <ClInclude Include="OperationThreads.h" />
     <ClInclude Include="OperationWhatIf.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Version.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Notes.txt" />
