@@ -18,7 +18,8 @@
 #include "ConcurrentQueue.h"
 #include "DriverKitPartial.h"
 #include "Functions.h"
-#include "Version.h"
+
+#pragma comment(lib,"version.lib")
 
 constexpr ULONG MAX_DIRECTORY_BUFFER = 65536;
 
@@ -447,9 +448,30 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	_setmode(_fileno(stderr), _O_U16TEXT);
 	_setmode(_fileno(stdout), _O_U16TEXT);
 
+	// fetch currently running executable name
+	std::wstring sVersion;
+	LPWSTR sCurrentExe = nullptr;
+	if (_get_wpgmptr(&sCurrentExe) != 0 || sCurrentExe == nullptr)
+	{
+		wprintf(L"%s\n", L"ERROR: Cannot get currently running executable name.");
+		exit(-1);
+	}
+	
+	// fetch the version string
+	const DWORD iVersionSize = GetFileVersionInfoSize(sCurrentExe, nullptr);
+	UINT iQueriedSize = 0;
+	std::vector<BYTE> tVersionInfo = std::vector<BYTE>(iVersionSize);
+	VS_FIXEDFILEINFO* pVersion = nullptr;
+	if (GetFileVersionInfo(sCurrentExe, 0, iVersionSize, tVersionInfo.data()) != 0 &&
+		VerQueryValue(tVersionInfo.data(), L"\\", reinterpret_cast<LPVOID*>(&pVersion), &iQueriedSize) != 0)
+	{
+		sVersion = std::to_wstring(HIWORD(pVersion->dwFileVersionMS)) + L"." + std::to_wstring(LOWORD(pVersion->dwFileVersionMS)) + 
+			L"." + std::to_wstring(HIWORD(pVersion->dwFileVersionLS)) + L"." + std::to_wstring(LOWORD(pVersion->dwFileVersionLS));
+	}
+
 	// print standard header
 	wprintf(L"===============================================================================\n");
-	wprintf(L"= Repacls Version %hs by Bryan Berns\n", VERSION_STRING);
+	wprintf(L"= Repacls Version %s by Bryan Berns\n", sVersion.c_str());
 	wprintf(L"===============================================================================\n");
 
 	// translate
