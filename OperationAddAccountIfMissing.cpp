@@ -1,7 +1,7 @@
 #include "OperationAddAccountIfMissing.h"
 #include "OperationCheckCanonical.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 ClassFactory<OperationAddAccountIfMissing> OperationAddAccountIfMissing::RegisteredFactory(GetCommand());
 

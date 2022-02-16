@@ -24,7 +24,7 @@ public:
 	};
 
 	// public functions
-	static AceOrder DetermineAceOrder(ACCESS_ACE * tAce);
+	static AceOrder DetermineAceOrder(PACE_ACCESS_HEADER tAce);
 	static bool IsAclCanonical(PACL & tCurrentAcl);
 
 	// overrides

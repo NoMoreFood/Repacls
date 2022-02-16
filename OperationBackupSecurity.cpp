@@ -1,6 +1,6 @@
 #include "OperationBackupSecurity.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 ClassFactory<OperationBackupSecurity> OperationBackupSecurity::RegisteredFactory(GetCommand());
 
@@ -55,7 +55,7 @@ bool OperationBackupSecurity::ProcessSdAction(std::wstring & sFileName, ObjectEn
 	if (WriteToFile(sToWrite, hFile) == 0)
 	{
 		LocalFree(sInfo);
-		InputOutput::AddError(L"Unable to write security descriptor to file.");
+		InputOutput::AddError(L"Unable to write security descriptor.");
 		return false;
 	}
 

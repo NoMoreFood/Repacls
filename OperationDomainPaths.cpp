@@ -13,6 +13,7 @@
 #include "OperationDomainPaths.h"
 #include "OperationSharePaths.h"
 #include "InputOutput.h"
+#include "Helpers.h"
 
 ClassFactory<OperationDomainPaths> OperationDomainPaths::RegisteredFactory(GetCommand());
 
@@ -21,13 +22,8 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList, 
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
 
-	// initialize com only
-	static HRESULT hComInit = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-	if (hComInit != S_OK && hComInit != S_FALSE)
-	{
-		wprintf(L"ERROR: Could not initialize COM.\n");
-		exit(-1);
-	}
+	// initialize com for this thread
+	InitThreadCom();
 
 	// find a domain controller for the specified domain
 	PDOMAIN_CONTROLLER_INFO tDomainControllerInfo;

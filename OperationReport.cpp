@@ -1,6 +1,6 @@
 #include "OperationReport.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 ClassFactory<OperationReport> OperationReport::RegisteredFactory(GetCommand());
 
@@ -96,21 +96,25 @@ bool OperationReport::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry 
 	// do not report null acls
 	if (tCurrentAcl == nullptr) return false;
 
-	ACCESS_ACE * tAce = FirstAce(tCurrentAcl);
+	// enumerate access control entries
+	PACE_ACCESS_HEADER tAce = FirstAce(tCurrentAcl);
 	for (ULONG iEntry = 0; iEntry < tCurrentAcl->AceCount; tAce = NextAce(tAce), iEntry++)
 	{
-		// skip inherited ace
+		// skip inherited ace and invalid sids
 		if (IsInherited(tAce)) continue;
 
+		// get the sid from the ace
+		PSID pSid = GetSidFromAce(tAce);
+
 		// fetch the account from the sid
-		std::wstring sAccount = GetNameFromSidEx(&tAce->Sid);
+		std::wstring sAccount = GetNameFromSidEx(pSid);
 
 		// skip any accounts that do not match the regex
 		if (!std::regex_search(sAccount, tRegex)) continue;
 		
 		// get the string versions of the access mask and inheritance
 		std::wstring sMask = GenerateAccessMask(tAce->Mask);
-		std::wstring sFlags = GenerateInheritanceFlags(tAce->Header.AceFlags);
+		std::wstring sFlags = GenerateInheritanceFlags(tAce->AceFlags);
 
 		// write the string to a file
 		std::wstring sToWrite = Q(tObjectEntry.Name) + L"," + Q(sSdPart) + L"," +

@@ -1,7 +1,7 @@
 #include "OperationCopyDomain.h"
 #include "OperationCheckCanonical.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 ClassFactory<OperationCopyDomain> OperationCopyDomain::RegisteredFactory(GetCommand());
 
@@ -51,7 +51,7 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 	bool bAclIsDirty = false;
 	if (tCurrentAcl != nullptr)
 	{
-		ACCESS_ACE * tAceDacl = FirstAce(tCurrentAcl);
+		PACE_ACCESS_HEADER tAceDacl = FirstAce(tCurrentAcl);
 		for (LONG iEntry = 0; iEntry < tCurrentAcl->AceCount; tAceDacl = 
 			(iEntry == -1) ? FirstAce(tCurrentAcl) : NextAce(tAceDacl), iEntry++)
 		{
@@ -60,14 +60,14 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 			
 			// see if this sid in the source domain
 			BOOL bDomainSidsEqual = FALSE;
-			if (EqualDomainSid(&tAceDacl->Sid, tSourceDomain, &bDomainSidsEqual) == 0 ||
+			const PISID tSidStruct = (PISID)GetSidFromAce(tAceDacl);
+			if (EqualDomainSid(tSidStruct, tSourceDomain, &bDomainSidsEqual) == 0 ||
 				bDomainSidsEqual == FALSE)
 			{
 				// no match - cease processing this instruction
 				continue;
 			}
 
-			const PISID tSidStruct = (PISID) &tAceDacl->Sid;
 			const PISID tSidTargetDomain = (PISID)tTargetDomain;
 			PSID tTargetAccountSid = nullptr;
 			std::wstring sInfoToReport = L"";
@@ -91,7 +91,7 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 				tTargetAccountSid = GetSidFromName(sTargetAccountName);
 
 				// lookup the source name for reporting
-				std::wstring sSourceAccountName = GetNameFromSidEx(&tAceDacl->Sid);
+				std::wstring sSourceAccountName = GetNameFromSidEx(tSidStruct);
 
 				// record the status to report
 				sInfoToReport = L"Copying Well Known '" + sSourceAccountName + L"' to '" + sTargetAccountName + L"'";
@@ -99,7 +99,7 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 			else
 			{
 				// translate the old sid to an account name
-				std::wstring sSourceAccountName = GetNameFromSid(&tAceDacl->Sid, nullptr);
+				std::wstring sSourceAccountName = GetNameFromSid(tSidStruct, nullptr);
 				if (sSourceAccountName.empty())	continue;
 
 				// check to see if an equivalent account exists in the target domain
@@ -126,21 +126,21 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 
 			// determine access mode
 			ACCESS_MODE tMode = ACCESS_MODE::NOT_USED_ACCESS;
-			if (tAceDacl->Header.AceType == ACCESS_ALLOWED_ACE_TYPE)
+			if (tAceDacl->AceType == ACCESS_ALLOWED_ACE_TYPE)
 			{
 				tMode = GRANT_ACCESS;
 			}
-			else if (tAceDacl->Header.AceType == ACCESS_DENIED_ACE_TYPE)
+			else if (tAceDacl->AceType == ACCESS_DENIED_ACE_TYPE)
 			{
 				tMode = DENY_ACCESS;
 			}
-			else if (tAceDacl->Header.AceType == SYSTEM_AUDIT_ACE_TYPE)
+			else if (tAceDacl->AceType == SYSTEM_AUDIT_ACE_TYPE)
 			{
-				if (CheckBitSet(tAceDacl->Header.AceFlags, SUCCESSFUL_ACCESS_ACE_FLAG))
+				if (CheckBitSet(tAceDacl->AceFlags, SUCCESSFUL_ACCESS_ACE_FLAG))
 				{
 					tMode = (ACCESS_MODE) (tMode | SET_AUDIT_SUCCESS);
 				}
-				if (CheckBitSet(tAceDacl->Header.AceFlags, FAILED_ACCESS_ACE_FLAG))
+				if (CheckBitSet(tAceDacl->AceFlags, FAILED_ACCESS_ACE_FLAG))
 				{
 					tMode = (ACCESS_MODE) (tMode | SET_AUDIT_FAILURE);
 				}
@@ -165,7 +165,7 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 			EXPLICIT_ACCESS tEa;
 			tEa.grfAccessPermissions = tAceDacl->Mask;
 			tEa.grfAccessMode = tMode;
-			tEa.grfInheritance = VALID_INHERIT_FLAGS & tAceDacl->Header.AceFlags;
+			tEa.grfInheritance = VALID_INHERIT_FLAGS & tAceDacl->AceFlags;
 			tEa.Trustee.MultipleTrusteeOperation = NO_MULTIPLE_TRUSTEE;
 			tEa.Trustee.pMultipleTrustee = nullptr;
 			tEa.Trustee.ptstrName = (LPWSTR) tTargetAccountSid;

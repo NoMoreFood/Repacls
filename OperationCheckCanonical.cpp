@@ -1,7 +1,7 @@
 #include "OperationCheckCanonical.h"
 #include "DriverKitPartial.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 ClassFactory<OperationCheckCanonical> OperationCheckCanonical::RegisteredFactory(GetCommand());
 
@@ -32,7 +32,7 @@ bool OperationCheckCanonical::IsAclCanonical(PACL & tAcl)
 	if (tAcl == nullptr) return true;
 
 	AceOrder oOrderOverall = Unspecified;
-	ACCESS_ACE * tAce = FirstAce(tAcl);
+	PACE_ACCESS_HEADER tAce = FirstAce(tAcl);
 	for (ULONG iEntry = 0; iEntry < tAcl->AceCount; tAce = NextAce(tAce), iEntry++)
 	{
 		// check inheritance bits
@@ -49,22 +49,26 @@ bool OperationCheckCanonical::IsAclCanonical(PACL & tAcl)
 	return true;
 }
 
-OperationCheckCanonical::AceOrder OperationCheckCanonical::DetermineAceOrder(ACCESS_ACE * tAce)
+OperationCheckCanonical::AceOrder OperationCheckCanonical::DetermineAceOrder(PACE_ACCESS_HEADER tAce)
 {
 	// determine ace order
 	if (IsInherited(tAce))
 	{
-		if (tAce->Header.AceType == ACCESS_ALLOWED_ACE_TYPE) return InheritedAllow;
-		if (tAce->Header.AceType == ACCESS_ALLOWED_CALLBACK_ACE_TYPE) return InheritedAllow;
-		if (tAce->Header.AceType == ACCESS_DENIED_ACE_TYPE) return InheritedDeny;
-		if (tAce->Header.AceType == ACCESS_DENIED_CALLBACK_ACE_TYPE) return InheritedDeny;
+		if (tAce->AceType == ACCESS_ALLOWED_ACE_TYPE) return InheritedAllow;
+		if (tAce->AceType == ACCESS_ALLOWED_OBJECT_ACE_TYPE) return InheritedAllow;
+		if (tAce->AceType == ACCESS_ALLOWED_CALLBACK_ACE_TYPE) return InheritedAllow;
+		if (tAce->AceType == ACCESS_DENIED_ACE_TYPE) return InheritedDeny;
+		if (tAce->AceType == ACCESS_DENIED_OBJECT_ACE_TYPE) return InheritedDeny;
+		if (tAce->AceType == ACCESS_DENIED_CALLBACK_ACE_TYPE) return InheritedDeny;
 	}
 	else
 	{
-		if (tAce->Header.AceType == ACCESS_ALLOWED_ACE_TYPE) return ExplicitAllow;
-		if (tAce->Header.AceType == ACCESS_ALLOWED_CALLBACK_ACE_TYPE) return ExplicitAllow;
-		if (tAce->Header.AceType == ACCESS_DENIED_ACE_TYPE) return ExplicitDeny;
-		if (tAce->Header.AceType == ACCESS_DENIED_CALLBACK_ACE_TYPE) return ExplicitDeny;
+		if (tAce->AceType == ACCESS_ALLOWED_ACE_TYPE) return ExplicitAllow;
+		if (tAce->AceType == ACCESS_ALLOWED_OBJECT_ACE_TYPE) return ExplicitAllow;
+		if (tAce->AceType == ACCESS_ALLOWED_CALLBACK_ACE_TYPE) return ExplicitAllow;
+		if (tAce->AceType == ACCESS_DENIED_ACE_TYPE) return ExplicitDeny;
+		if (tAce->AceType == ACCESS_DENIED_OBJECT_ACE_TYPE) return ExplicitDeny;
+		if (tAce->AceType == ACCESS_DENIED_CALLBACK_ACE_TYPE) return ExplicitDeny;
 	}
 
 	return Unspecified;

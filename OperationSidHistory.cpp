@@ -1,6 +1,6 @@
 #include "OperationSidHistory.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 ClassFactory<OperationSidHistory> OperationSidHistory::RegisteredFactory(GetCommand());
 

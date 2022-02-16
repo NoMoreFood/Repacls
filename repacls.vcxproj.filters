@@ -124,6 +124,27 @@
     <ClCompile Include="OperationRemoveStreams.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
+    <ClCompile Include="ObjectRegistry.cpp">
+      <Filter>Source\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectFile.cpp">
+      <Filter>Source\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Processor.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectAds.cpp">
+      <Filter>Source\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationDepth.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationPathMode.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationRemoveDomain.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConcurrentQueue.h">
@@ -132,7 +153,7 @@
     <ClInclude Include="DriverKitPartial.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="Functions.h">
+    <ClInclude Include="Helpers.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
@@ -252,13 +273,37 @@
     <ClInclude Include="OperationGrantDenyPerms.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>
-    <ClInclude Include="OperationLocateHash.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
     <ClInclude Include="OperationCopyMap.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>
     <ClInclude Include="OperationRemoveStreams.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>Includes\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectRegistry.h">
+      <Filter>Includes\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectFile.h">
+      <Filter>Includes\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Processor.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectAds.h">
+      <Filter>Includes\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationDepth.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationPathMode.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationRemoveDomain.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationLocateHash.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>
   </ItemGroup>
@@ -278,15 +323,16 @@
     <Filter Include="Source\Operations">
       <UniqueIdentifier>{f973d354-b21b-4e1f-8147-9a5ab4da43e9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Objects">
+      <UniqueIdentifier>{e97c3d47-95fd-4b15-b4c7-b41f8a93ddbf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Includes\Objects">
+      <UniqueIdentifier>{cd1db441-a4b3-41b1-98f2-96b6097ab2be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
       <Filter>Resources</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="Notes.txt">
-      <Filter>Includes</Filter>
-    </Text>
   </ItemGroup>
 </Project>

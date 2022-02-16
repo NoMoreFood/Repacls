@@ -23,16 +23,16 @@ bool OperationCanonicalizeAcls::ProcessAclAction(const WCHAR * const sSdPart, Ob
 	}	
 
 	BYTE tNewAclBuffer[MAXWORD];
-	ACCESS_ACE * tNewAce = (ACCESS_ACE *) &tNewAclBuffer;
+	PACE_ACCESS_HEADER tNewAce = (PACE_ACCESS_HEADER) &tNewAclBuffer;
 	for (int iAceOrder = 0; iAceOrder < OperationCheckCanonical::MaxAceOrder; iAceOrder++)
 	{
-		ACCESS_ACE * tAce = FirstAce(tCurrentAcl);
+		PACE_ACCESS_HEADER tAce = FirstAce(tCurrentAcl);
 		for (ULONG iEntry = 0; iEntry < tCurrentAcl->AceCount; tAce = NextAce(tAce), iEntry++)
 		{
 			// copy the ace if it matches the sequential order (explicit deny, explicit allow, ...)
 			if (iAceOrder == OperationCheckCanonical::DetermineAceOrder(tAce))
 			{
-				memcpy(tNewAce, tAce, tAce->Header.AceSize);
+				memcpy(tNewAce, tAce, tAce->AceSize);
 				tNewAce = NextAce(tNewAce);
 			}
 		}

@@ -1,6 +1,6 @@
 #include "OperationLocateHash.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 #pragma comment(lib, "bcrypt.lib")
 #pragma comment(lib, "crypt32.lib")

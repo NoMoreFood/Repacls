@@ -9,13 +9,13 @@ class InputOutput
 {
 private:
 
-	static std::wstring & GetFileName()
+	static std::wstring & GetFileName() noexcept
 	{
 		thread_local std::wstring sScreenBuffer;
 		return sScreenBuffer;
 	}
 
-	static std::wstring & GetDetail()
+	static std::wstring & GetDetail() noexcept
 	{
 		thread_local std::wstring sScreenBuffer;
 		return sScreenBuffer;
@@ -116,7 +116,7 @@ public:
 		// output to screen if there is anything to write
 		if (!GetFileName().empty() && !GetDetail().empty())
 		{
-			wprintf(L"FILE: %s", (GetFileName() + L"\n" + GetDetail()).c_str());
+			wprintf(L"OBJECT: %s", (GetFileName() + L"\n" + GetDetail()).c_str());
 		}
 
 		// clear out buffer now that it's printed
