@@ -1,6 +1,6 @@
 #include "OperationLog.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 #include <locale>
 

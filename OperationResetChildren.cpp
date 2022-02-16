@@ -1,6 +1,6 @@
 #include "OperationResetChildren.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 ClassFactory<OperationResetChildren> OperationResetChildren::RegisteredFactory(GetCommand());
 

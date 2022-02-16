@@ -1,7 +1,7 @@
 #include "OperationCopyMap.h"
 #include "OperationCheckCanonical.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 #include <fstream>
 #include <iostream>
@@ -79,7 +79,7 @@ bool OperationCopyMap::ProcessAclAction(const WCHAR* const sSdPart, ObjectEntry&
 	bool bAclIsDirty = false;
 	if (tCurrentAcl != nullptr)
 	{
-		ACCESS_ACE* tAceDacl = FirstAce(tCurrentAcl);
+		PACE_ACCESS_HEADER tAceDacl = FirstAce(tCurrentAcl);
 		for (LONG iEntry = 0; iEntry < tCurrentAcl->AceCount; tAceDacl =
 			(iEntry == -1) ? FirstAce(tCurrentAcl) : NextAce(tAceDacl), iEntry++)
 		{
@@ -87,7 +87,8 @@ bool OperationCopyMap::ProcessAclAction(const WCHAR* const sSdPart, ObjectEntry&
 			if (IsInherited(tAceDacl)) continue;
 
 			// see if this ace matches a sid in the copy list
-			std::wstring sSourceAccountName = GetNameFromSidEx(&tAceDacl->Sid);
+			const PSID tSid = GetSidFromAce(tAceDacl);
+			std::wstring sSourceAccountName = GetNameFromSidEx(tSid);
 			const auto oInteractor = oCopyMap.find(sSourceAccountName);
 			if (oInteractor == oCopyMap.end()) continue;
 
@@ -100,21 +101,21 @@ bool OperationCopyMap::ProcessAclAction(const WCHAR* const sSdPart, ObjectEntry&
 
 			// determine access mode
 			ACCESS_MODE tMode = ACCESS_MODE::NOT_USED_ACCESS;
-			if (tAceDacl->Header.AceType == ACCESS_ALLOWED_ACE_TYPE)
+			if (tAceDacl->AceType == ACCESS_ALLOWED_ACE_TYPE)
 			{
 				tMode = GRANT_ACCESS;
 			}
-			else if (tAceDacl->Header.AceType == ACCESS_DENIED_ACE_TYPE)
+			else if (tAceDacl->AceType == ACCESS_DENIED_ACE_TYPE)
 			{
 				tMode = DENY_ACCESS;
 			}
-			else if (tAceDacl->Header.AceType == SYSTEM_AUDIT_ACE_TYPE)
+			else if (tAceDacl->AceType == SYSTEM_AUDIT_ACE_TYPE)
 			{
-				if (CheckBitSet(tAceDacl->Header.AceFlags, SUCCESSFUL_ACCESS_ACE_FLAG))
+				if (CheckBitSet(tAceDacl->AceFlags, SUCCESSFUL_ACCESS_ACE_FLAG))
 				{
 					tMode = (ACCESS_MODE)(tMode | SET_AUDIT_SUCCESS);
 				}
-				if (CheckBitSet(tAceDacl->Header.AceFlags, FAILED_ACCESS_ACE_FLAG))
+				if (CheckBitSet(tAceDacl->AceFlags, FAILED_ACCESS_ACE_FLAG))
 				{
 					tMode = (ACCESS_MODE)(tMode | SET_AUDIT_FAILURE);
 				}
@@ -138,7 +139,7 @@ bool OperationCopyMap::ProcessAclAction(const WCHAR* const sSdPart, ObjectEntry&
 			EXPLICIT_ACCESS tEa;
 			tEa.grfAccessPermissions = tAceDacl->Mask;
 			tEa.grfAccessMode = tMode;
-			tEa.grfInheritance = VALID_INHERIT_FLAGS & tAceDacl->Header.AceFlags;
+			tEa.grfInheritance = VALID_INHERIT_FLAGS & tAceDacl->AceFlags;
 			tEa.Trustee.MultipleTrusteeOperation = NO_MULTIPLE_TRUSTEE;
 			tEa.Trustee.pMultipleTrustee = nullptr;
 			tEa.Trustee.ptstrName = (LPWSTR) oInteractor->second;

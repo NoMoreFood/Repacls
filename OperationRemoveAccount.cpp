@@ -1,6 +1,6 @@
 #include "OperationRemoveAccount.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 ClassFactory<OperationRemoveAccount> OperationRemoveAccount::RegisteredFactory(GetCommand());
 

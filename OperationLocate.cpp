@@ -1,6 +1,6 @@
 #include "OperationLocate.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 ClassFactory<OperationLocate> OperationLocate::RegisteredFactory(GetCommand());
 

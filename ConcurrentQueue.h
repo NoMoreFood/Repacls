@@ -4,47 +4,49 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 
 template <typename T>
 class ConcurrentQueue
 {
-public:
+private:
+	std::condition_variable oItemAvailableCondition;
+	std::condition_variable oIsEmptyCondition;
+	std::queue<T> oQueue;
+	std::mutex oQueueMutex;
+	short iWaiters;
 
+public:
 	ConcurrentQueue() = default;
 
-	T pop()
+	T Pop()
 	{
-		std::unique_lock<std::mutex> oMutexLock(oMutex);
-		while (oQueue.empty())
-		{
-			oCondition.wait(oMutexLock);
-		}
-		auto oVar = oQueue.front();
+		std::unique_lock<std::mutex> mlock(oQueueMutex);
+		if (--iWaiters == 0 && oQueue.empty()) oIsEmptyCondition.notify_one();
+		oItemAvailableCondition.wait(mlock, [&]() noexcept { return !oQueue.empty(); });
+		auto oQueueItem = oQueue.front();
 		oQueue.pop();
-		return oVar;
+		iWaiters++;
+		return oQueueItem;
 	}
 
-	void push(const T& oItem)
+	void Push(const T& oQueueItem)
 	{
-		std::unique_lock<std::mutex> oMutuxLock(oMutex);
-		oQueue.push(oItem);
-		oMutuxLock.unlock();
-		oCondition.notify_one();
-	}
-
-	void pop(T& oItem)
-	{
-		std::unique_lock<std::mutex> mlock(oMutex);
-		while (oQueue.empty())
 		{
-			oCondition.wait(mlock);
+			std::lock_guard<std::mutex> mlock(oQueueMutex);
+			oQueue.push(oQueueItem);
 		}
-		oItem = oQueue.front();
-		oQueue.pop();
+		oItemAvailableCondition.notify_one();
 	}
 
-private:
-	std::condition_variable oCondition;
-	std::queue<T> oQueue;
-	std::mutex oMutex;
+	void WaitForEmptyQueues() 
+	{
+		std::unique_lock<std::mutex> mlock(oQueueMutex);
+		oIsEmptyCondition.wait(mlock, [&]() noexcept { return iWaiters == 0; });
+	}
+
+	void SetWaiterCounter(short iWaitCounters)
+	{
+		iWaiters = iWaitCounters;
+	}
 };

@@ -1,7 +1,7 @@
 #include "OperationPrintDescriptor.h"
 #include "DriverKitPartial.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 ClassFactory<OperationPrintDescriptor> OperationPrintDescriptor::RegisteredFactory(GetCommand());
 

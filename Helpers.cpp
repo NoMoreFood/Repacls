@@ -17,9 +17,9 @@
 #include <shared_mutex>
 
 #include "Operation.h"
-#include "Functions.h"
+#include "Helpers.h"
 
-PSID GetSidFromName(const std::wstring & sAccountName)
+PSID GetSidFromName(const std::wstring& sAccountName)
 {
 	// for caching
 	static std::shared_mutex oMutex;
@@ -60,7 +60,7 @@ PSID GetSidFromName(const std::wstring & sAccountName)
 
 	// reallocate memory and copy sid to a smaller part of memory and
 	// then add the sid to the cache map
-	auto tSid = (PSID) memcpy(malloc(iSidSize), tSidFromName, iSidSize);
+	auto tSid = (PSID)memcpy(malloc(iSidSize), tSidFromName, iSidSize);
 
 	// scope lock for thread safety
 	{
@@ -72,7 +72,7 @@ PSID GetSidFromName(const std::wstring & sAccountName)
 	return tSid;
 }
 
-std::wstring GetNameFromSid(const PSID tSid, bool * bMarkAsOrphan)
+std::wstring GetNameFromSid(const PSID tSid, bool* bMarkAsOrphan)
 {
 	// return immediately if sid is null
 	if (tSid == NULL) return L"";
@@ -126,7 +126,7 @@ std::wstring GetNameFromSid(const PSID tSid, bool * bMarkAsOrphan)
 	}
 
 	// copy the sid for storage in our cache table
-	const DWORD iSidLength = GetLengthSid(tSid);
+	const DWORD iSidLength = SidGetLength(tSid);
 	auto tSidCopy = (PSID)memcpy(malloc(iSidLength), tSid, iSidLength);
 
 	// scope lock for thread safety
@@ -139,14 +139,14 @@ std::wstring GetNameFromSid(const PSID tSid, bool * bMarkAsOrphan)
 	return sFullName;
 }
 
-std::wstring GetNameFromSidEx(const PSID tSid, bool * bMarkAsOrphan)
+std::wstring GetNameFromSidEx(const PSID tSid, bool* bMarkAsOrphan)
 {
 	// if sid is resolvable then return the account name
 	std::wstring sName = GetNameFromSid(tSid, bMarkAsOrphan);
 	if (!sName.empty()) return sName;
 
 	// if sid is unresolvable then return sid in string form
-	WCHAR * sSidBuf;
+	WCHAR* sSidBuf;
 	ConvertSidToStringSid(tSid, &sSidBuf);
 	std::wstring sSid(sSidBuf);
 	LocalFree(sSidBuf);
@@ -180,7 +180,6 @@ std::wstring GenerateInheritanceFlags(DWORD iCurrentFlags)
 	// return the calculated string
 	return sFlags;
 }
-
 
 std::wstring GenerateAccessMask(DWORD iCurrentMask)
 {
@@ -265,8 +264,8 @@ VOID EnablePrivs() noexcept
 		return;
 	}
 
-	const WCHAR * sPrivsToSet[] = { SE_RESTORE_NAME, SE_BACKUP_NAME, 
-		SE_TAKE_OWNERSHIP_NAME, SE_CHANGE_NOTIFY_NAME };
+	const WCHAR* sPrivsToSet[] = { SE_RESTORE_NAME, SE_BACKUP_NAME,
+		SE_TAKE_OWNERSHIP_NAME, SE_CHANGE_NOTIFY_NAME, SE_SECURITY_NAME };
 	for (auto& i : sPrivsToSet)
 	{
 		// populate the privilege adjustment structure
@@ -307,7 +306,7 @@ VOID EnablePrivs() noexcept
 
 		// convert the privilege name to a unicode string format
 		LSA_UNICODE_STRING sPrivilege;
-		sPrivilege.Buffer = (PWSTR) i;
+		sPrivilege.Buffer = (PWSTR)i;
 		sPrivilege.Length = (USHORT)(wcslen(i) * sizeof(WCHAR));
 		sPrivilege.MaximumLength = (USHORT)((wcslen(i) + 1) * sizeof(WCHAR));
 
@@ -317,7 +316,7 @@ VOID EnablePrivs() noexcept
 		{
 			LsaClose(hPolicyHandle);
 			wprintf(L"ERROR: Privilege '%s' was not able to be added with error '%lu'\n",
-			        i, LsaNtStatusToWinError(iResult));
+				i, LsaNtStatusToWinError(iResult));
 			continue;
 		}
 
@@ -342,20 +341,20 @@ VOID EnablePrivs() noexcept
 	return;
 }
 
-HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring & sOperation)
+HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring& sOperation)
 {
 	// lookup do a reverse lookup on file name
-	static std::map<std::wstring, std::pair<HANDLE,std::wstring>> oFileLookup;
+	static std::map<std::wstring, std::pair<HANDLE, std::wstring>> oFileLookup;
 
 	// do a reverse lookup on the file name
-	const auto iSize = (size_t) GetFinalPathNameByHandle(hFile, NULL, 0, VOLUME_NAME_NT);
+	const auto iSize = (size_t)GetFinalPathNameByHandle(hFile, NULL, 0, VOLUME_NAME_NT);
 
 	// create a string that can accommodate that size (plus null terminating character)
 	std::wstring sPath;
 	sPath.resize(iSize + 1);
 
 	// get the full name
-	if (GetFinalPathNameByHandle(hFile, (LPWSTR)sPath.data(), (DWORD)sPath.capacity(), 
+	if (GetFinalPathNameByHandle(hFile, (LPWSTR)sPath.data(), (DWORD)sPath.capacity(),
 		FILE_NAME_NORMALIZED | VOLUME_NAME_NT) == 0)
 	{
 		wprintf(L"ERROR: The true path to the specified file could not be determined.\n");
@@ -400,7 +399,7 @@ std::wstring GetAntivirusStateDescription()
 	bool bIsEnabled = false;
 
 	// query the product list
-	IWSCProductList * PtrProductList = nullptr;
+	IWSCProductList* PtrProductList = nullptr;
 	if (FAILED(CoCreateInstance(__uuidof(WSCProductList), NULL, CLSCTX_INPROC_SERVER,
 		__uuidof(IWSCProductList), reinterpret_cast<LPVOID*> (&PtrProductList))))
 	{
@@ -425,7 +424,7 @@ std::wstring GetAntivirusStateDescription()
 	for (LONG i = 0; i < ProductCount; i++)
 	{
 		// get the product details
-		IWscProduct * PtrProduct = nullptr;
+		IWscProduct* PtrProduct = nullptr;
 		if (FAILED(PtrProductList->get_Item(i, &PtrProduct)))
 		{
 			PtrProductList->Release();
@@ -471,7 +470,7 @@ std::wstring FileSizeToString(const LARGE_INTEGER iFileSize)
 	// convert the file size to a string
 	WCHAR sSize[32];
 	_wsetlocale(LC_NUMERIC, L"");
-	wsprintf(sSize, L"%I64u", (ULONGLONG) iFileSize.QuadPart);
+	wsprintf(sSize, L"%I64u", (ULONGLONG)iFileSize.QuadPart);
 	return std::wstring(sSize);
 }
 
@@ -519,4 +518,19 @@ BOOL WriteToFile(const std::wstring& sStringToWrite, HANDLE hFile) noexcept
 	const BOOL bResult = WriteFile(hFile, sString, iChars, &iBytes, NULL);
 	free(sString);
 	return bResult;
+}
+
+VOID InitThreadCom() noexcept
+{
+	thread_local static bool bComInitialized = false;
+	if (!bComInitialized)
+	{
+		bComInitialized = true;
+		const HRESULT hComInit = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+		if (hComInit != S_OK && hComInit != S_FALSE)
+		{
+			wprintf(L"Could not initialize COM.\n");
+			exit(-1);
+		}
+	}
 }

@@ -1,10 +1,10 @@
-#include "OperationFindDomain.h"
+#include "OperationRemoveDomain.h"
 #include "InputOutput.h"
 #include "Helpers.h"
 
-ClassFactory<OperationFindDomain> OperationFindDomain::RegisteredFactory(GetCommand());
+ClassFactory<OperationRemoveDomain> OperationRemoveDomain::RegisteredFactory(GetCommand());
 
-OperationFindDomain::OperationFindDomain(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
+OperationRemoveDomain::OperationRemoveDomain(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
@@ -22,7 +22,6 @@ OperationFindDomain::OperationFindDomain(std::queue<std::wstring> & oArgList, co
 
 	// do a reverse lookup of the name for reporting
 	sDomainName = GetDomainNameFromSid(tDomainSid);
-	sDomainName = sDomainName.substr(0, sDomainName.find(L'\\'));
 
 	// flag this as being an ace-level action
 	AppliesToDacl = true;
@@ -34,7 +33,7 @@ OperationFindDomain::OperationFindDomain(std::queue<std::wstring> & oArgList, co
 	if (sSubArgs.size() > 1) ProcessGranularTargetting(sSubArgs.at(1));
 }
 
-SidActionResult OperationFindDomain::DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
+SidActionResult OperationRemoveDomain::DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
 	// see if this sid in the source domain
 	BOOL bDomainSidsEqual = FALSE;
@@ -44,11 +43,10 @@ SidActionResult OperationFindDomain::DetermineSid(const WCHAR * const sSdPart, O
 		// no match - cease processing this instruction
 		return SidActionResult::Nothing;
 	}
-	
-	// resolve the sid for reporting
-	std::wstring sAccount = GetNameFromSidEx(tCurrentSid);
 
-	// report the
-	InputOutput::AddInfo(L"Found domain identifier '" + sDomainName + L"' on account '" + sAccount + L"'", sSdPart);
-	return SidActionResult::Nothing;
+	// update the sid in the ace
+	std::wstring sSid = GetNameFromSidEx(tCurrentSid);
+	InputOutput::AddInfo(L"Removing account or sid reference '" + sSid + L"' from domain '" + sDomainName + L"'", sSdPart);
+	tResultantSid = nullptr;
+	return SidActionResult::Remove;
 }

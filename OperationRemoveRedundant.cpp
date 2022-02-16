@@ -1,7 +1,7 @@
 #include "OperationRemoveRedundant.h"
 #include "DriverKitPartial.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 ClassFactory<OperationRemoveRedundant> OperationRemoveRedundant::RegisteredFactory(GetCommand());
 
@@ -22,7 +22,7 @@ bool OperationRemoveRedundant::ProcessAclAction(const WCHAR * const sSdPart, Obj
 	bool bMadeChange = false;
 	bool bSkipIncrement = false;
 
-	ACCESS_ACE * tAceExplicit = FirstAce(tCurrentAcl);
+	PACE_ACCESS_HEADER tAceExplicit = FirstAce(tCurrentAcl);
 	for (ULONG iEntryExplicit = 0; iEntryExplicit < tCurrentAcl->AceCount;
 		tAceExplicit = (bSkipIncrement) ? tAceExplicit : NextAce(tAceExplicit), iEntryExplicit += (bSkipIncrement) ? 0 : 1)
 	{
@@ -33,19 +33,19 @@ bool OperationRemoveRedundant::ProcessAclAction(const WCHAR * const sSdPart, Obj
 		if (IsInherited(tAceExplicit)) continue;
 
 		// only process standard ace types
-		if (tAceExplicit->Header.AceType != ACCESS_ALLOWED_ACE_TYPE &&
-			tAceExplicit->Header.AceType != ACCESS_DENIED_ACE_TYPE &&
-			tAceExplicit->Header.AceType != SYSTEM_AUDIT_ACE_TYPE) continue;
+		if (tAceExplicit->AceType != ACCESS_ALLOWED_ACE_TYPE &&
+			tAceExplicit->AceType != ACCESS_DENIED_ACE_TYPE &&
+			tAceExplicit->AceType != SYSTEM_AUDIT_ACE_TYPE) continue;
 
 		// assume we are increments on the next round
-		ACCESS_ACE * tAceInherited = FirstAce(tCurrentAcl);
+		PACE_ACCESS_HEADER tAceInherited = FirstAce(tCurrentAcl);
 		for (ULONG iEntryInherited = 0; iEntryInherited < tCurrentAcl->AceCount; tAceInherited = NextAce(tAceInherited), iEntryInherited++)
 		{
 			// only process inherited items in the inner loop
 			if (!IsInherited(tAceInherited)) continue;
 
 			// stop processing if we have a mismatching type
-			if (tAceInherited->Header.AceType != tAceExplicit->Header.AceType) continue;
+			if (tAceInherited->AceType != tAceExplicit->AceType) continue;
 
 			// stop processing if the explit mask is not a subset of the inherited mask
 			if ((tAceExplicit->Mask | tAceInherited->Mask) != tAceInherited->Mask) continue;
@@ -61,10 +61,10 @@ bool OperationRemoveRedundant::ProcessAclAction(const WCHAR * const sSdPart, Obj
 			if (HasNoPropogate(tAceInherited) && !HasNoPropogate(tAceExplicit)) continue;
 
 			// if sids are equal then delete this ace since it is redundant
-			if (SidMatch(&tAceInherited->Sid, &tAceExplicit->Sid))
+			if (SidMatch(GetSidFromAce(tAceInherited), GetSidFromAce(tAceExplicit)))
 			{
 				InputOutput::AddInfo(L"Removed redundant explicit entry for '" +
-					GetNameFromSidEx(&tAceExplicit->Sid) + L"'", sSdPart);
+					GetNameFromSidEx(GetSidFromAce(tAceExplicit)) + L"'", sSdPart);
 				DeleteAce(tCurrentAcl, iEntryExplicit);
 				bMadeChange = true;
 				bSkipIncrement = true;

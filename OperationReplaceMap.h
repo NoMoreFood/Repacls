@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Operation.h"
+#include "Helpers.h"
 
 class OperationReplaceMap : public Operation
 {

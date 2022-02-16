@@ -1,7 +1,7 @@
 #include "OperationCompact.h"
 #include "DriverKitPartial.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 #include <atomic>
 
@@ -23,19 +23,19 @@ bool OperationCompact::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry
 	// that the change needs to be persisted
 	bool bMadeChange = false;
 
-	ACCESS_ACE * tAceOuter = FirstAce(tCurrentAcl);
+	PACE_ACCESS_HEADER tAceOuter = FirstAce(tCurrentAcl);
 	for (ULONG iEntryOuter = 0; iEntryOuter < tCurrentAcl->AceCount; tAceOuter = NextAce(tAceOuter), iEntryOuter++)
 	{
 		// only process standard ace types
-		if (tAceOuter->Header.AceType != ACCESS_ALLOWED_ACE_TYPE &&
-			tAceOuter->Header.AceType != ACCESS_DENIED_ACE_TYPE &&
-			tAceOuter->Header.AceType != SYSTEM_AUDIT_ACE_TYPE) continue;
+		if (tAceOuter->AceType != ACCESS_ALLOWED_ACE_TYPE &&
+			tAceOuter->AceType != ACCESS_DENIED_ACE_TYPE &&
+			tAceOuter->AceType != SYSTEM_AUDIT_ACE_TYPE) continue;
 
 		// only process explicit entires
 		if (IsInherited(tAceOuter)) continue;
 
 		bool bSkipIncrement = false;
-		ACCESS_ACE * tAceInner = NextAce(tAceOuter);
+		PACE_ACCESS_HEADER tAceInner = NextAce(tAceOuter);
 		for (ULONG iEntryInner = iEntryOuter + 1; iEntryInner < tCurrentAcl->AceCount;
 			tAceInner = (bSkipIncrement) ? tAceInner : NextAce(tAceInner), iEntryInner += (bSkipIncrement) ? 0 : 1)
 		{
@@ -44,23 +44,23 @@ bool OperationCompact::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry
 
 			// stop processing completely if the flags are not identical or
 			// the flags aren't mergeable with identical masks
-			if (!(tAceInner->Header.AceFlags == tAceOuter->Header.AceFlags) &&
+			if (!(tAceInner->AceFlags == tAceOuter->AceFlags) &&
 				!((tAceInner->Mask == tAceOuter->Mask) &&
 				(GetNonOiCiIoBits(tAceInner) == GetNonOiCiIoBits(tAceOuter)))) continue;
 
 			// stop processing completely if we have a mismatching type
-			if (tAceInner->Header.AceType != tAceOuter->Header.AceType) continue;
+			if (tAceInner->AceType != tAceOuter->AceType) continue;
 
 			// if sids are equal then delete this ace
-			if (SidMatch(&tAceInner->Sid, &tAceOuter->Sid))
+			if (SidMatch(GetSidFromAce(tAceInner), GetSidFromAce(tAceOuter)))
 			{
 				// the CI and OI flags of entries are mergable since they both add additional
 				// permissions.  however, the IO flags effectively blocks access to the parent
 				// container so this is merged by setting the bit to zero if either one of the two
 				// entries has it unset.
-				tAceOuter->Header.AceFlags |= (tAceInner->Header.AceFlags & CONTAINER_INHERIT_ACE);
-				tAceOuter->Header.AceFlags |= (tAceInner->Header.AceFlags & OBJECT_INHERIT_ACE);
-				tAceOuter->Header.AceFlags &= (!HasInheritOnly(tAceInner) || !HasInheritOnly(tAceOuter)) ? ~INHERIT_ONLY_ACE : ~0;
+				tAceOuter->AceFlags |= (tAceInner->AceFlags & CONTAINER_INHERIT_ACE);
+				tAceOuter->AceFlags |= (tAceInner->AceFlags & OBJECT_INHERIT_ACE);
+				tAceOuter->AceFlags &= (!HasInheritOnly(tAceInner) || !HasInheritOnly(tAceOuter)) ? ~INHERIT_ONLY_ACE : ~0;
 
 				// per previous checks, the masks are either identical or mergable so we can
 				// unconditionally or them together
@@ -69,7 +69,7 @@ bool OperationCompact::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry
 				// cleanup the old entry and setup the next interaction to reach the
 				// check on the current index
 				InputOutput::AddInfo(L"Compacted entries for '" +
-					GetNameFromSidEx(&tAceInner->Sid) + L"'", sSdPart);
+					GetNameFromSidEx(GetSidFromAce(tAceInner)) + L"'", sSdPart);
 				DeleteAce(tCurrentAcl, iEntryInner);
 				iEntryInner = iEntryOuter;
 				tAceInner = tAceOuter;

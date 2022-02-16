@@ -1,6 +1,6 @@
 #include "OperationRemoveStreams.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 ClassFactory<OperationRemoveStreams> OperationRemoveStreams::RegisteredFactory(GetCommand());
 

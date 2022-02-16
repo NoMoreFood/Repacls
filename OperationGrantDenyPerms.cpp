@@ -1,7 +1,7 @@
 #include "OperationGrantDenyPerms.h"
 #include "OperationCheckCanonical.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 #include <map>
 #include <regex>
@@ -125,23 +125,24 @@ bool OperationGrantDenyPerms::ProcessAclAction(const WCHAR* const sSdPart, Objec
 	// verify this is not already part of the ace as an inherited or explicit entry
 	if (tCurrentAcl != nullptr)
 	{
-		ACCESS_ACE* tAceDacl = FirstAce(tCurrentAcl);
+		PACE_ACCESS_HEADER tAceDacl = FirstAce(tCurrentAcl);
 		for (ULONG iEntry = 0; iEntry < tCurrentAcl->AceCount; tAceDacl = NextAce(tAceDacl), iEntry++)
 		{
 			// skip other ace types that are not allowing accessing
-			if ((tAceDacl->Header.AceType == ACCESS_ALLOWED_ACE_TYPE &&
+			if ((tAceDacl->AceType == ACCESS_ALLOWED_ACE_TYPE &&
 				tEa.grfAccessMode != GRANT_ACCESS) ||
-				(tAceDacl->Header.AceType == ACCESS_DENIED_ACE_TYPE &&
+				(tAceDacl->AceType == ACCESS_DENIED_ACE_TYPE &&
 				tEa.grfAccessMode != DENY_ACCESS)) continue;
 
 			// do not look at sids that are not the specified account
-			if (SidNotMatch(&tAceDacl->Sid, ((PSID) tEa.Trustee.ptstrName))) continue;
+			const PSID tSid = GetSidFromAce(tAceDacl);
+			if (SidNotMatch(tSid, ((PSID) tEa.Trustee.ptstrName))) continue;
 
 			// skip if access mask is not exactly the same
 			if (tAceDacl->Mask != tEa.grfAccessPermissions) continue;
 
 			// skip this ace inheritance mask is not the same except if it is inherited
-			if ((tAceDacl->Header.AceFlags & ((DWORD) ~INHERITED_ACE)) != 
+			if ((tAceDacl->AceFlags & ((DWORD) ~INHERITED_ACE)) != 
 				(tEa.grfInheritance & iObjectTypeMask)) continue;
 
 			// if we got this far, it means we have a duplicate ace so just skip it

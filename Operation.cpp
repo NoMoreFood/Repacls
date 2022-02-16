@@ -1,8 +1,24 @@
 #include "Operation.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
 #include <regex>
+
+PSID Operation::GetSidFromAce(PACE_ACCESS_HEADER tAce) noexcept
+{
+	PSID pSid = &((ACCESS_ALLOWED_ACE*) tAce)->SidStart;
+	if (tAce->AceType == ACCESS_ALLOWED_OBJECT_ACE_TYPE ||
+		tAce->AceType == ACCESS_DENIED_OBJECT_ACE_TYPE ||
+		tAce->AceType == SYSTEM_AUDIT_OBJECT_ACE_TYPE)
+	{
+		ACCESS_ALLOWED_OBJECT_ACE* oObjectAce = (ACCESS_ALLOWED_OBJECT_ACE*)tAce;
+		LPBYTE pSidStart = (LPBYTE)&oObjectAce->ObjectType;
+		if (oObjectAce->Flags & ACE_OBJECT_TYPE_PRESENT) pSidStart += sizeof(GUID);
+		if (oObjectAce->Flags & ACE_INHERITED_OBJECT_TYPE_PRESENT) pSidStart += sizeof(GUID);
+		pSid = (SID*)pSidStart;
+	}
+	return pSid;
+}
 
 bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
@@ -13,7 +29,7 @@ bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 	bool bMadeChange = false;
 	bool bSkipIncrement = false;
 
-	ACCESS_ACE * tAce = FirstAce(tCurrentAcl);
+	PACE_ACCESS_HEADER tAce = FirstAce(tCurrentAcl);
 	for (ULONG iEntry = 0; iEntry < tCurrentAcl->AceCount;
 		tAce = (bSkipIncrement) ? tAce : NextAce(tAce), iEntry += (bSkipIncrement) ? 0 : 1)
 	{
@@ -24,7 +40,7 @@ bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 		if (IsInherited(tAce)) continue;
 
 		// convenience variable for sid associated with ace
-		PSID const tCurrentSid = &tAce->Sid;
+		PSID const tCurrentSid = GetSidFromAce(tAce);
 
 		PSID tResultantSid;
 		const SidActionResult tResult = DetermineSid(sSdPart, tObjectEntry, tCurrentSid, tResultantSid);
@@ -38,13 +54,13 @@ bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 		}
 		else if (tResult == SidActionResult::Replace)
 		{
-			PSID const tOldSid = &tAce->Sid;
+			PSID const tOldSid = GetSidFromAce(tAce);
 			PSID const tNewSid = tResultantSid;
-			const DWORD iOldLen = GetLengthSid(tOldSid);
-			const DWORD iNewLen = GetLengthSid(tNewSid);
+			const DWORD iOldLen = SidGetLength(tOldSid);
+			const DWORD iNewLen = SidGetLength(tNewSid);
 
 			// if the old sid in the ace matches the new sid, just return immediately
-			if (SidMatch(&tAce->Sid, tNewSid)) return false;
+			if (SidMatch(tOldSid, tNewSid)) return false;
 
 			// at this point, we know we are going to make a change so set the flag
 			bMadeChange = true;
@@ -87,13 +103,13 @@ bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 
 				// free the existing pointer and update the value that was passed
 				if (bAclReplacement) LocalFree(tAcl);
-				tAce = (PACCESS_ACE)(tNewAcl + (tAceLoc - tAclLoc));
+				tAce = (PACE_ACCESS_HEADER)(tNewAcl + (tAceLoc - tAclLoc));
 				tCurrentAcl = (PACL)tNewAcl;
 				bAclReplacement = true;
 			}
 
 			// update size in ace header
-			tAce->Header.AceSize += (WORD)(iNewLen - iOldLen);
+			tAce->AceSize += (WORD)(iNewLen - iOldLen);
 
 			// update size in acl header and return size differential
 			tCurrentAcl->AclSize += (WORD)(iNewLen - iOldLen);
