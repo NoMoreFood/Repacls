@@ -59,7 +59,7 @@ or end of your command as to not confuse them with ordered parameters.
    Specifies the input format of any path specified by /Path and other ways
    of providing paths. 'File' is the default if not specified. 
 
-/MaxDepths <NumberOfContainersDeep>
+/MaxDepth <NumberOfContainersDeep>
    Specifies how deep the scan should go within the path. This default is
    to be fully recursive (infinite). Specifying 0 will only enumerate the 
    root node. This does not limit the propogation of inheritable permissions 
