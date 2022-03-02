@@ -48,6 +48,7 @@ void ObjectAds::GetChildObjects(ObjectEntry& oEntry)
     // enumerate the object as a container
     ULONG iFetched = 0L;
     VARIANT vVar;
+    VariantInit(&vVar);
     while (SUCCEEDED(ADsEnumerateNext(pEnumerator, 1, &vVar, &iFetched)) && (iFetched > 0))
     {
         CComPtr<IADs> pADs = nullptr;

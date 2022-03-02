@@ -35,14 +35,18 @@ VOID BeginScan(Processor & oProcessor)
 	if (OperationPathMode::GetPathMode() == SE_REGISTRY_KEY) oObject = new ObjectRegistry(oProcessor);
 	if (OperationPathMode::GetPathMode() == SE_DS_OBJECT) oObject = new ObjectAds(oProcessor);
 
+	// to track threads that are running
+	bool ProcessingStarted = false;
+
 	// startup some threads for processing
 	std::vector<std::thread> oThreads;
 	oProcessor.GetQueue().SetWaiterCounter(InputOutput::MaxThreads());
 	for (USHORT iNum = 0; iNum < InputOutput::MaxThreads(); iNum++)
-		oThreads.push_back(std::thread([&oProcessor,oObject]() {
+		oThreads.push_back(std::thread([&ProcessingStarted,&oProcessor,oObject]() {
 		for (;;)
 		{
 			ObjectEntry oEntry = oProcessor.GetQueue().Pop();
+			ProcessingStarted = true;
 
 			// break out if entry flags a termination
 			if (oEntry.ObjectType == SE_UNKNOWN_OBJECT_TYPE) return;
@@ -62,8 +66,11 @@ VOID BeginScan(Processor & oProcessor)
 	}
 
 	// wait for queue to be completely empty
-	oProcessor.GetQueue().WaitForEmptyQueues();
-
+	while (!ProcessingStarted)
+	{
+		oProcessor.GetQueue().WaitForEmptyQueues();
+	}
+	
 	// send in some empty entries to tell the thread to stop waiting
 	for (USHORT iNum = 0; iNum < InputOutput::MaxThreads(); iNum++)
 	{
