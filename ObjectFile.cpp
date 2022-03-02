@@ -154,17 +154,8 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 			oSubEntry.Name += oEntry.Name + ((oEntry.Depth == 0 && oEntry.Name.back() == '\\') ? L"" : L"\\")
 				+ std::wstring(oInfo->FileName, oInfo->FileNameLength / sizeof(WCHAR));
 
-			// if a leaf object, just process immediately and don't worry about putting it on the queue
-			if (!IsDirectory(oSubEntry.Attributes) || IsReparsePoint(oSubEntry.Attributes))
-			{
-				// do security analysis
-				oProcessor.AnalyzeSecurity(oSubEntry);
-				InputOutput::WriteToScreen();
-			}
-			else
-			{
-				oProcessor.GetQueue().Push(oSubEntry);
-			}
+			// add item to queue
+			oProcessor.GetQueue().Push(oSubEntry);
 
 			// this loop is complete, exit
 			if (oInfo->NextEntryOffset == 0) break;
