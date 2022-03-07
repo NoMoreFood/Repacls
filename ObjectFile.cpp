@@ -4,6 +4,7 @@
 #include "InputOutput.h"
 #include "ObjectFile.h"
 #include "DriverKitPartial.h"
+#include "OperationDepth.h"
 
 void ObjectFile::GetBaseObject(std::wstring_view sPath)
 {
@@ -154,8 +155,20 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 			oSubEntry.Name += oEntry.Name + ((oEntry.Depth == 0 && oEntry.Name.back() == '\\') ? L"" : L"\\")
 				+ std::wstring(oInfo->FileName, oInfo->FileNameLength / sizeof(WCHAR));
 
-			// add item to queue
-			oProcessor.GetQueue().Push(oSubEntry);
+			// if a leaf object, just process immediately and don't worry about putting it on the queue
+			if (!IsDirectory(oSubEntry.Attributes) || IsReparsePoint(oSubEntry.Attributes))
+			{
+				// for performance do security analysis immediately instead of addiing to queue
+				if (oEntry.Depth <= OperationDepth::MaxDepth())
+				{
+					oProcessor.AnalyzeSecurity(oSubEntry);
+					oProcessor.CompleteEntry(oSubEntry);
+				}
+			}
+			else
+			{
+				oProcessor.GetQueue().Push(oSubEntry);
+			}
 
 			// this loop is complete, exit
 			if (oInfo->NextEntryOffset == 0) break;

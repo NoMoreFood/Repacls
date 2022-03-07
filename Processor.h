@@ -36,8 +36,7 @@ public:
 
 	void AnalyzeSecurity(ObjectEntry& oEntry);
 
-	void CompleteEntry(ObjectEntry& oEntry, bool bDecreaseCounter = true);
-	void ReportFailure(ObjectEntry& oEntry);
+	void CompleteEntry(ObjectEntry& oEntry);
 
 	Processor(std::vector<Operation*> poOperationList, bool pbFetchDacl, bool pbFetchSacl, bool pbFetchOwner, bool pbFetchGroup);
 	virtual ~Processor() = default;

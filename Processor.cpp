@@ -207,7 +207,7 @@ void Processor::AnalyzeSecurity(ObjectEntry & oEntry)
 	if (bDescCleanupRequired) LocalFree(tDesc);
 }
 
-void Processor::CompleteEntry(ObjectEntry& oEntry, bool bDecreaseCounter)
+void Processor::CompleteEntry(ObjectEntry& oEntry)
 {
 	// flush any pending data from the last operation
 	InputOutput::WriteToScreen();
