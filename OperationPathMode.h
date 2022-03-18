@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationPathMode : public Operation
+class OperationPathMode final : public Operation
 {
 private:
 
@@ -16,5 +16,5 @@ public:
 	OperationPathMode(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 
 	// public functions
-	static SE_OBJECT_TYPE& GetPathMode() noexcept { static SE_OBJECT_TYPE iPathMode = SE_FILE_OBJECT; return iPathMode; };
+	static SE_OBJECT_TYPE& GetPathMode() noexcept { static SE_OBJECT_TYPE iPathMode = SE_FILE_OBJECT; return iPathMode; }
 };

@@ -7,7 +7,7 @@ ClassFactory<OperationMoveDomain> OperationMoveDomain::RegisteredFactory(GetComm
 OperationMoveDomain::OperationMoveDomain(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(2, oArgList);
+	const std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(2, oArgList);
 
 	// fetch params
 	tSourceDomain = GetSidFromName(sSubArgs.at(0));
@@ -18,7 +18,7 @@ OperationMoveDomain::OperationMoveDomain(std::queue<std::wstring> & oArgList, co
 	{
 		// complain
 		wprintf(L"ERROR: Invalid source domain '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
-		exit(0);
+		std::exit(0);
 	}
 
 	// see if names could be resolved
@@ -26,7 +26,7 @@ OperationMoveDomain::OperationMoveDomain(std::queue<std::wstring> & oArgList, co
 	{
 		// complain
 		wprintf(L"ERROR: Invalid target domain '%s' specified for parameter '%s'.\n", sSubArgs.at(1).c_str(), GetCommand().c_str());
-		exit(0);
+		std::exit(0);
 	}
 
 	// store the domain strings

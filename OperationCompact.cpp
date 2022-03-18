@@ -3,8 +3,6 @@
 #include "InputOutput.h"
 #include "Helpers.h"
 
-#include <atomic>
-
 ClassFactory<OperationCompact> OperationCompact::RegisteredFactory(GetCommand());
 
 OperationCompact::OperationCompact(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)

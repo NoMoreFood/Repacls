@@ -30,7 +30,7 @@ void ObjectRegistry::GetBaseObject(std::wstring_view sPath)
 	if (oRootEntry == oRegMap.end())
 	{
 		wprintf(L"ERROR: Could not parse registry path: %s", sPath.data());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	tReg.Depth = 0;

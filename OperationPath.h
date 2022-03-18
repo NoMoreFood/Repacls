@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationPath : public Operation
+class OperationPath final : public Operation
 {
 private:
 

@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationInheritChildren : public Operation
+class OperationInheritChildren final : public Operation
 {
 private:
 

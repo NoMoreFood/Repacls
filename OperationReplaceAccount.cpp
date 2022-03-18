@@ -7,7 +7,7 @@ ClassFactory<OperationReplaceAccount> OperationReplaceAccount::RegisteredFactory
 OperationReplaceAccount::OperationReplaceAccount(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(2, oArgList);
+	const std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(2, oArgList);
 
 	// fetch params
 	tSearchAccount = GetSidFromName(sSubArgs.at(0));
@@ -18,7 +18,7 @@ OperationReplaceAccount::OperationReplaceAccount(std::queue<std::wstring> & oArg
 	{
 		// complain
 		wprintf(L"ERROR: Invalid search account '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
-		exit(0);
+		std::exit(0);
 	}
 
 	// see if names could be resolved
@@ -26,7 +26,7 @@ OperationReplaceAccount::OperationReplaceAccount(std::queue<std::wstring> & oArg
 	{
 		// complain
 		wprintf(L"ERROR: Invalid replace account '%s' specified for parameter '%s'.\n", sSubArgs.at(1).c_str(), GetCommand().c_str());
-		exit(0);
+		std::exit(0);
 	}
 
 	// store off the names for those entries
@@ -51,7 +51,7 @@ SidActionResult OperationReplaceAccount::DetermineSid(const WCHAR * const sSdPar
 		InputOutput::AddInfo(L"Replacing account '" + sSearchAccount + L"' with '" + sReplaceAccount + L"'", sSdPart);
 		tResultantSid = tReplaceAccount;
 		return SidActionResult::Replace;
-	};
+	}
 
 	return SidActionResult::Nothing;
 }

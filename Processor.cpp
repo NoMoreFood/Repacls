@@ -1,37 +1,24 @@
 #define UMDF_USING_NTSTATUS
 #include <ntstatus.h>
 
-#include <windows.h>
-#include <cstdio>
-#include <queue>
+#include <Windows.h>
 #include <vector>
-#include <io.h>
-#include <fcntl.h>
 #include <lmcons.h>
 
 #include <string>
 #include <atomic>
-#include <condition_variable>
 
 #include "Operation.h"
 #include "InputOutput.h"
-#include "ConcurrentQueue.h"
 #include "DriverKitPartial.h"
-#include "Helpers.h"
 
 #include "Object.h"
 #include "Processor.h"
 
-Processor::Processor(std::vector<Operation*> poOperationList, bool pbFetchDacl, bool pbFetchSacl, bool pbFetchOwner, bool pbFetchGroup)
+Processor::Processor(std::vector<Operation*> poOperationList, bool pbFetchDacl, bool pbFetchSacl, bool pbFetchOwner, bool pbFetchGroup) :
+	bFetchDacl(pbFetchDacl), bFetchSacl(pbFetchSacl), bFetchOwner(pbFetchOwner), bFetchGroup(pbFetchGroup),
+	iInformationToLookup(0), oOperationList(poOperationList)
 {
-	oOperationList = poOperationList;
-
-	bFetchDacl = pbFetchDacl;
-	bFetchSacl = pbFetchSacl;
-	bFetchOwner = pbFetchOwner;
-	bFetchGroup = pbFetchGroup;
-
-	iInformationToLookup = 0;
 	if (bFetchDacl) iInformationToLookup |= DACL_SECURITY_INFORMATION;
 	if (bFetchSacl) iInformationToLookup |= SACL_SECURITY_INFORMATION;
 	if (bFetchOwner) iInformationToLookup |= OWNER_SECURITY_INFORMATION;
@@ -126,10 +113,10 @@ void Processor::AnalyzeSecurity(ObjectEntry & oEntry)
 			if (oOperation->ProcessSdAction(oEntry.Name, oEntry, tDesc, bDescCleanupRequired))
 			{
 				// cleanup previous operations if necessary
-				if (bDaclCleanupRequired) { LocalFree(tAclDacl); bDaclCleanupRequired = false; };
-				if (bSaclCleanupRequired) { LocalFree(tAclDacl); bSaclCleanupRequired = false; };
-				if (bOwnerCleanupRequired) { LocalFree(tAclDacl); bOwnerCleanupRequired = false; };
-				if (bGroupCleanupRequired) { LocalFree(tAclDacl); bGroupCleanupRequired = false; };
+				if (bDaclCleanupRequired) { LocalFree(tAclDacl); bDaclCleanupRequired = false; }
+				if (bSaclCleanupRequired) { LocalFree(tAclDacl); bSaclCleanupRequired = false; }
+				if (bOwnerCleanupRequired) { LocalFree(tAclDacl); bOwnerCleanupRequired = false; }
+				if (bGroupCleanupRequired) { LocalFree(tAclDacl); bGroupCleanupRequired = false; }
 
 				// extract the elements from the raw security descriptor
 				BOOL bItemPresent = FALSE;

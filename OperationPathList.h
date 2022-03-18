@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationPathList : public Operation
+class OperationPathList final : public Operation
 {
 private:
 

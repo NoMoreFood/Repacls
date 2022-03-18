@@ -3,9 +3,9 @@
 // mute compatibility concerns
 #define _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS
 
-#include <windows.h>
-#include <accctrl.h>
-#include <aclapi.h>
+#include <Windows.h>
+#include <AccCtrl.h>
+#include <AclAPI.h>
 #include <string>
 #include <vector>
 #include <queue>
@@ -59,8 +59,7 @@ constexpr bool HasNoPropogate(PACE_ACCESS_HEADER x) { return CheckBitSet((x)->Ac
 constexpr DWORD GetNonOiCiIoBits(PACE_ACCESS_HEADER x) { return ((~(CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE | INHERIT_ONLY_ACE)) & (x)->AceFlags); };
 
 // string helper operations
-#define ConvertToUpper(_x) std::transform(_x.begin(), _x.end(), _x.begin(),	\
-	[](const WCHAR c) noexcept { return static_cast<WCHAR>(::toupper(c)); });
+#define ConvertToUpper(_x) std::for_each(_x.begin(), _x.end(), [](wchar_t & c) noexcept {  c = ::towupper(c); });
 
 typedef enum SidActionResult : char
 {

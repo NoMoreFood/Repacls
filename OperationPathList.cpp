@@ -3,7 +3,6 @@
 #include "Helpers.h"
 
 #include <fstream>
-#include <iostream>
 #include <locale>
 #include <codecvt>
 
@@ -12,7 +11,7 @@ ClassFactory<OperationPathList> OperationPathList::RegisteredFactory(GetCommand(
 OperationPathList::OperationPathList(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
+	const std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
 
 	// open the file
 	std::wifstream fFile(sSubArgs.at(0).c_str());
@@ -31,7 +30,7 @@ OperationPathList::OperationPathList(std::queue<std::wstring> & oArgList, const 
 		if (oLineItems.size() != 1)
 		{
 			wprintf(L"ERROR: Unable to parse string path list file.");
-			exit(-1);
+			std::exit(-1);
 		}
 
 		// store off the argument

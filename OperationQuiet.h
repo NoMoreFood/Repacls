@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationQuiet : public Operation
+class OperationQuiet final : public Operation
 {
 private:
 

@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationFindNullAcl : public Operation
+class OperationFindNullAcl final : public Operation
 {
 private:
 

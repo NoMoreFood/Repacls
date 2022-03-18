@@ -3,7 +3,6 @@
 #include "Helpers.h"
 
 #include <fstream>
-#include <iostream>
 #include <locale>
 #include <codecvt>
 
@@ -12,7 +11,7 @@ ClassFactory<OperationRestoreSecurity> OperationRestoreSecurity::RegisteredFacto
 OperationRestoreSecurity::OperationRestoreSecurity(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
+	const std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
 
 	// open the file
 	std::wifstream fFile(sSubArgs.at(0).c_str());
@@ -37,7 +36,7 @@ OperationRestoreSecurity::OperationRestoreSecurity(std::queue<std::wstring> & oA
 			SDDL_REVISION_1, &tDesc, NULL) == 0)
 		{
 			wprintf(L"ERROR: Unable to parse string security descriptor file for restoration.");
-			exit(-1);
+			std::exit(-1);
 		}
 
 		// update the map

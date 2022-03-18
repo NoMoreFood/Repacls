@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationRemoveRedundant : public Operation
+class OperationRemoveRedundant final : public Operation
 {
 private:
 

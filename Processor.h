@@ -1,15 +1,11 @@
 #pragma once
 
-#include <windows.h>
-
 #include <atomic>
-#include <condition_variable>
 
 #include "ConcurrentQueue.h"
 #include "Operation.h"
-#include "Object.h"
 
-class Processor
+class Processor final
 {
 protected:
 
@@ -36,7 +32,7 @@ public:
 
 	void AnalyzeSecurity(ObjectEntry& oEntry);
 
-	void CompleteEntry(ObjectEntry& oEntry);
+	static void CompleteEntry(ObjectEntry& oEntry);
 
 	Processor(std::vector<Operation*> poOperationList, bool pbFetchDacl, bool pbFetchSacl, bool pbFetchOwner, bool pbFetchGroup);
 	virtual ~Processor() = default;

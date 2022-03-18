@@ -4,7 +4,7 @@
 
 #include "Operation.h"
 
-class OperationLocateHash : public Operation
+class OperationLocateHash final : public Operation
 {
 private:
 
@@ -13,8 +13,8 @@ private:
 	static ClassFactory<OperationLocateHash> RegisteredFactory;
 
 	// operation specific
-	static const int HASH_IN_BYTES = (256 / 8);
-	static const int HASH_IN_HEXCHARS = (HASH_IN_BYTES * 2);
+	static constexpr int HASH_IN_BYTES = (256 / 8);
+	static constexpr int HASH_IN_HEXCHARS = (HASH_IN_BYTES * 2);
 	HANDLE hReportFile = INVALID_HANDLE_VALUE;
 	std::wregex tRegex;
 	PBYTE aHashToMatch = nullptr;

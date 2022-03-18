@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationResetChildren : public Operation
+class OperationResetChildren final : public Operation
 {
 private:
 

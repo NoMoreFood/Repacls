@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationWhatIf : public Operation
+class OperationWhatIf final : public Operation
 {
 private:
 

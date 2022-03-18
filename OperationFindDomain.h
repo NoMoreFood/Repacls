@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationFindDomain : public Operation
+class OperationFindDomain final : public Operation
 {
 private:
 

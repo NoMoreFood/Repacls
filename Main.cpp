@@ -1,7 +1,7 @@
 ﻿#define UMDF_USING_NTSTATUS
 #include <ntstatus.h>
 
-#include <windows.h>
+#include <Windows.h>
 #include <cstdio>
 #include <queue>
 #include <vector>
@@ -10,8 +10,6 @@
 #include <lmcons.h>
 
 #include <string>
-#include <atomic>
-#include <condition_variable>
 
 #include "Operation.h"
 #include "InputOutput.h"
@@ -98,7 +96,7 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	if (_get_wpgmptr(&sCurrentExe) != 0 || sCurrentExe == nullptr)
 	{
 		wprintf(L"%s\n", L"ERROR: Cannot get currently running executable name.");
-		exit(-1);
+		std::exit(-1);
 	}
 	
 	// fetch the version string
@@ -145,7 +143,7 @@ int wmain(int iArgs, WCHAR * aArgs[])
 
 		// validate the operation was found although this
 		// should never happen since the factory itself will complain
-		if (oOperation == nullptr) exit(0);
+		if (oOperation == nullptr) std::exit(0);
 
 		// add to the processing list if there is an actionable security element
 		if (oOperation->AppliesToDacl ||
@@ -159,7 +157,7 @@ int wmain(int iArgs, WCHAR * aArgs[])
 			if (bExclusiveOperation && oOperation->ExclusiveOperation)
 			{
 				wprintf(L"%s\n", L"ERROR: More than one exclusive operation was specified.");
-				exit(-1);
+				std::exit(-1);
 			}
 
 			// track exclusivity and data that we must fetch 
@@ -178,7 +176,7 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	if (InputOutput::ScanPaths().empty())
 	{
 		wprintf(L"%s\n", L"ERROR: No path was specified.");
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// ensure we have permissions to all files

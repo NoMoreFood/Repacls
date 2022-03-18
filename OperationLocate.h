@@ -4,7 +4,7 @@
 
 #include "Operation.h"
 
-class OperationLocate : public Operation
+class OperationLocate final : public Operation
 {
 private:
 

@@ -1,13 +1,11 @@
 #pragma once
 
 #include <queue>
-#include <thread>
 #include <mutex>
 #include <condition_variable>
-#include <atomic>
 
 template <typename T>
-class ConcurrentQueue
+class ConcurrentQueue final
 {
 private:
 	std::condition_variable oItemAvailableCondition;

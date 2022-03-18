@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationSetOwner : public Operation
+class OperationSetOwner final : public Operation
 {
 private:
 

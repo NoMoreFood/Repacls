@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationCanonicalizeAcls : public Operation
+class OperationCanonicalizeAcls final : public Operation
 {
 private:
 

@@ -7,7 +7,7 @@ ClassFactory<OperationBackupSecurity> OperationBackupSecurity::RegisteredFactory
 OperationBackupSecurity::OperationBackupSecurity(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
+	const std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
 
 	// fetch params
 	hFile = CreateFile(sSubArgs.at(0).c_str(), GENERIC_WRITE,
@@ -18,7 +18,7 @@ OperationBackupSecurity::OperationBackupSecurity(std::queue<std::wstring> & oArg
 	{
 		// complain
 		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// write out the file type marker
@@ -27,7 +27,7 @@ OperationBackupSecurity::OperationBackupSecurity(std::queue<std::wstring> & oArg
 	if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 	{
 		wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// flag this as being an ace-level action

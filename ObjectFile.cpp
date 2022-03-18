@@ -8,18 +8,13 @@
 
 void ObjectFile::GetBaseObject(std::wstring_view sPath)
 {
-	// to get the process started, we need to have one entry so
-	// we will set that to the passed argument
-	ObjectEntry oEntryFirst;
-	oEntryFirst.Depth = 0;
-
 	// make a local copy of the path since we may have to alter it
 	// handle special case where a drive root is specified
 	// we must ensure it takes the form x:\. to resolve correctly
 	const size_t iSemiColon = sPath.rfind(L':');
 	if (iSemiColon != std::wstring::npos)
 	{
-		std::wstring sEnd = std::wstring(sPath).substr(iSemiColon);
+		const std::wstring sEnd = std::wstring(sPath).substr(iSemiColon);
 		if (sEnd == L":" || sEnd == L":\\")
 		{
 			sPath = std::wstring(sPath.substr(0, iSemiColon)) + L":\\.";
@@ -29,6 +24,10 @@ void ObjectFile::GetBaseObject(std::wstring_view sPath)
 	// convert the path to a long path that is compatible with the other call
 	UNICODE_STRING tPathU;
 	RtlDosPathNameToNtPathName_U(sPath.data(), &tPathU, nullptr, nullptr);
+
+	// to get the process started, we need to have one entry so
+	// we will set that to the passed argument
+	ObjectEntry oEntryFirst;
 
 	// copy it to a null terminated string
 	oEntryFirst.Name = std::wstring(tPathU.Buffer, tPathU.Length / sizeof(WCHAR));
@@ -73,7 +72,7 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 	{
 		oProcessor.CompleteEntry(oEntry);
 		return;
-	};
+	}
 
 	// construct a string that can be used in the rtl apis
 	UNICODE_STRING tPathU = { (USHORT)oEntry.Name.size() * sizeof(WCHAR),
@@ -81,7 +80,7 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 
 	// update object attributes object
 	OBJECT_ATTRIBUTES oAttributes;
-	InitializeObjectAttributes(&oAttributes, nullptr, OBJ_CASE_INSENSITIVE, nullptr, nullptr);
+	InitializeObjectAttributes(&oAttributes, nullptr, OBJ_CASE_INSENSITIVE, nullptr, nullptr)
 	oAttributes.ObjectName = &tPathU;
 
 	// get an open file handle

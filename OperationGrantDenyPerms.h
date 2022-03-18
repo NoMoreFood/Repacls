@@ -1,10 +1,8 @@
 #pragma once
 
-#include <vector>
-
 #include "Operation.h"
 
-class OperationGrantDenyPerms : public Operation
+class OperationGrantDenyPerms final : public Operation
 {
 private:
 
