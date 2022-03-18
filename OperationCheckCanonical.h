@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationCheckCanonical : public Operation
+class OperationCheckCanonical final : public Operation
 {
 private:
 

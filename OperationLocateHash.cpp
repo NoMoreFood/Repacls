@@ -27,7 +27,7 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 	{
 		// complain
 		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sReportFile.at(0).c_str(), GetCommand().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// register the file handle
@@ -42,7 +42,7 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 		{
 			wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
-			exit(-1);
+			std::exit(-1);
 		}
 
 		// write out the header
@@ -52,7 +52,7 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 		if (WriteToFile(sToWrite, hReportFile) == 0)
 		{
 			wprintf(L"ERROR: Could not write header to report file for parameter '%s'.\n", GetCommand().c_str());
-			exit(-1);
+			std::exit(-1);
 		}
 	}
 
@@ -67,7 +67,7 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 	catch (const std::regex_error &)
 	{
 		wprintf(L"ERROR: Invalid regular expression '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(0).c_str(), GetCommand().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// record specific hash if specified
@@ -80,7 +80,7 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 			CRYPT_STRING_HEX_ANY, aHashToMatch, &iBytesRead, NULL, NULL) == FALSE || iBytesRead != HASH_IN_BYTES)
 		{
 			wprintf(L"ERROR: Invalid hash '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(1).c_str(), GetCommand().c_str());
-			exit(-1);
+			std::exit(-1);
 		}
 	}
 
@@ -121,7 +121,7 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 			(FileBuffer = (PBYTE) malloc(iFileBuffer)) == NULL)
 		{
 			wprintf(L"ERROR: Could not setup hashing environment.\n");
-			exit(-1);
+			std::exit(-1);
 		}
 	}
 
@@ -149,7 +149,7 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	if (BCryptFinishHash(HashHandle, Hash, HashLength, 0) != 0)
 	{
 		InputOutput::AddError(L"Could not finalize file data.");
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// file read failed

@@ -3,7 +3,7 @@
 #include "Helpers.h"
 
 #include <atlbase.h>
-#include <shlobj.h> 
+#include <ShlObj.h>
 
 ClassFactory<OperationLocateShortcut> OperationLocateShortcut::RegisteredFactory(GetCommand());
 
@@ -24,7 +24,7 @@ OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring>& oArgL
 	{
 		// complain
 		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sReportFile.at(0).c_str(), GetCommand().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// register the file handle
@@ -39,7 +39,7 @@ OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring>& oArgL
 		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 		{
 			wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
-			exit(-1);
+			std::exit(-1);
 		}
 
 		// write out the header
@@ -49,7 +49,7 @@ OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring>& oArgL
 		if (WriteToFile(sToWrite, hReportFile) == 0)
 		{
 			wprintf(L"ERROR: Could not write header to report file for parameter '%s'.\n", GetCommand().c_str());
-			exit(-1);
+			std::exit(-1);
 		}
 	}
 
@@ -65,7 +65,7 @@ OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring>& oArgL
 	catch (const std::regex_error&)
 	{
 		wprintf(L"ERROR: Invalid regular expression '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(0).c_str(), GetCommand().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 }
 

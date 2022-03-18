@@ -1,13 +1,10 @@
 #pragma once
 
-#define UMDF_USING_NTSTATUS
-#include <ntstatus.h>
-
 #include <regex>
 
 #include "Operation.h"
 
-class OperationRemoveStreams : public Operation
+class OperationRemoveStreams final : public Operation
 {
 private:
 

@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationBackupSecurity : public Operation
+class OperationBackupSecurity final : public Operation
 {
 private:
 

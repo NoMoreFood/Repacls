@@ -1,10 +1,10 @@
-#include <windows.h>
-#include <lmshare.h>
-#include <lmapibuf.h>
-#include <iads.h>
-#include <adshlp.h>
-#include <atlBase.h>
-#include <dsgetdc.h>
+#include <Windows.h>
+#include <LMShare.h>
+#include <LMAPIbuf.h>
+#include <Iads.h>
+#include <AdsHlp.h>
+#include <atlbase.h>
+#include <DsGetDC.h>
 
 #pragma comment(lib,"activeds.lib")
 #pragma comment(lib,"adsiid.lib")
@@ -20,7 +20,7 @@ ClassFactory<OperationDomainPaths> OperationDomainPaths::RegisteredFactory(GetCo
 OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
+	const std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
 
 	// initialize com for this thread
 	InitThreadCom();
@@ -32,7 +32,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList, 
 		&tDomainControllerInfo) != ERROR_SUCCESS)
 	{
 		wprintf(L"ERROR: Could not locate domain controller for domain '%s'\n", sSubArgs.at(0).c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// create a string 
@@ -48,7 +48,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList, 
 		IID_IDirectorySearch, (void**)&oSearch)))
 	{
 		wprintf(L"ERROR: Could not establish search for domain '%s'\n", sSubArgs.at(0).c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// setup preferences to search entire tree
@@ -61,7 +61,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList, 
 	if (FAILED(oSearch->SetSearchPreference(&SearchPref, 1)))
 	{
 		wprintf(L"ERROR: Could not set search preference for domain '%s'\n", sSubArgs.at(0).c_str());
-		exit(-1);
+		std::exit(-1);
 
 	}
 
@@ -75,7 +75,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList, 
 	if (FAILED(oSearch->ExecuteSearch(sSearchFilter, (LPWSTR*) sAttributes, _countof(sAttributes), &hSearch)))
 	{
 		wprintf(L"ERROR: Could not execute search for domain '%s'\n", sSubArgs.at(0).c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// enumerate results
@@ -103,6 +103,6 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring> & oArgList, 
 	if (oSearch->CloseSearchHandle(hSearch) != NULL)
 	{
 		wprintf(L"ERROR: Could not close search for domain '%s'\n", sSubArgs.at(0).c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 };

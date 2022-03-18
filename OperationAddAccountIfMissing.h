@@ -3,7 +3,7 @@
 #include "Operation.h"
 #include "OperationGrantDenyPerms.h"
 
-class OperationAddAccountIfMissing : public Operation
+class OperationAddAccountIfMissing final : public Operation
 {
 private:
 

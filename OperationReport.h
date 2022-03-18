@@ -4,7 +4,7 @@
 
 #include "Operation.h"
 
-class OperationReport : public Operation
+class OperationReport final : public Operation
 {
 private:
 

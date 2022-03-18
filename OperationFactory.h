@@ -30,7 +30,7 @@ public:
 		if (sCommand.at(0) != '/' && sCommand.at(0) != '-')
 		{
 			wprintf(L"ERROR: Unrecognized parameter '%s'\n", sCommand.c_str());
-			exit(-1);
+			std::exit(-1);
 		}
 
 		// convert to uppercase for map matching
@@ -46,7 +46,7 @@ public:
 		if (oCommand == GetCommands().end())
 		{
 			wprintf(L"ERROR: Unrecognized parameter '%s'\n", sCommand.c_str());
-			exit(-1);
+			std::exit(-1);
 		}
 
 		// create the the new class
@@ -69,5 +69,5 @@ public:
 	{
 		ConvertToUpper(sCommand);
 		GetCommands()[sCommand] = this;
-	};
+	}
 };

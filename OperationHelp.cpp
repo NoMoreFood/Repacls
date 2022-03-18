@@ -327,5 +327,5 @@ Examples
 Type 'repacls.exe /? | more' to scroll this documentation.
 )";
 
-	exit(0);
+	std::exit(0);
 }

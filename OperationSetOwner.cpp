@@ -7,7 +7,7 @@ ClassFactory<OperationSetOwner> OperationSetOwner::RegisteredFactory(GetCommand(
 OperationSetOwner::OperationSetOwner(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
+	const std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
 
 	// fetch params
 	tOwnerSid = GetSidFromName(sSubArgs.at(0));
@@ -17,7 +17,7 @@ OperationSetOwner::OperationSetOwner(std::queue<std::wstring> & oArgList, const 
 	{
 		// complain
 		wprintf(L"ERROR: Invalid account '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// do a reverse lookup on the name for info messages

@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationPrintDescriptor : public Operation
+class OperationPrintDescriptor final : public Operation
 {
 private:
 

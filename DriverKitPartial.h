@@ -1,6 +1,6 @@
 #pragma once
 
-#include <windows.h>
+#include <Windows.h>
 #include <winternl.h>
 
 #define FileDirectoryInformation 1

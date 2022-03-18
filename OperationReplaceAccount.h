@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationReplaceAccount : public Operation
+class OperationReplaceAccount final : public Operation
 {
 private:
 

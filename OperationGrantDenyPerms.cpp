@@ -12,7 +12,7 @@ ClassFactory<OperationGrantDenyPerms> OperationGrantDenyPerms::RegisteredFactory
 OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(2, oArgList);
+	const std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(2, oArgList);
 
 	// store off variables for reporting later
 	sIdentity = sSubArgs.at(0);
@@ -31,7 +31,7 @@ OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgL
 	if (aPermList.empty())
 	{
 		wprintf(L"ERROR: Invalid or no permissions string specified for parameter '%s'.\n", GetCommandAdd().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// populate default values
@@ -49,7 +49,7 @@ OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgL
 	{
 		wprintf(L"ERROR: Invalid account '%s' specified for parameter '%s'.\n", 
 			sIdentity.c_str(), GetCommandAdd().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// list for easily parsing icacls permissions access syntax
@@ -105,7 +105,7 @@ OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgL
 		{
 			// complain
 			wprintf(L"ERROR: Invalid permission string '%s' specified for parameter '%s'.\n", sPerms.c_str(), GetCommandAdd().c_str());
-			exit(-1);
+			std::exit(-1);
 		}
 	}
 	

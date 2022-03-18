@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationLog : public Operation
+class OperationLog final : public Operation
 {
 private:
 

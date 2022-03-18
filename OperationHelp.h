@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationHelp : public Operation
+class OperationHelp final : public Operation
 {
 private:
 

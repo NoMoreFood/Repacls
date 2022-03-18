@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationThreads : public Operation
+class OperationThreads final : public Operation
 {
 private:
 

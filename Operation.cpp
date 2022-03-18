@@ -94,7 +94,7 @@ bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 				if (tNewAcl == nullptr)
 				{
 					wprintf(L"ERROR: Unable to allocate memory for new SID.\n");
-					exit(-1);
+					std::exit(-1);
 				}
 
 				memcpy(tNewAcl, tAclLoc, tOldSidLoc - tAclLoc);
@@ -167,7 +167,7 @@ std::vector<std::wstring> Operation::ProcessAndCheckArgs(int iArgsRequired, std:
 	if (iArgsRequired > 0 && oArgList.empty())
 	{
 		wprintf(L"ERROR: An option that was specified is missing a required parameter.\n");
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// parse the parameters, splitting on :
@@ -178,7 +178,7 @@ std::vector<std::wstring> Operation::ProcessAndCheckArgs(int iArgsRequired, std:
 	if (oSubArgs.size() < (size_t) iArgsRequired)
 	{
 		wprintf(L"ERROR: An option that was specified is missing a required parameter.\n");
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// return the parsed args
@@ -209,7 +209,7 @@ void Operation::ProcessGranularTargetting(std::wstring sScope)
 		{
 			// complain
 			wprintf(L"ERROR: Unrecognized scope qualifier '%s'\n", sScopeOpt.c_str());
-			exit(-1);
+			std::exit(-1);
 		}
 	}
 }

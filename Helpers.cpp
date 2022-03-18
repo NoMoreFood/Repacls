@@ -1,14 +1,14 @@
 #define UMDF_USING_NTSTATUS
 #include <ntstatus.h>
 
-#include <windows.h>
+#include <Windows.h>
 #include <sddl.h>
 #include <lmcons.h>
 #include <cstdio>
-#include <ntsecapi.h>
+#include <NTSecAPI.h>
 #include <atlbase.h>
 #include <atlstr.h>
-#include <wscapi.h>
+#include <Wscapi.h>
 #include <iwscapi.h>
 #include <locale.h>
 
@@ -358,7 +358,7 @@ HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring& sOperation)
 		FILE_NAME_NORMALIZED | VOLUME_NAME_NT) == 0)
 	{
 		wprintf(L"ERROR: The true path to the specified file could not be determined.\n");
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// resize string back to actual size to remove null terminating character from string data
@@ -376,7 +376,7 @@ HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring& sOperation)
 		else
 		{
 			wprintf(L"ERROR: The same file was used in mismatching read/write operations.\n");
-			exit(-1);
+			std::exit(-1);
 		}
 	}
 	else
@@ -530,7 +530,7 @@ VOID InitThreadCom() noexcept
 		if (hComInit != S_OK && hComInit != S_FALSE)
 		{
 			wprintf(L"Could not initialize COM.\n");
-			exit(-1);
+			std::exit(-1);
 		}
 	}
 }

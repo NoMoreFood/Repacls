@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationCopyDomain : public Operation
+class OperationCopyDomain final : public Operation
 {
 private:
 

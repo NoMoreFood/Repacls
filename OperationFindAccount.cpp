@@ -7,7 +7,7 @@ ClassFactory<OperationFindAccount> OperationFindAccount::RegisteredFactory(GetCo
 OperationFindAccount::OperationFindAccount(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
+	const std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
 
 	// decode the passed parameter to an account name
 	tFindSid = GetSidFromName(sSubArgs.at(0));
@@ -17,7 +17,7 @@ OperationFindAccount::OperationFindAccount(std::queue<std::wstring> & oArgList, 
 	{
 		// complain
 		wprintf(L"ERROR: Invalid account '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
-		exit(0);
+		std::exit(0);
 	}
 
 	// reverse lookup the sid for reporting
@@ -39,7 +39,7 @@ SidActionResult OperationFindAccount::DetermineSid(const WCHAR * const sSdPart, 
 	if (SidMatch(tCurrentSid, tFindSid))
 	{
 		InputOutput::AddInfo(L"Found identifier '" + sFindSid + L"'", sSdPart, true);
-	};
+	}
 
 	return SidActionResult::Nothing; 
 }

@@ -21,7 +21,7 @@ OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList, const std:
 	{
 		// complain
 		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sReportFile.at(0).c_str(), GetCommand().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// register the file handle
@@ -36,7 +36,7 @@ OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList, const std:
 		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 		{
 			wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
-			exit(-1);
+			std::exit(-1);
 		}
 
 		// write out the header
@@ -45,7 +45,7 @@ OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList, const std:
 		if (WriteToFile(sToWrite, hReportFile) == 0)
 		{
 			wprintf(L"ERROR: Could not write header to report file for parameter '%s'.\n", GetCommand().c_str());
-			exit(-1);
+			std::exit(-1);
 		}
 	}
 
@@ -60,7 +60,7 @@ OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList, const std:
 	catch (const std::regex_error &)
 	{
 		wprintf(L"ERROR: Invalid regular expression '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(0).c_str(), GetCommand().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 }
 

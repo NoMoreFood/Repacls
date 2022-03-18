@@ -7,7 +7,7 @@ ClassFactory<OperationRemoveOrphan> OperationRemoveOrphan::RegisteredFactory(Get
 OperationRemoveOrphan::OperationRemoveOrphan(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
+	const std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
 
 	// decode the passed parameter to an account name
 	tDomainSid = GetSidFromName(sSubArgs.at(0));
@@ -17,7 +17,7 @@ OperationRemoveOrphan::OperationRemoveOrphan(std::queue<std::wstring> & oArgList
 	{
 		// complain
 		wprintf(L"ERROR: Invalid domain '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
-		exit(0);
+		std::exit(0);
 	}
 
 	// do a reverse lookup of the name for reporting

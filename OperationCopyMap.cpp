@@ -4,7 +4,6 @@
 #include "Helpers.h"
 
 #include <fstream>
-#include <iostream>
 #include <locale>
 #include <codecvt>
 
@@ -13,7 +12,7 @@ ClassFactory<OperationCopyMap> OperationCopyMap::RegisteredFactory(GetCommand())
 OperationCopyMap::OperationCopyMap(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
+	const std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
 
 	// open the file
 	std::wifstream fFile(sSubArgs.at(0).c_str());
@@ -35,7 +34,7 @@ OperationCopyMap::OperationCopyMap(std::queue<std::wstring> & oArgList, const st
 		if (oLineItems.size() != 2)
 		{
 			wprintf(L"ERROR: The replacement map line '%s' is invalid.", sLine.c_str());
-			exit(-1);
+			std::exit(-1);
 		}
 		
 		// verify search sid
@@ -43,7 +42,7 @@ OperationCopyMap::OperationCopyMap(std::queue<std::wstring> & oArgList, const st
 		if (tSearchSid == nullptr)
 		{
 			wprintf(L"ERROR: The map search value '%s' is invalid.", oLineItems.at(0).c_str());
-			exit(-1);
+			std::exit(-1);
 		}
 
 		// verify replace sid
@@ -51,7 +50,7 @@ OperationCopyMap::OperationCopyMap(std::queue<std::wstring> & oArgList, const st
 		if (tReplaceSid == nullptr)
 		{
 			wprintf(L"ERROR: The map replace value '%s' is invalid.", oLineItems.at(1).c_str());
-			exit(-1);
+			std::exit(-1);
 		}
 
 		// get the reverse lookup for the search - since the ACE could contain a sid history sid

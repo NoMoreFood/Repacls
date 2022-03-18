@@ -13,13 +13,13 @@ HANDLE OperationLog::hLogHandle = INVALID_HANDLE_VALUE;
 OperationLog::OperationLog(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sLogFile = ProcessAndCheckArgs(1, oArgList, L"\\0");
+	const std::vector<std::wstring> sLogFile = ProcessAndCheckArgs(1, oArgList, L"\\0");
 
 	// exit immediately if command had already been called
 	if (hLogHandle != INVALID_HANDLE_VALUE)
 	{
 		wprintf(L"ERROR: %s cannot be specified more than once.", GetCommand().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// fetch params
@@ -32,7 +32,7 @@ OperationLog::OperationLog(std::queue<std::wstring> & oArgList, const std::wstri
 	if (WriteFile(hLogHandle, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 	{
 		wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// write out the header
@@ -40,7 +40,7 @@ OperationLog::OperationLog(std::queue<std::wstring> & oArgList, const std::wstri
 	if (WriteToFile(sToWrite, hLogHandle) == 0)
 	{
 		wprintf(L"ERROR: Could not write header to log file for parameter '%s'.\n", GetCommand().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// enable input/output routines to try to log data using this class
@@ -64,6 +64,6 @@ void OperationLog::LogFileItem(const std::wstring & sInfoLevel, const std::wstri
 	if (WriteToFile(sToWrite, hLogHandle) == 0)
 	{
 		wprintf(L"ERROR: Could not write data to log file for parameter '%s'.\n", GetCommand().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 }

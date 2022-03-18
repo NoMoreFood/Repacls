@@ -3,7 +3,7 @@
 #include "Operation.h"
 #include "Helpers.h"
 
-class OperationReplaceMap : public Operation
+class OperationReplaceMap final : public Operation
 {
 private:
 

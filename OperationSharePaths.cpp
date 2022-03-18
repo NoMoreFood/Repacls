@@ -1,6 +1,6 @@
-#include <windows.h>
-#include <lmshare.h>
-#include <lmapibuf.h>
+#include <Windows.h>
+#include <LMShare.h>
+#include <LMAPIbuf.h>
 
 #include <regex>
 
@@ -14,7 +14,7 @@ ClassFactory<OperationSharePaths> OperationSharePaths::RegisteredFactory(GetComm
 OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
+	const std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
 
 	// if extra arguments are specified, parse them
 	bool bStopOnErrors = false;
@@ -43,7 +43,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 				if (oMatchArgs.size() != 2)
 				{
 					wprintf(L"ERROR: No regular expression specified for parameter '%s'\n", sSubArgs.at(0).c_str());
-					exit(-1);
+					std::exit(-1);
 				}
 
 				try
@@ -56,7 +56,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 				{
 					// regular expression could no be parsed
 					wprintf(L"ERROR: Invalid regular expression '%s'\n", oMatchArgs.at(1).c_str());
-					exit(-1);
+					std::exit(-1);
 				}
 			}
 			else if (_wcsicmp(oShareArg.c_str(), L"INCLUDEHIDDEN") == 0)
@@ -74,7 +74,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 			else
 			{
 				wprintf(L"ERROR: Unrecognized share lookup option '%s'\n", oShareArg.c_str());
-				exit(-1);
+				std::exit(-1);
 			}
 		}
 	}
@@ -96,7 +96,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 		if (iReturn != ERROR_SUCCESS && iReturn != ERROR_MORE_DATA)
 		{
 			wprintf(L"ERROR: Could not enumerate shares on '%s'\n", sSubArgs.at(0).c_str());
-			if (bStopOnErrors) exit(-1); else return;
+			if (bStopOnErrors) std::exit(-1); else return;
 		}
 
 		// process entries

@@ -12,9 +12,9 @@ public:
 
 	// overrides
 	void GetBaseObject(std::wstring_view sPath) override;
-	void GetChildObjects(ObjectEntry& oObject) override;
+	void GetChildObjects(ObjectEntry& oEntry) override;
 
 	// constructors
-	ObjectFile(Processor& poProcessor) : Object(poProcessor) {};
+	ObjectFile(Processor& poProcessor) : Object(poProcessor) {}
 };
 

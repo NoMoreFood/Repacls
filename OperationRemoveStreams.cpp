@@ -1,3 +1,6 @@
+#define UMDF_USING_NTSTATUS
+#include <ntstatus.h>
+
 #include "OperationRemoveStreams.h"
 #include "InputOutput.h"
 #include "Helpers.h"
@@ -13,7 +16,7 @@ OperationRemoveStreams::OperationRemoveStreams(std::queue<std::wstring>& oArgLis
 		GetProcAddress(hModule, "NtQueryInformationFile")) == NULL)
 	{
 		wprintf(L"ERROR: Unable to obtain function pointer in parameter '%s'.\n", GetCommand().c_str());
-		exit(-1);
+		std::exit(-1);
 	}
 
 	// only flag this to apply to the core object with the file name

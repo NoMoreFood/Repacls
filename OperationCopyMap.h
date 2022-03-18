@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationCopyMap : public Operation
+class OperationCopyMap final : public Operation
 {
 private:
 

@@ -2,7 +2,7 @@
 
 #include "Operation.h"
 
-class OperationNoHiddenSystem : public Operation
+class OperationNoHiddenSystem final : public Operation
 {
 private:
 
