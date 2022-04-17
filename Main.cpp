@@ -181,6 +181,12 @@ int wmain(int iArgs, WCHAR * aArgs[])
 
 	// ensure we have permissions to all files
 	EnablePrivs();
+
+	// special case: force what-if move if using Active Directory mode
+	if (SE_DS_OBJECT == OperationPathMode::GetPathMode())
+	{
+		InputOutput::InWhatIfMode() = true;
+	}
 	
 	// note parameter information
 	wprintf(L"\n");

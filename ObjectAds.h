@@ -4,10 +4,6 @@
 
 class ObjectAds : public Object
 {
-private:
-
-	constexpr static ULONG MAX_DIRECTORY_BUFFER = 65536;
-
 public:
 
 	// overrides
