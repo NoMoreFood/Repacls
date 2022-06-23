@@ -1,7 +1,7 @@
 #include "InputOutput.h"
 #include "ObjectRegistry.h"
 
-void ObjectRegistry::GetBaseObject(std::wstring_view sPath)
+void ObjectRegistry::GetBaseObject(std::wstring sPath)
 {
 	const static std::map<std::wstring_view, std::pair<HKEY, std::wstring>> oRegMap = {
 	{ L"HKLM",                   { HKEY_LOCAL_MACHINE, L"MACHINE"     }},

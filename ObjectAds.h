@@ -7,7 +7,7 @@ class ObjectAds : public Object
 public:
 
 	// overrides
-	void GetBaseObject(std::wstring_view sPath) override;
+	void GetBaseObject(std::wstring sPath) override;
 	void GetChildObjects(ObjectEntry& oEntry) override;
 
 	// constructors

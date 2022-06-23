@@ -98,7 +98,7 @@ public:
 	virtual bool ProcessSidAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID & tCurrentSid, bool & bSidReplacement);
 	virtual SidActionResult DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) { return SidActionResult::Nothing; }
 	virtual void ProcessObjectAction(ObjectEntry & tObjectEntry) { return; }
-	static PSID Operation::GetSidFromAce(PACE_ACCESS_HEADER tAce) noexcept;
+	static PSID GetSidFromAce(PACE_ACCESS_HEADER tAce) noexcept;
 
 	Operation(std::queue<std::wstring> & oArgList);
 	virtual ~Operation() = default;
