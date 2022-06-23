@@ -11,7 +11,7 @@
 #pragma comment(lib,"activeds.lib")
 #pragma comment(lib,"adsiid.lib")
 
-void ObjectAds::GetBaseObject(std::wstring_view sPath)
+void ObjectAds::GetBaseObject(std::wstring sPath)
 {
     // initialize com for this thread
     InitThreadCom();

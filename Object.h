@@ -14,7 +14,7 @@ protected:
 
 public:
 
-	virtual void GetBaseObject(std::wstring_view sPath) = 0;
+	virtual void GetBaseObject(std::wstring sPath) = 0;
 	virtual void GetChildObjects(ObjectEntry& oObject) = 0;
 
 	Object(Processor& poProcessor) : oProcessor(poProcessor) {}

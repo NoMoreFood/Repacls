@@ -6,7 +6,7 @@
 #include "DriverKitPartial.h"
 #include "OperationDepth.h"
 
-void ObjectFile::GetBaseObject(std::wstring_view sPath)
+void ObjectFile::GetBaseObject(std::wstring sPath)
 {
 	// make a local copy of the path since we may have to alter it
 	// handle special case where a drive root is specified

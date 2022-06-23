@@ -16,7 +16,7 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 {
 	// exit if there are not enough arguments to parse
 	std::vector<std::wstring> sReportFile = ProcessAndCheckArgs(1, oArgList, L"\\0");
-	std::vector<std::wstring> sMatchAndArgs = ProcessAndCheckArgs(1, oArgList);
+	std::vector<std::wstring> sMatchAndArgs = ProcessAndCheckArgs(2, oArgList);
 
 	// fetch params
 	HANDLE hFile = CreateFile(sReportFile.at(0).c_str(), GENERIC_WRITE,
@@ -70,18 +70,14 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 		std::exit(-1);
 	}
 
-	// record specific hash if specified
-	if (sMatchAndArgs.size() > 1)
+	// determine hash to match
+	aHashToMatch = new BYTE[HASH_IN_BYTES];
+	DWORD iBytesRead = HASH_IN_BYTES;
+	if (CryptStringToBinary(sMatchAndArgs.at(1).c_str(), (DWORD) sMatchAndArgs.at(1).size(),
+		CRYPT_STRING_HEX_ANY, aHashToMatch, &iBytesRead, NULL, NULL) == FALSE || iBytesRead != HASH_IN_BYTES)
 	{
-		// convert the sha1 string from hex to binary 
-		aHashToMatch = new BYTE[HASH_IN_BYTES];
-		DWORD iBytesRead = HASH_IN_BYTES;
-		if (CryptStringToBinary(sMatchAndArgs.at(1).c_str(), (DWORD) sMatchAndArgs.at(1).size(),
-			CRYPT_STRING_HEX_ANY, aHashToMatch, &iBytesRead, NULL, NULL) == FALSE || iBytesRead != HASH_IN_BYTES)
-		{
-			wprintf(L"ERROR: Invalid hash '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(1).c_str(), GetCommand().c_str());
-			std::exit(-1);
-		}
+		wprintf(L"ERROR: Invalid hash '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(1).c_str(), GetCommand().c_str());
+		std::exit(-1);
 	}
 
 	// record specific size if specified
@@ -148,7 +144,7 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	// complete hash data
 	if (BCryptFinishHash(HashHandle, Hash, HashLength, 0) != 0)
 	{
-		InputOutput::AddError(L"Could not finalize file data.");
+		InputOutput::AddError(L"Could not finalize file data for hashing.");
 		std::exit(-1);
 	}
 
@@ -177,16 +173,12 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	const std::wstring sModifiedTime = FileTimeToString(tObjectEntry.ModifiedTime);
 	const std::wstring sCreationTime = FileTimeToString(tObjectEntry.CreationTime);
 
-	// check if the target path matches out regex filter 
-	if (true)
+	// write output to file
+	std::wstring sToWrite = std::wstring(L"") + Q(tObjectEntry.Name) + L"," +
+		Q(sCreationTime) + L"," + Q(sModifiedTime) + L"," + 
+		Q(sSize) + L"," + Q(sAttributes) + L"," + Q(sHash) + L"," + L"\r\n";
+	if (WriteToFile(sToWrite, hReportFile) == 0)
 	{
-		// write output to file
-		std::wstring sToWrite = std::wstring(L"") + Q(tObjectEntry.Name) + L"," +
-			Q(sCreationTime) + L"," + Q(sModifiedTime) + L"," + 
-			Q(sSize) + L"," + Q(sAttributes) + L"," + Q(sHash) + L"," + L"\r\n";
-		if (WriteToFile(sToWrite, hReportFile) == 0)
-		{
-			InputOutput::AddError(L"Unable to write information to report file.");
-		}
+		InputOutput::AddError(L"Unable to write information to report file.");
 	}
 }
