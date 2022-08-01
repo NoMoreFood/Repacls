@@ -132,12 +132,12 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 			bool bMatchSite = false;
 			if (DsAddressToSiteNames(sDomainController.c_str(), 1, tAddressArray, &sSiteName) == NO_ERROR)
 			{
-				bMatchSite = std::regex_match(std::wstring(sSiteName[0]), std::wregex(sSiteArgs.at(0)));
+				if (sSiteName[0] != NULL) bMatchSite = std::regex_match(std::wstring(sSiteName[0]), std::wregex(sSiteArgs.at(0)));
 				NetApiBufferFree(sSiteName);
 			}
 
 			// cleanup
-			if (sSiteName != NULL) FreeAddrInfo(pAddressInfo);
+			FreeAddrInfo(pAddressInfo);
 
 			// skip this name is not match
 			if (!bMatchSite) continue;
