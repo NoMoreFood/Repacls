@@ -83,6 +83,10 @@ or end of your command as to not confuse them with ordered parameters.
    the shares of any particular computer cannot be read; if not specified
    an error will be shown on the screen but processing will continue.
 
+/DomainPathsWithSite <DomainName>[:StopOnError|<See /SharePaths>] [ADSite]
+   Same as /DomainPaths but will further filter to the specified Active 
+   Directory site name of the device. ADSite can be a regular expression.
+
 /Quiet
    Hides all non-error output. This option will greatly enhance performance if
    a large number of changes are being processed. Alternatively, it is

@@ -40,7 +40,6 @@ SET POWERSHELL=POWERSHELL.EXE -NoProfile -NonInteractive -NoLogo
 FOR /F "USEBACKQ DELIMS=" %%X IN (`DIR /OD /B /S "%PX86%\Windows Kits\10\SIGNTOOL.exe" ^| FINDSTR x64`) DO SET SIGNTOOL="%%~X"
 
 :: sign the main executables
-%SIGNTOOL% sign /sha1 %CERT% /fd sha1 /tr %TSAURL% /td sha1 /d %LIBNAME% /du %LIBURL% "%BINDIR%\x86\*.exe" "%BINDIR%\x64\*.exe" 
 %SIGNTOOL% sign /sha1 %CERT% /as /fd sha256 /tr %TSAURL% /td sha256 /d %LIBNAME% /du %LIBURL% "%BINDIR%\x86\*.exe" "%BINDIR%\x64\*.exe"
 
 :: zip up executatables

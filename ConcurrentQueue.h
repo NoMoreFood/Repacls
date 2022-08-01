@@ -40,7 +40,7 @@ public:
 	void WaitForEmptyQueues() 
 	{
 		std::unique_lock<std::mutex> mlock(oQueueMutex);
-		oIsEmptyCondition.wait(mlock, [&]() noexcept { return iWaiters == 0; });
+		oIsEmptyCondition.wait(mlock, [&]() noexcept { return iWaiters == 0 && oQueue.empty(); });
 	}
 
 	void SetWaiterCounter(short iWaitCounters)
