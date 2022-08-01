@@ -53,13 +53,13 @@ VOID BeginScan(Processor & oProcessor)
 			oObject->GetChildObjects(oEntry);
 		}
 	}));
-
+	
 	// add all items to the queue
-	for (auto sPath : InputOutput::ScanPaths())
+	for (auto& sPath : InputOutput::ScanPaths())
 	{
 		oObject->GetBaseObject(sPath);
 	}
-
+	
 	// wait for queue to be completely empty
 	oProcessor.GetQueue().WaitForEmptyQueues();
 	

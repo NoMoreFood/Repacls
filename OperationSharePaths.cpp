@@ -154,10 +154,11 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 		}
 
 		// add it the resultant array if not found in another path
-		if (bAddToPathList)
+		const std::wstring sPathToAdd = L"\\\\" + sSubArgs.at(0) + L"\\" + oPathOuter->first;
+		if (bAddToPathList && std::find(InputOutput::ScanPaths().begin(), 
+			InputOutput::ScanPaths().end(), sPathToAdd) == InputOutput::ScanPaths().end())
 		{
-			InputOutput::ScanPaths().push_back(
-				L"\\\\" + sSubArgs.at(0) + L"\\" + oPathOuter->first);
+			InputOutput::ScanPaths().push_back(sPathToAdd);
 		}
 	}
 };
