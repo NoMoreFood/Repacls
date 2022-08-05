@@ -17,6 +17,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 	const std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
 
 	// if extra arguments are specified, parse them
+	bool bDoDeDupe = true;
 	bool bStopOnErrors = false;
 	bool bAdminOnly = false;
 	bool bHiddenIncluded = false;
@@ -70,6 +71,10 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 			else if (_wcsicmp(oShareArg.c_str(), L"STOPONERROR") == 0)
 			{
 				bStopOnErrors = true;
+			}
+			else if (_wcsicmp(oShareArg.c_str(), L"NODEDUPE") == 0)
+			{
+				bDoDeDupe = false;
 			}
 			else
 			{
@@ -139,7 +144,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 		oPathOuter != mPaths.end(); ++oPathOuter)
 	{
 		bool bAddToPathList = true;
-		for (auto oPathInner = oPathOuter;
+		for (auto oPathInner = oPathOuter; bDoDeDupe &&
 			oPathInner != mPaths.end(); ++oPathInner)
 		{
 			// see if the path is a sub-path of another path
