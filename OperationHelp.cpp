@@ -65,15 +65,17 @@ or end of your command as to not confuse them with ordered parameters.
    root node. This does not limit the propogation of inheritable permissions 
    that could be set on children due to a change at a parent.
 
-/SharePaths <ComputerName>[:AdminOnly|IncludeHidden|Match=<Str>|NoMatch=<Str>]
+/SharePaths <ComputerName>[:AdminOnly|IncludeHidden|NoDeDupe|Match=|NoMatch=]
    Specifies a server that has one or more shares to process. This command is
    equivalent to specifying /Path for every share on a particular file server.
    By default, only non-administrative, non-hidden shares are scanned.
    To only scan administrative shares (e.g. C$), append :AdminOnly to the
    computer name. To include hidden, non-administrative shares, append
    :IncludeHidden to the computer name. By appending :Match= or :NoMatch=
-   with a literal string or regular expression, any share name that does not
-   match or mismatch the specified string, respectively, will be excluded.
+   followed by a regular expression, any share name that does not match or 
+   mismatch the specified string, respectively, will be excluded. By default, 
+   shares whose directories are already convered by other shares are
+   automatically de-duped; to stop this behavior use the :NoDeDupe flag.
 
 /DomainPaths <DomainName>[:StopOnError|<See /SharePaths>]
    Specifies a domain to scan for member servers that should be processed.
@@ -161,17 +163,17 @@ Commands That Do Not Alter Settings
    search against file name or directory name. For Active Directory scans, the 
    distinguished name is searched. For registry scans, the key name is searched
    To report all data, pass .* as the regular expression.
+)";
 
+	std::wcout <<
+		LR"(
 /LocateHash <FileName> <FileRegularExpression>[:<SearchHash>[:<SearchSize>]]
    Similar to /Locate, but the report file will also contain the SHA256 hash  
    of files that match the search criteria. The search criteria can optionally
    include a SHA256 hash (in hex) and file size. Specifying file size can 
    dramatically increase search performance since only files with matching 
    sizes are read for hash comparison.
-)";
 
-	std::wcout <<
-		LR"(
 /Report <FileName> <AccountRegularExpression>
    This command will write a comma separated value file with the fields of
    filename, security descriptor part (e.g., DACL), account name, permissions,
