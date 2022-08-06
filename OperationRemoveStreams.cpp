@@ -6,16 +6,33 @@
 #include "Helpers.h"
 
 ClassFactory<OperationRemoveStreams> OperationRemoveStreams::RegisteredFactory(GetCommand());
+ClassFactory<OperationRemoveStreams> OperationRemoveStreams::RegisteredFactoryByName(GetCommandByName());
 
 OperationRemoveStreams::OperationRemoveStreams(std::queue<std::wstring>& oArgList, const std::wstring& sCommand) : Operation(oArgList)
 {
-
 	// load function pointer to query file information
 	HMODULE hModule = GetModuleHandle(L"ntdll.dll");
 	if (hModule == NULL || (NtQueryInformationFile = (decltype(NtQueryInformationFile)) 
 		GetProcAddress(hModule, "NtQueryInformationFile")) == NULL)
 	{
 		wprintf(L"ERROR: Unable to obtain function pointer in parameter '%s'.\n", GetCommand().c_str());
+		std::exit(-1);
+	}
+
+	try
+	{
+		// read and compile the regular expression
+		std::wstring sStreamRegex = L".*";
+		if (_wcsicmp(sCommand.c_str(), GetCommandByName().c_str()) == 0)
+		{
+			sStreamRegex = ProcessAndCheckArgs(1, oArgList).at(0);
+		}
+
+		tRegex = std::wregex(sStreamRegex, std::wregex::icase | std::wregex::optimize);
+	}
+	catch (const std::regex_error&)
+	{
+		wprintf(L"ERROR: Invalid regular expression specified for parameter '%s'.\n", GetCommandByName().c_str());
 		std::exit(-1);
 	}
 
@@ -63,16 +80,18 @@ void OperationRemoveStreams::ProcessObjectAction(ObjectEntry& tObjectEntry)
 
 		// remove the stream
 		std::wstring sStream((const wchar_t *) pStreamInfo->StreamName, (size_t) (pStreamInfo->StreamNameLength / sizeof(WCHAR)));
-		std::wstring sFullStreamName = (tObjectEntry.Name + sStream);
-		if (InputOutput::InWhatIfMode() || (SetFileAttributes(sFullStreamName.c_str(), FILE_ATTRIBUTE_NORMAL) != 0 && DeleteFile(sFullStreamName.c_str()) != 0))
+		if (std::regex_match(sStream, tRegex))
 		{
-			InputOutput::AddInfo(L"Removed stream: " + sStream, L"");
+			std::wstring sFullStreamName = (tObjectEntry.Name + sStream);
+			if (InputOutput::InWhatIfMode() || (SetFileAttributes(sFullStreamName.c_str(), FILE_ATTRIBUTE_NORMAL) != 0 && DeleteFile(sFullStreamName.c_str()) != 0))
+			{
+				InputOutput::AddInfo(L"Removed stream: " + sStream, L"");
+			}
+			else
+			{
+				InputOutput::AddError(L"Unable delete stream: " + sStream + L" (" + std::to_wstring(GetLastError()) + L")");
+			}
 		}
-		else
-		{
-			InputOutput::AddError(L"Unable delete stream: " + sStream + L" (" + std::to_wstring(GetLastError()) + L")");
-		}
-
 		// break if no next stream
 		if (pStreamInfo->NextEntryOffset == 0) break;
 	}

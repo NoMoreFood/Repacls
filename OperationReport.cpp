@@ -41,7 +41,7 @@ OperationReport::OperationReport(std::queue<std::wstring> & oArgList, const std:
 
 		// write out the header
 		std::wstring sToWrite = std::wstring(L"") + Q(L"Path") + L"," + Q(L"Descriptor Part") + L"," +
-			Q(L"Account Name") + L"," + Q(L"Permissions") + L"," + Q(L"Inheritance") + L"\r\n";
+			Q(L"Account Name") + L"," + Q(L"Permissions") + L"," + Q(L"Inheritance") + L"," + Q(L"Object Type") + L"\r\n";
 		if (WriteToFile(sToWrite, hReportFile) == 0)
 		{
 			wprintf(L"ERROR: Could not write header to report file for parameter '%s'.\n", GetCommand().c_str());
@@ -95,7 +95,7 @@ bool OperationReport::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry 
 {
 	// do not report null acls
 	if (tCurrentAcl == nullptr) return false;
-
+	
 	// enumerate access control entries
 	PACE_ACCESS_HEADER tAce = FirstAce(tCurrentAcl);
 	for (ULONG iEntry = 0; iEntry < tCurrentAcl->AceCount; tAce = NextAce(tAce), iEntry++)
@@ -113,12 +113,13 @@ bool OperationReport::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry 
 		if (!std::regex_search(sAccount, tRegex)) continue;
 		
 		// get the string versions of the access mask and inheritance
-		std::wstring sMask = GenerateAccessMask(tAce->Mask);
-		std::wstring sFlags = GenerateInheritanceFlags(tAce->AceFlags);
+		const std::wstring sMask = GenerateAccessMask(tAce->Mask);
+		const std::wstring sFlags = GenerateInheritanceFlags(tAce->AceFlags);
+		const std::wstring sType = (tObjectEntry.Attributes & FILE_ATTRIBUTE_DIRECTORY) ? L"Container" : L"Leaf";
 
 		// write the string to a file
 		std::wstring sToWrite = Q(tObjectEntry.Name) + L"," + Q(sSdPart) + L"," +
-			Q(sAccount) + L"," + Q(sMask) + L"," + Q(sFlags) + L"\r\n";
+			Q(sAccount) + L"," + Q(sMask) + L"," + Q(sFlags) + L"," + Q(sType) + L"\r\n";
 		if (WriteToFile(sToWrite, hReportFile) == 0)
 		{
 			InputOutput::AddError(L"Unable to write security information to report file.");

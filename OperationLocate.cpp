@@ -41,7 +41,7 @@ OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList, const std:
 
 		// write out the header
 		std::wstring sToWrite = std::wstring(L"") + Q(L"Path") + L"," + Q(L"Creation Time") + L"," +
-			Q(L"Modified Time") + L"," + Q(L"Size") + L"," + Q(L"Attributes") + L"\r\n";
+			Q(L"Modified Time") + L"," + Q(L"Size") + L"," + Q(L"Attributes") + L"," + Q(L"Object Type") + L"\r\n";
 		if (WriteToFile(sToWrite, hReportFile) == 0)
 		{
 			wprintf(L"ERROR: Could not write header to report file for parameter '%s'.\n", GetCommand().c_str());
@@ -76,11 +76,12 @@ void OperationLocate::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	const std::wstring sAttributes = FileAttributesToString(tObjectEntry.Attributes);
 	const std::wstring sModifiedTime = FileTimeToString(tObjectEntry.ModifiedTime);
 	const std::wstring sCreationTime = FileTimeToString(tObjectEntry.CreationTime);
+	const std::wstring sType = (tObjectEntry.Attributes & FILE_ATTRIBUTE_DIRECTORY) ? L"Container" : L"Leaf";
 
 	// write the string to a file
 	std::wstring sToWrite = std::wstring(L"") + Q(tObjectEntry.Name) + L"," +
 		Q(sCreationTime) + L"," + Q(sModifiedTime) +
-		L"," + Q(sSize) + L"," + Q(sAttributes) + L"\r\n";
+		L"," + Q(sSize) + L"," + Q(sAttributes) + L"," + Q(sType) + L"\r\n";
 	if (WriteToFile(sToWrite, hReportFile) == 0)
 	{
 		InputOutput::AddError(L"Unable to write security information to report file.");
