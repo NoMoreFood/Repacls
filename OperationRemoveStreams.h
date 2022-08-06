@@ -10,7 +10,12 @@ private:
 
 	// statics used by command registration utility
 	static std::wstring GetCommand() { return L"RemoveStreams"; }
+	static std::wstring GetCommandByName() { return L"RemoveStreamsByName"; }
 	static ClassFactory<OperationRemoveStreams> RegisteredFactory;
+	static ClassFactory<OperationRemoveStreams> RegisteredFactoryByName;
+
+	// operation specific
+	std::wregex tRegex;
 
 	//
 	// Definitions below avoid need to install Windows Driver Development Kit

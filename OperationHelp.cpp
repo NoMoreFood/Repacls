@@ -256,7 +256,10 @@ Commands That Can Alter Settings (When /WhatIf Is Not Present)
    how to set up inheritance.
 
 /RemoveStreams
-   Removes any alternate data streams on targeted files.
+/RemoveStreamsByName <RegularExpression>
+   Removes any alternate data streams on targeted files. With 
+   /RemoveStreamsByName, you can also specify a regular expression to target a
+   specific stream. For example: /RemoveStreamsByName ".*Zone\.Identifier.*"
 
 /ReplaceAccount <SearchName|SearchSid>:<ReplaceName|ReplaceSid>
    Search for an account and replace it with another account.
@@ -279,7 +282,10 @@ Commands That Can Alter Settings (When /WhatIf Is Not Present)
    part of a SID history with the primary SID that is associated with an
    account. This is especially useful after a domain migration and prior to 
    removing excess SID history on accounts.
+)";
 
+	std::wcout <<
+	LR"(
 Exclusive Options
 =================
 Exclusive options cannot be combined with any other security operations.

@@ -37,6 +37,7 @@ void ObjectRegistry::GetBaseObject(std::wstring sPath)
 	tReg.ObjectType = SE_REGISTRY_KEY;
 	tReg.Name = oRootEntry->second.second + L"\\" + tReg.NameExtended;
 	tReg.hObject = oRootEntry->second.first;
+	tReg.Attributes = FILE_ATTRIBUTE_DIRECTORY;
 	oProcessor.GetQueue().Push(tReg);
 }
 
@@ -75,6 +76,7 @@ void ObjectRegistry::GetChildObjects(ObjectEntry& oEntry)
 		tReg.hObject = oEntry.hObject;
 		tReg.Name = oEntry.Name + sSeperator + sKeyName;
 		tReg.NameExtended = oEntry.NameExtended + sSeperator + sKeyName;
+		tReg.Attributes = FILE_ATTRIBUTE_DIRECTORY;
 		oProcessor.GetQueue().Push(tReg);
 	}
 

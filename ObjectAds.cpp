@@ -21,6 +21,7 @@ void ObjectAds::GetBaseObject(std::wstring sPath)
     tAds.Depth = 0;
     tAds.ObjectType = SE_DS_OBJECT;
     tAds.Name = std::wstring(L"LDAP://") + sPath.data();
+    tAds.Attributes = FILE_ATTRIBUTE_DIRECTORY;
 	oProcessor.GetQueue().Push(tAds);
 }
 
@@ -61,11 +62,12 @@ void ObjectAds::GetChildObjects(ObjectEntry& oEntry)
                 tAds.Depth = oEntry.Depth + 1;
                 tAds.ObjectType = SE_DS_OBJECT;
                 tAds.Name = sDistinguishedName;
+                tAds.Attributes = FILE_ATTRIBUTE_DIRECTORY;
                 oProcessor.GetQueue().Push(tAds);
             }
             else
             {
-                InputOutput::AddError(L"Failed to obtained distuished name");
+                InputOutput::AddError(L"Failed to obtain distinguished name");
             }
         }
 
