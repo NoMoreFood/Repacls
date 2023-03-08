@@ -106,16 +106,44 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry& tObjectEntry)
 		return;
 	}
 
-	// load in the shortcut
+	// load in the shortcut and turn off link tracking
+	CComPtr<IShellLinkDataList> oDataList = nullptr;
+	DWORD iFlags = 0;
+	if (FAILED(oFile->Load(tObjectEntry.Name.c_str(), STGM_READ)) || 
+		FAILED(oLink->QueryInterface(IID_PPV_ARGS(&oDataList))) ||
+		FAILED(oDataList->GetFlags(&iFlags)) ||
+		FAILED(oDataList->SetFlags(iFlags | 
+			SLDF_DISABLE_KNOWNFOLDER_RELATIVE_TRACKING |
+			SLDF_DISABLE_LINK_PATH_TRACKING |
+			SLDF_FORCE_NO_LINKINFO |
+			SLDF_FORCE_NO_LINKTRACK |
+			SLDF_NO_KF_ALIAS)))
+	{
+		wprintf(L"ERROR: Could not read ShellLink COM instance.\n");
+		return;
+	}
+
+	// reload the shortcut to activate the link tracking change
+	LARGE_INTEGER tSeekLocation = { 0 };
+	CComPtr<IStream> oUpdatedLinkStream = nullptr;
+	CComPtr<IPersistStream> oUpdatedLinkPersistStream = nullptr;
+	if (FAILED(CreateStreamOnHGlobal(nullptr, TRUE, &oUpdatedLinkStream)) ||
+		FAILED(oLink->QueryInterface(IID_PPV_ARGS(&oUpdatedLinkPersistStream))) ||
+		FAILED(oUpdatedLinkPersistStream->Save(oUpdatedLinkStream, true)) ||
+		FAILED(oUpdatedLinkStream->Seek(tSeekLocation, 0, nullptr)) ||
+		FAILED(oUpdatedLinkPersistStream->Load(oUpdatedLinkStream)))
+	{
+		wprintf(L"ERROR: Could not reload ShellLink COM instance.\n");
+		return;
+	}
+
+	// get link data
 	std::wstring sTargetPath = L"<ERROR READING>";
 	std::wstring sWorkingDirectory = L"<ERROR READING>";
-	if (oFile->Load(tObjectEntry.Name.c_str(), STGM_READ) == S_OK)
-	{
-		WCHAR sTargetPathRaw[MAX_PATH];
-		WCHAR sWorkingDirRaw[MAX_PATH];
-		if (oLink->GetPath(sTargetPathRaw, MAX_PATH, nullptr, SLGP_RAWPATH) == S_OK) sTargetPath = sTargetPathRaw;
-		if (oLink->GetWorkingDirectory(sWorkingDirRaw, MAX_PATH) == S_OK) sWorkingDirectory = sWorkingDirRaw;
-	}
+	WCHAR sTargetPathRaw[MAX_PATH];
+	WCHAR sWorkingDirRaw[MAX_PATH];
+	if (!FAILED(oLink->GetPath(sTargetPathRaw, MAX_PATH, nullptr, SLGP_RAWPATH))) sTargetPath = sTargetPathRaw;
+	if (!FAILED(oLink->GetWorkingDirectory(sWorkingDirRaw, MAX_PATH))) sWorkingDirectory = sWorkingDirRaw;
 
 	// check if the target path matches out regex filter 
 	if (std::regex_match(sTargetPath, tRegexTarget))
