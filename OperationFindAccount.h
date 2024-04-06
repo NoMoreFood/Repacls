@@ -12,12 +12,12 @@ private:
 
 	// operation specific
 	PSID tFindSid = nullptr;
-	std::wstring sFindSid = L"";
+	std::wstring sFindSid;
 
 public:
 
 	// overrides
-	SidActionResult DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) override;
+	SidActionResult DetermineSid(const WCHAR * sSdPart, ObjectEntry & tObjectEntry, PSID tCurrentSid, PSID & tResultantSid) override;
 
 	// constructors
 	OperationFindAccount(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);

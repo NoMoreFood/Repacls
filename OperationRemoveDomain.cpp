@@ -45,7 +45,7 @@ SidActionResult OperationRemoveDomain::DetermineSid(const WCHAR * const sSdPart,
 	}
 
 	// update the sid in the ace
-	std::wstring sSid = GetNameFromSidEx(tCurrentSid);
+	const std::wstring sSid = GetNameFromSidEx(tCurrentSid);
 	InputOutput::AddInfo(L"Removing account or sid reference '" + sSid + L"' from domain '" + sDomainName + L"'", sSdPart);
 	tResultantSid = nullptr;
 	return SidActionResult::Remove;

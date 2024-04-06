@@ -24,7 +24,7 @@ OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgL
 	const std::wregex oPermsRegex(LR"(\(([A-Z]+)\))");
 	for (std::wsregex_iterator oPermsIterator(sPerms.begin(), sPerms.end(), oPermsRegex,
 		std::regex_constants::match_continuous); oPermsIterator != std::wsregex_iterator(); ++oPermsIterator) {
-		aPermList.push_back((*oPermsIterator).str(1));
+		aPermList.push_back(oPermsIterator->str(1));
 	}
 
 	// error if no options set
@@ -99,8 +99,8 @@ OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgL
 	// decode the permissions string to their binary values
 	for (const std::wstring & sKey : aPermList)
 	{
-		if (aInheritMap.find(sKey) != aInheritMap.end()) tEa.grfInheritance |= aInheritMap.at(sKey);
-		else if (aPermsMap.find(sKey) != aPermsMap.end()) tEa.grfAccessPermissions |= aPermsMap.at(sKey);
+		if (aInheritMap.contains(sKey)) tEa.grfInheritance |= aInheritMap.at(sKey);
+		else if (aPermsMap.contains(sKey)) tEa.grfAccessPermissions |= aPermsMap.at(sKey);
 		else
 		{
 			// complain

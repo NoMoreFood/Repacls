@@ -72,7 +72,7 @@ OperationReplaceMap::OperationReplaceMap(std::queue<std::wstring> & oArgList, co
 SidActionResult OperationReplaceMap::DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
 	// check if the sid matches the ace
-	auto oInteractor = oReplaceMap.find(tCurrentSid);
+	const auto oInteractor = oReplaceMap.find(tCurrentSid);
 	if (oInteractor == oReplaceMap.end()) return SidActionResult::Nothing;
 	
 	// return the replacement sid

@@ -27,13 +27,13 @@ typedef struct ObjectEntry
 ObjectEntry;
 
 // generic header for allow, deny, and audit object aces
-typedef struct _ACE_ACCESS_HEADER {
+using ACE_ACCESS_HEADER = struct {
 	BYTE AceType;
 	BYTE AceFlags;
 	WORD AceSize;
 	ACCESS_MASK Mask;
-} ACE_ACCESS_HEADER;
-typedef ACE_ACCESS_HEADER* PACE_ACCESS_HEADER;
+} ;
+using PACE_ACCESS_HEADER = ACE_ACCESS_HEADER*;;
 
 // macros to iterate through access control entries
 #define FirstAce(Acl) reinterpret_cast<PACE_ACCESS_HEADER>(((PUCHAR)(Acl) + sizeof(ACL)))
@@ -59,7 +59,10 @@ constexpr bool HasNoPropogate(PACE_ACCESS_HEADER x) { return CheckBitSet((x)->Ac
 constexpr DWORD GetNonOiCiIoBits(PACE_ACCESS_HEADER x) { return ((~(CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE | INHERIT_ONLY_ACE)) & (x)->AceFlags); };
 
 // string helper operations
-#define ConvertToUpper(_x) std::for_each(_x.begin(), _x.end(), [](wchar_t & c) noexcept {  c = ::towupper(c); });
+constexpr void ConvertToUpper(std::wstring & str)
+{
+	std::ranges::transform(str, str.begin(), ::towupper);
+}
 
 typedef enum SidActionResult : char
 {
@@ -94,8 +97,8 @@ public:
 	PSID DefaultSidWhenEmpty = nullptr;
 
 	virtual bool ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement) { return false; }
-	virtual bool ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement);
-	virtual bool ProcessSidAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID & tCurrentSid, bool & bSidReplacement);
+	virtual bool ProcessAclAction(const WCHAR * sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement);
+	virtual bool ProcessSidAction(const WCHAR * sSdPart, ObjectEntry & tObjectEntry, PSID & tCurrentSid, bool & bSidReplacement);
 	virtual SidActionResult DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) { return SidActionResult::Nothing; }
 	virtual void ProcessObjectAction(ObjectEntry & tObjectEntry) { return; }
 	static PSID GetSidFromAce(PACE_ACCESS_HEADER tAce) noexcept;

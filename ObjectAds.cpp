@@ -3,7 +3,6 @@
 #include "Helpers.h"
 
 #include <Windows.h>
-#include <wchar.h>
 
 #include <ActiveDS.h>
 #include <atlbase.h>
@@ -20,7 +19,7 @@ void ObjectAds::GetBaseObject(std::wstring sPath)
     ObjectEntry tAds = {};
     tAds.Depth = 0;
     tAds.ObjectType = SE_DS_OBJECT;
-    tAds.Name = std::wstring(L"LDAP://") + sPath.data();
+    tAds.Name = std::wstring(L"LDAP://") + sPath;
     tAds.Attributes = FILE_ATTRIBUTE_DIRECTORY;
 	oProcessor.GetQueue().Push(tAds);
 }
@@ -36,13 +35,13 @@ void ObjectAds::GetChildObjects(ObjectEntry& oEntry)
     // enumerate children
     CComPtr<IADsContainer> pContainer = nullptr;
     IEnumVARIANT* pEnumerator = nullptr;
-    if (FAILED(ADsOpenObject(oEntry.Name.c_str(), NULL, NULL, ADS_SECURE_AUTHENTICATION, IID_PPV_ARGS(&pContainer))) ||
+    if (FAILED(ADsOpenObject(oEntry.Name.c_str(), nullptr, nullptr, ADS_SECURE_AUTHENTICATION, IID_PPV_ARGS(&pContainer))) ||
         FAILED(ADsBuildEnumerator(pContainer, &pEnumerator)))
     {
         // complain
         InputOutput::AddError(L"Error occurred while enumerating distinguished name");
-        oProcessor.CompleteEntry(oEntry);
-        oProcessor.ItemsEnumerationFailures++;
+        Processor::CompleteEntry(oEntry);
+        ++oProcessor.ItemsEnumerationFailures;
         return;
     }
 
@@ -76,5 +75,5 @@ void ObjectAds::GetChildObjects(ObjectEntry& oEntry)
 
     // cleanup
     ADsFreeEnumerator(pEnumerator);
-    oProcessor.CompleteEntry(oEntry);
+    Processor::CompleteEntry(oEntry);
 }

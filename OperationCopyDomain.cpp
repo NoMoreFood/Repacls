@@ -70,7 +70,7 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 
 			const PISID tSidTargetDomain = (PISID)tTargetDomain;
 			PSID tTargetAccountSid = nullptr;
-			std::wstring sInfoToReport = L"";
+			std::wstring sInfoToReport;
 			if (tSidStruct->SubAuthorityCount == 5 &&
 				tSidStruct->SubAuthority[0] == 21 &&
 				tSidStruct->SubAuthority[4] < 1000)

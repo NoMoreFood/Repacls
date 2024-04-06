@@ -50,7 +50,7 @@ SidActionResult OperationRemoveOrphan::DetermineSid(const WCHAR * const sSdPart,
 
 	// see if the sid is unresolvable; if it is then this is not an orphan
 	bool bIsOrphan = false;
-	std::wstring sSid = GetNameFromSidEx(tCurrentSid, &bIsOrphan);
+	const std::wstring sSid = GetNameFromSidEx(tCurrentSid, &bIsOrphan);
 	if (!bIsOrphan) return SidActionResult::Nothing;
 
 	// update the sid in the ace

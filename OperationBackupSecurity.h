@@ -11,7 +11,7 @@ private:
 	static ClassFactory<OperationBackupSecurity> RegisteredFactory;
 
 	HANDLE hFile = INVALID_HANDLE_VALUE;
-	std::wstring sFile = L"";
+	std::wstring sFile;
 
 public:
 

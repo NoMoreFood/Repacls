@@ -32,8 +32,8 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 		for (auto& oShareArg : oShareArgs)
 		{
 			// check to see if a match parameter was passed
-			const WCHAR sMatchArg[] = L"MATCH=";
-			const WCHAR sNoMatchArg[] = L"NOMATCH=";
+			constexpr WCHAR sMatchArg[] = L"MATCH=";
+			constexpr WCHAR sNoMatchArg[] = L"NOMATCH=";
 			if (_wcsnicmp(oShareArg.c_str(), sMatchArg, _countof(sMatchArg) - 1) == 0 ||
 				_wcsnicmp(oShareArg.c_str(), sNoMatchArg, _countof(sNoMatchArg) - 1) == 0)
 			{
@@ -160,8 +160,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 
 		// add it the resultant array if not found in another path
 		const std::wstring sPathToAdd = L"\\\\" + sSubArgs.at(0) + L"\\" + oPathOuter->first;
-		if (bAddToPathList && std::find(InputOutput::ScanPaths().begin(), 
-			InputOutput::ScanPaths().end(), sPathToAdd) == InputOutput::ScanPaths().end())
+		if (bAddToPathList && std::ranges::find(InputOutput::ScanPaths(), sPathToAdd) == InputOutput::ScanPaths().end())
 		{
 			InputOutput::ScanPaths().push_back(sPathToAdd);
 		}

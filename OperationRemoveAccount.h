@@ -12,12 +12,12 @@ private:
 
 	// operation specific
 	PSID tRemoveSid = nullptr;
-	std::wstring sRemoveSid = L"";
+	std::wstring sRemoveSid;
 
 public:
 
 	// overrides
-	SidActionResult DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) override;
+	SidActionResult DetermineSid(const WCHAR * sSdPart, ObjectEntry & tObjectEntry, PSID tCurrentSid, PSID & tResultantSid) override;
 
 	// constructors
 	OperationRemoveAccount(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);

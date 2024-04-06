@@ -64,7 +64,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 
 	// bind to global catalog
 	CComPtr<IDirectorySearch> oSearch;
-	if (FAILED(ADsOpenObject(sPath.c_str(), nullptr, NULL, ADS_SECURE_AUTHENTICATION,
+	if (FAILED(ADsOpenObject(sPath.c_str(), nullptr, nullptr, ADS_SECURE_AUTHENTICATION,
 		IID_IDirectorySearch, (void**)&oSearch)))
 	{
 		wprintf(L"ERROR: Could not establish search for domain '%s'\n", sSubArgs.at(0).c_str());
@@ -104,11 +104,11 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 		// get the data from the column
 		std::wstring sHostName;
 		ADS_SEARCH_COLUMN oColumn = {};
-		if (!FAILED(oSearch->GetColumn(hSearch, (LPWSTR)sAttributes[0], &oColumn)))
+		if (SUCCEEDED(oSearch->GetColumn(hSearch, (LPWSTR)sAttributes[0], &oColumn)))
 		{
 			sHostName = std::wstring(oColumn.pADsValues->CaseIgnoreString);
 		}
-		else if (!FAILED(oSearch->GetColumn(hSearch, (LPWSTR)sAttributes[1], &oColumn)))
+		else if (SUCCEEDED(oSearch->GetColumn(hSearch, (LPWSTR)sAttributes[1], &oColumn)))
 		{
 			sHostName = std::wstring(oColumn.pADsValues->CaseIgnoreString) + L"." + sDomainSuffix;
 		}
@@ -122,17 +122,17 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 		{
 			// fetch the the address information
 			PADDRINFOW pAddressInfo;
-			if (GetAddrInfo(sHostName.c_str(), NULL, NULL, &pAddressInfo) != 0) continue;
+			if (GetAddrInfo(sHostName.c_str(), nullptr, nullptr, &pAddressInfo) != 0) continue;
 			SOCKET_ADDRESS tAddressArray[1];
 			tAddressArray[0].lpSockaddr = pAddressInfo->ai_addr;
 			tAddressArray[0].iSockaddrLength = (int)pAddressInfo->ai_addrlen;
 
 			// fetch the site name associated with the device
-			LPWSTR* sSiteName = NULL;
+			LPWSTR* sSiteName = nullptr;
 			bool bMatchSite = false;
 			if (DsAddressToSiteNames(sDomainController.c_str(), 1, tAddressArray, &sSiteName) == NO_ERROR)
 			{
-				if (sSiteName[0] != NULL) bMatchSite = std::regex_match(std::wstring(sSiteName[0]), std::wregex(sSiteArgs.at(0)));
+				if (sSiteName[0] != nullptr) bMatchSite = std::regex_match(std::wstring(sSiteName[0]), std::wregex(sSiteArgs.at(0)));
 				NetApiBufferFree(sSiteName);
 			}
 
@@ -144,7 +144,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 		}
 
 		// add the server to our list
-		oArgList.push(L"/SharePaths");
+		oArgList.emplace(L"/SharePaths");
 		oArgList.push(sHostName + ((sSubArgs.size() == 2) ? (L":" + sSubArgs.at(1)) : L""));
 	}
 

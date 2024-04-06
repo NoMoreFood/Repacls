@@ -14,7 +14,7 @@ protected:
 	bool bFetchOwner = false;
 	bool bFetchGroup = false;
 
-	SECURITY_INFORMATION iInformationToLookup;
+	SECURITY_INFORMATION iInformationToLookup = 0;
 	std::vector<Operation*> oOperationList;
 
 	ConcurrentQueue<ObjectEntry> oQueue;
@@ -22,7 +22,7 @@ protected:
 
 public:
 
-	std::atomic<ULONGLONG> ItemsScanned = 0;
+	ULONGLONG ItemsScanned = 0;
 	std::atomic<ULONGLONG> ItemsUpdatedSuccess = 0;
 	std::atomic<ULONGLONG> ItemsUpdatedFailure = 0;
 	std::atomic<ULONGLONG> ItemsEnumerationFailures = 0;
@@ -34,6 +34,6 @@ public:
 
 	static void CompleteEntry(ObjectEntry& oEntry);
 
-	Processor(std::vector<Operation*> poOperationList, bool pbFetchDacl, bool pbFetchSacl, bool pbFetchOwner, bool pbFetchGroup);
-	virtual ~Processor() = default;
+	Processor(const std::vector<Operation*>& poOperationList, bool pbFetchDacl, bool pbFetchSacl, bool pbFetchOwner, bool pbFetchGroup);
+	~Processor() = default;
 };

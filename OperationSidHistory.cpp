@@ -17,12 +17,12 @@ SidActionResult OperationSidHistory::DetermineSid(const WCHAR * const sSdPart, O
 {
 	// lookup the textual name for this account and
 	// return if it is not found
-	std::wstring sAccountName = GetNameFromSid(tCurrentSid, nullptr);
+	const std::wstring sAccountName = GetNameFromSid(tCurrentSid, nullptr);
 	if (sAccountName.empty()) return SidActionResult::Nothing;
 
 	// now do a forward lookup on that same account name to see what the
 	// primary sid for the account actually is
-	PSID tNewSid = GetSidFromName(sAccountName);
+	const PSID tNewSid = GetSidFromName(sAccountName);
 	if (tNewSid == nullptr) return SidActionResult::Nothing;
 
 	// if two sid are the same then there is no need to

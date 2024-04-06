@@ -37,7 +37,7 @@ VOID BeginScan(Processor & oProcessor)
 	std::vector<std::thread> oThreads;
 	oProcessor.GetQueue().SetWaiterCounter(InputOutput::MaxThreads());
 	for (USHORT iNum = 0; iNum < InputOutput::MaxThreads(); iNum++)
-		oThreads.push_back(std::thread([&oProcessor,oObject]() {
+		oThreads.emplace_back([&oProcessor,oObject]() {
 		for (;;)
 		{
 			// fetch next entry
@@ -52,10 +52,10 @@ VOID BeginScan(Processor & oProcessor)
 			// process next set
 			oObject->GetChildObjects(oEntry);
 		}
-	}));
+	});
 	
 	// add all items to the queue
-	for (auto& sPath : InputOutput::ScanPaths())
+	for (const auto& sPath : InputOutput::ScanPaths())
 	{
 		oObject->GetBaseObject(sPath);
 	}
@@ -114,12 +114,12 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	std::queue<std::wstring> oArgList;
 	for (int iArg = 1; iArg < iArgs; iArg++)
 	{
-		oArgList.push(aArgs[iArg]);
+		oArgList.emplace(aArgs[iArg]);
 	}
 
 	// if not parameter was especially the artificially add a help
 	// command to the list so the help will display
-	if (iArgs <= 1) oArgList.push(L"/?");
+	if (iArgs <= 1) oArgList.emplace(L"/?");
 
 	// flag to track if more than one exclusive operation was specified
 	bool bExclusiveOperation = false;

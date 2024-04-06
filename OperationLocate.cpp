@@ -4,17 +4,20 @@
 
 ClassFactory<OperationLocate> OperationLocate::RegisteredFactory(GetCommand());
 
-#define Q(x) L"\"" + (x) + L"\""
+constexpr std::wstring Q(const std::wstring & x)
+{
+	return L"\"" + x + L"\"";
+}
 
 OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sReportFile = ProcessAndCheckArgs(1, oArgList, L"\\0");
-	std::vector<std::wstring> sMatchAndArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
+	const std::vector<std::wstring> sReportFile = ProcessAndCheckArgs(1, oArgList, L"\\0");
+	const std::vector<std::wstring> sMatchAndArgs = ProcessAndCheckArgs(1, oArgList, L"\\0");
 
 	// fetch params
 	HANDLE hFile = CreateFile(sReportFile.at(0).c_str(), GENERIC_WRITE,
-		FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 	// see if names could be resolved
 	if (hFile == INVALID_HANDLE_VALUE)
@@ -31,7 +34,7 @@ OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList, const std:
 	if (hFile == hReportFile)
 	{
 		// write out the file type marker
-		const BYTE hHeader[] = { 0xEF,0xBB,0xBF };
+		constexpr BYTE hHeader[] = { 0xEF,0xBB,0xBF };
 		DWORD iBytes = 0;
 		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 		{
@@ -40,7 +43,7 @@ OperationLocate::OperationLocate(std::queue<std::wstring> & oArgList, const std:
 		}
 
 		// write out the header
-		std::wstring sToWrite = std::wstring(L"") + Q(L"Path") + L"," + Q(L"Creation Time") + L"," +
+		const std::wstring sToWrite = std::wstring(L"") + Q(L"Path") + L"," + Q(L"Creation Time") + L"," +
 			Q(L"Modified Time") + L"," + Q(L"Size") + L"," + Q(L"Attributes") + L"," + Q(L"Object Type") + L"\r\n";
 		if (WriteToFile(sToWrite, hReportFile) == 0)
 		{
@@ -79,7 +82,7 @@ void OperationLocate::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	const std::wstring sType = (tObjectEntry.Attributes & FILE_ATTRIBUTE_DIRECTORY) ? L"Container" : L"Leaf";
 
 	// write the string to a file
-	std::wstring sToWrite = std::wstring(L"") + Q(tObjectEntry.Name) + L"," +
+	const std::wstring sToWrite = std::wstring(L"") + Q(tObjectEntry.Name) + L"," +
 		Q(sCreationTime) + L"," + Q(sModifiedTime) +
 		L"," + Q(sSize) + L"," + Q(sAttributes) + L"," + Q(sType) + L"\r\n";
 	if (WriteToFile(sToWrite, hReportFile) == 0)

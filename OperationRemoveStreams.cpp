@@ -11,9 +11,9 @@ ClassFactory<OperationRemoveStreams> OperationRemoveStreams::RegisteredFactoryBy
 OperationRemoveStreams::OperationRemoveStreams(std::queue<std::wstring>& oArgList, const std::wstring& sCommand) : Operation(oArgList)
 {
 	// load function pointer to query file information
-	HMODULE hModule = GetModuleHandle(L"ntdll.dll");
-	if (hModule == NULL || (NtQueryInformationFile = (decltype(NtQueryInformationFile)) 
-		GetProcAddress(hModule, "NtQueryInformationFile")) == NULL)
+	const HMODULE hModule = GetModuleHandle(L"ntdll.dll");
+	if (hModule == nullptr || (NtQueryInformationFile = (decltype(NtQueryInformationFile)) 
+		GetProcAddress(hModule, "NtQueryInformationFile")) == nullptr)
 	{
 		wprintf(L"ERROR: Unable to obtain function pointer in parameter '%s'.\n", GetCommand().c_str());
 		std::exit(-1);
@@ -43,7 +43,7 @@ OperationRemoveStreams::OperationRemoveStreams(std::queue<std::wstring>& oArgLis
 void OperationRemoveStreams::ProcessObjectAction(ObjectEntry& tObjectEntry)
 {
 	HANDLE hFile = CreateFile(tObjectEntry.Name.c_str(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE,
-		NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+	                          nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		InputOutput::AddError(L"Unable open file for stream deletion.");
@@ -70,7 +70,7 @@ void OperationRemoveStreams::ProcessObjectAction(ObjectEntry& tObjectEntry)
 		pStreamInfo = (PFILE_STREAM_INFORMATION)((LPBYTE)pStreamInfo + pStreamInfo->NextEntryOffset))
 	{
 		// skip main data stream
-		const WCHAR sData[] = L"::$DATA";
+		constexpr WCHAR sData[] = L"::$DATA";
 		if (_countof(sData) - 1 == pStreamInfo->StreamNameLength / sizeof(WCHAR) &&
 			_wcsnicmp(pStreamInfo->StreamName, sData, _countof(sData) - 1) == 0)
 		{
@@ -79,7 +79,7 @@ void OperationRemoveStreams::ProcessObjectAction(ObjectEntry& tObjectEntry)
 		}
 
 		// remove the stream
-		std::wstring sStream((const wchar_t *) pStreamInfo->StreamName, (size_t) (pStreamInfo->StreamNameLength / sizeof(WCHAR)));
+		std::wstring sStream(pStreamInfo->StreamName, pStreamInfo->StreamNameLength / sizeof(WCHAR));
 		if (std::regex_match(sStream, tRegex))
 		{
 			std::wstring sFullStreamName = (tObjectEntry.Name + sStream);

@@ -12,14 +12,14 @@ private:
 
 	// operation specific
 	PSID tSourceDomain = nullptr;
-	std::wstring sSourceDomain = L"";
+	std::wstring sSourceDomain;
 	PSID tTargetDomain = nullptr;
-	std::wstring sTargetDomain = L"";
+	std::wstring sTargetDomain;
 
 public:
 
 	// overrides
-	SidActionResult DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) override;
+	SidActionResult DetermineSid(const WCHAR * sSdPart, ObjectEntry & tObjectEntry, PSID tCurrentSid, PSID & tResultantSid) override;
 
 	// constructors
 	OperationMoveDomain(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);

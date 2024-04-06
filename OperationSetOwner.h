@@ -12,12 +12,12 @@ private:
 
 	// operation specific
 	PSID tOwnerSid = nullptr;
-	std::wstring sOwnerSid = L"";
+	std::wstring sOwnerSid;
 
 public:
 
 	// overrides
-	SidActionResult DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) override;
+	SidActionResult DetermineSid(const WCHAR * sSdPart, ObjectEntry & tObjectEntry, PSID tCurrentSid, PSID & tResultantSid) override;
 
 	// constructors
 	OperationSetOwner(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);

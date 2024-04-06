@@ -63,13 +63,13 @@ public:
 	{
 		// discover the long file name prefix so we can subtract it from the display path
 		static std::wstring sPrefix;
-		static size_t iPrefix = (size_t) -1;
-		if (iPrefix == (size_t) -1)
+		static size_t iPrefix = static_cast<size_t>(-1);
+		if (iPrefix == static_cast<size_t>(-1))
 		{
 			const std::wstring sUnc = L"\\??\\UNC\\";
 			const std::wstring sLocal = L"\\??\\";
-			if (sLine.compare(0, sUnc.size(), sUnc.c_str()) == 0) { iPrefix = sUnc.size(); sPrefix = L"\\\\"; }
-			else if (sLine.compare(0, sLocal.size(), sLocal.c_str()) == 0) iPrefix = sLocal.size();
+			if (sLine.compare(0, sUnc.size(), sUnc) == 0) { iPrefix = sUnc.size(); sPrefix = L"\\\\"; }
+			else if (sLine.compare(0, sLocal.size(), sLocal) == 0) iPrefix = sLocal.size();
 			else iPrefix = 0;
 		}
 
