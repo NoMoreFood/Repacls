@@ -15,9 +15,9 @@
 #include "Object.h"
 #include "Processor.h"
 
-Processor::Processor(std::vector<Operation*> poOperationList, bool pbFetchDacl, bool pbFetchSacl, bool pbFetchOwner, bool pbFetchGroup) :
+Processor::Processor(const std::vector<Operation*>& poOperationList, bool pbFetchDacl, bool pbFetchSacl, bool pbFetchOwner, bool pbFetchGroup) :
 	bFetchDacl(pbFetchDacl), bFetchSacl(pbFetchSacl), bFetchOwner(pbFetchOwner), bFetchGroup(pbFetchGroup),
-	iInformationToLookup(0), oOperationList(poOperationList)
+	oOperationList(poOperationList), oQueue()
 {
 	if (bFetchDacl) iInformationToLookup |= DACL_SECURITY_INFORMATION;
 	if (bFetchSacl) iInformationToLookup |= SACL_SECURITY_INFORMATION;
@@ -76,7 +76,7 @@ void Processor::AnalyzeSecurity(ObjectEntry & oEntry)
 	DWORD iSpecialCommitMergeFlags = 0;
 
 	// loop through the instruction list
-	for (auto& oOperation : oOperationList)
+	for (const auto& oOperation : oOperationList)
 	{
 		// skip if this operation does not apply to the root/children based on the operation
 		if (oOperation->AppliesToRootOnly && oEntry.Depth != 0 ||
@@ -169,7 +169,7 @@ void Processor::AnalyzeSecurity(ObjectEntry & oEntry)
 				LPWSTR sError = nullptr;
 				const size_t iSize = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
 					FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK,
-					nullptr, iError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&sError, 0, NULL);
+					nullptr, iError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&sError, 0, nullptr);
 				InputOutput::AddError(L"Unable to update security information", (iSize == 0) ? L"" : sError);
 				if (iSize > 0) LocalFree(sError);
 

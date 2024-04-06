@@ -24,10 +24,10 @@ OperationLog::OperationLog(std::queue<std::wstring> & oArgList, const std::wstri
 
 	// fetch params
 	hLogHandle = CreateFile(sLogFile.at(0).c_str(), GENERIC_WRITE,
-		FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 	// write out the file type marker
-	const BYTE hHeader[] = { 0xEF,0xBB,0xBF };
+	constexpr BYTE hHeader[] = { 0xEF,0xBB,0xBF };
 	DWORD iBytes = 0;
 	if (WriteFile(hLogHandle, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 	{
@@ -36,7 +36,7 @@ OperationLog::OperationLog(std::queue<std::wstring> & oArgList, const std::wstri
 	}
 
 	// write out the header
-	std::wstring sToWrite = std::wstring(L"") + Q(L"Time") + L"," + Q(L"Type") + L"," + Q(L"Path") + L"," + Q(L"Message") + L"\r\n";
+	const std::wstring sToWrite = std::wstring(L"") + Q(L"Time") + L"," + Q(L"Type") + L"," + Q(L"Path") + L"," + Q(L"Message") + L"\r\n";
 	if (WriteToFile(sToWrite, hLogHandle) == 0)
 	{
 		wprintf(L"ERROR: Could not write header to log file for parameter '%s'.\n", GetCommand().c_str());
@@ -55,12 +55,12 @@ void OperationLog::LogFileItem(const std::wstring & sInfoLevel, const std::wstri
 	// get time string
 	WCHAR sDate[20];
 	const __time64_t tUtcTime = _time64(nullptr);
-	struct tm tLocalTime;
+	tm tLocalTime;
 	_localtime64_s(&tLocalTime, &tUtcTime);
-	wcsftime(sDate, _countof(sDate), L"%Y-%m-%d %H:%M:%S", &tLocalTime);
+	std::ignore = wcsftime(sDate, _countof(sDate), L"%Y-%m-%d %H:%M:%S", &tLocalTime);
 
 	// write out information
-	std::wstring sToWrite = std::wstring(L"") + Q(sDate) + L"," + Q(sInfoLevel) + L"," + Q(sPath) + L"," + Q(sMessage) + L"\r\n";
+	const std::wstring sToWrite = std::wstring(L"") + Q(sDate) + L"," + Q(sInfoLevel) + L"," + Q(sPath) + L"," + Q(sMessage) + L"\r\n";
 	if (WriteToFile(sToWrite, hLogHandle) == 0)
 	{
 		wprintf(L"ERROR: Could not write data to log file for parameter '%s'.\n", GetCommand().c_str());

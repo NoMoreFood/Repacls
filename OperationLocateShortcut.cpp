@@ -17,7 +17,7 @@ OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring>& oArgL
 
 	// fetch params
 	HANDLE hFile = CreateFile(sReportFile.at(0).c_str(), GENERIC_WRITE,
-		FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 	// see if names could be resolved
 	if (hFile == INVALID_HANDLE_VALUE)
@@ -34,7 +34,7 @@ OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring>& oArgL
 	if (hFile == hReportFile)
 	{
 		// write out the file type marker
-		const BYTE hHeader[] = { 0xEF,0xBB,0xBF };
+		constexpr BYTE hHeader[] = { 0xEF,0xBB,0xBF };
 		DWORD iBytes = 0;
 		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 		{
@@ -124,7 +124,7 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry& tObjectEntry)
 	}
 
 	// reload the shortcut to activate the link tracking change
-	LARGE_INTEGER tSeekLocation = { 0 };
+	constexpr LARGE_INTEGER tSeekLocation = { { 0 , 0 } };
 	CComPtr<IStream> oUpdatedLinkStream = nullptr;
 	CComPtr<IPersistStream> oUpdatedLinkPersistStream = nullptr;
 	if (FAILED(CreateStreamOnHGlobal(nullptr, TRUE, &oUpdatedLinkStream)) ||
@@ -142,8 +142,8 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry& tObjectEntry)
 	std::wstring sWorkingDirectory = L"<ERROR READING>";
 	WCHAR sTargetPathRaw[MAX_PATH];
 	WCHAR sWorkingDirRaw[MAX_PATH];
-	if (!FAILED(oLink->GetPath(sTargetPathRaw, MAX_PATH, nullptr, SLGP_RAWPATH))) sTargetPath = sTargetPathRaw;
-	if (!FAILED(oLink->GetWorkingDirectory(sWorkingDirRaw, MAX_PATH))) sWorkingDirectory = sWorkingDirRaw;
+	if (SUCCEEDED(oLink->GetPath(sTargetPathRaw, MAX_PATH, nullptr, SLGP_RAWPATH))) sTargetPath = sTargetPathRaw;
+	if (SUCCEEDED(oLink->GetWorkingDirectory(sWorkingDirRaw, MAX_PATH))) sWorkingDirectory = sWorkingDirRaw;
 
 	// check if the target path matches out regex filter 
 	if (std::regex_match(sTargetPath, tRegexTarget))

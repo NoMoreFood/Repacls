@@ -25,10 +25,10 @@ public:
 
 	// public functions
 	static AceOrder DetermineAceOrder(PACE_ACCESS_HEADER tAce);
-	static bool IsAclCanonical(PACL & tCurrentAcl);
+	static bool IsAclCanonical(const PACL & tCurrentAcl);
 
 	// overrides
-	bool ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement) override;
+	bool ProcessAclAction(const WCHAR * sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement) override;
 
 	// constructors
 	OperationCheckCanonical(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);

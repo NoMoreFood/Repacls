@@ -18,7 +18,7 @@ void ObjectRegistry::GetBaseObject(std::wstring sPath)
 
 	// attempt to translate the string path to a key and subpath
 	ObjectEntry tReg = {};
-	std::wstring sRootName = sPath.data();
+	std::wstring sRootName = sPath;
 	const size_t iBackSlash = sPath.find(L'\\');
 	if (iBackSlash != std::wstring::npos)
 	{
@@ -26,7 +26,7 @@ void ObjectRegistry::GetBaseObject(std::wstring sPath)
 		tReg.NameExtended = sPath.substr(iBackSlash + 1);
 	}
 
-	auto oRootEntry = oRegMap.find(sRootName);
+	const auto oRootEntry = oRegMap.find(sRootName);
 	if (oRootEntry == oRegMap.end())
 	{
 		wprintf(L"ERROR: Could not parse registry path: %s", sPath.data());
@@ -44,13 +44,13 @@ void ObjectRegistry::GetBaseObject(std::wstring sPath)
 void ObjectRegistry::GetChildObjects(ObjectEntry& oEntry)
 {
 	// open handle so we can enumerate subkeys
-	HKEY hParentKey = NULL;
+	HKEY hParentKey = nullptr;
 	if (RegOpenKeyEx((HKEY) oEntry.hObject, oEntry.NameExtended.c_str(), REG_OPTION_OPEN_LINK, 
 		KEY_ENUMERATE_SUB_KEYS, &hParentKey) != ERROR_SUCCESS)
 	{
 		InputOutput::AddError(L"Access denied error occurred while enumerating registry key");
-		oProcessor.CompleteEntry(oEntry);
-		oProcessor.ItemsEnumerationFailures++;
+		Processor::CompleteEntry(oEntry);
+		++oProcessor.ItemsEnumerationFailures;
 		return;
 	}
 
@@ -61,15 +61,15 @@ void ObjectRegistry::GetChildObjects(ObjectEntry& oEntry)
 	HRESULT hResult = ERROR_SUCCESS;
 	WCHAR sKeyName[MAX_PATH];
 	DWORD iKeyName = _countof(sKeyName);
-	for (DWORD iIndex = 0; (hResult = RegEnumKeyEx(hParentKey, iIndex, sKeyName, &iKeyName, NULL, 
-		NULL, NULL, &oEntry.ModifiedTime)) != ERROR_NO_MORE_ITEMS; ++iIndex, iKeyName = _countof(sKeyName))
+	for (DWORD iIndex = 0; (hResult = RegEnumKeyEx(hParentKey, iIndex, sKeyName, &iKeyName, nullptr,
+			nullptr, nullptr, &oEntry.ModifiedTime)) != ERROR_NO_MORE_ITEMS; ++iIndex, iKeyName = _countof(sKeyName))
 	{
 		if (hResult != S_OK && hResult != ERROR_MORE_DATA)
 		{
 			continue;
 		}
 
-		LPCWSTR sSeperator = oEntry.NameExtended.empty() ? L"" : L"\\";
+		const LPCWSTR sSeperator = oEntry.NameExtended.empty() ? L"" : L"\\";
 		ObjectEntry tReg = {};
 		tReg.Depth = oEntry.Depth + 1;
 		tReg.ObjectType = SE_REGISTRY_KEY;
@@ -82,5 +82,5 @@ void ObjectRegistry::GetChildObjects(ObjectEntry& oEntry)
 
 	// cleanup and commit
 	RegCloseKey(hParentKey);
-	oProcessor.CompleteEntry(oEntry);
+	Processor::CompleteEntry(oEntry);
 }

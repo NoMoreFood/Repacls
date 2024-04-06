@@ -4,17 +4,20 @@
 
 ClassFactory<OperationReport> OperationReport::RegisteredFactory(GetCommand());
 
-#define Q(x) L"\"" + (x) + L"\""
+constexpr std::wstring Q(const std::wstring& x)
+{
+	return L"\"" + x + L"\"";
+}
 
 OperationReport::OperationReport(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sReportFile = ProcessAndCheckArgs(1, oArgList, L"\\0");
-	std::vector<std::wstring> sMatchAndArgs = ProcessAndCheckArgs(1, oArgList, L":");
+	const std::vector<std::wstring> sReportFile = ProcessAndCheckArgs(1, oArgList, L"\\0");
+	const std::vector<std::wstring> sMatchAndArgs = ProcessAndCheckArgs(1, oArgList, L":");
 
 	// fetch params
 	HANDLE hFile = CreateFile(sReportFile.at(0).c_str(), GENERIC_WRITE,
-		FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 	// see if names could be resolved
 	if (hFile == INVALID_HANDLE_VALUE)
@@ -31,7 +34,7 @@ OperationReport::OperationReport(std::queue<std::wstring> & oArgList, const std:
 	if (hFile == hReportFile)
 	{
 		// write out the file type marker
-		const BYTE hHeader[] = { 0xEF,0xBB,0xBF };
+		constexpr BYTE hHeader[] = { 0xEF,0xBB,0xBF };
 		DWORD iBytes = 0;
 		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 		{
@@ -40,7 +43,7 @@ OperationReport::OperationReport(std::queue<std::wstring> & oArgList, const std:
 		}
 
 		// write out the header
-		std::wstring sToWrite = std::wstring(L"") + Q(L"Path") + L"," + Q(L"Descriptor Part") + L"," +
+		const std::wstring sToWrite = std::wstring(L"") + Q(L"Path") + L"," + Q(L"Descriptor Part") + L"," +
 			Q(L"Account Name") + L"," + Q(L"Permissions") + L"," + Q(L"Inheritance") + L"," + Q(L"Object Type") + L"\r\n";
 		if (WriteToFile(sToWrite, hReportFile) == 0)
 		{
@@ -76,13 +79,13 @@ SidActionResult OperationReport::DetermineSid(const WCHAR * const sSdPart, Objec
 	if (tCurrentSid == nullptr) return SidActionResult::Nothing;
 
 	// fetch the account from the sid
-	std::wstring sAccount = GetNameFromSidEx(tCurrentSid);
+	const std::wstring sAccount = GetNameFromSidEx(tCurrentSid);
 
 	// skip any accounts that do not match the regex
 	if (!std::regex_match(sAccount, tRegex)) return SidActionResult::Nothing;
 
 	// write the string to a file
-	std::wstring sToWrite = Q(tObjectEntry.Name) + L"," + Q(sSdPart) + L"," + Q(sAccount) + L"\r\n";
+	const std::wstring sToWrite = Q(tObjectEntry.Name) + L"," + Q(sSdPart) + L"," + Q(sAccount) + L"\r\n";
 	if (WriteToFile(sToWrite, hReportFile) == 0)
 	{
 		InputOutput::AddError(L"Unable to write security information to report file.");
@@ -104,7 +107,7 @@ bool OperationReport::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry 
 		if (IsInherited(tAce)) continue;
 
 		// get the sid from the ace
-		PSID pSid = GetSidFromAce(tAce);
+		const PSID pSid = GetSidFromAce(tAce);
 
 		// fetch the account from the sid
 		std::wstring sAccount = GetNameFromSidEx(pSid);

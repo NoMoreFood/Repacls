@@ -37,7 +37,7 @@ void ObjectFile::GetBaseObject(std::wstring sPath)
 	GetFileAttributesExW(oEntryFirst.Name.c_str(), GetFileExInfoStandard, &tData);
 	oEntryFirst.Depth = 0;
 	oEntryFirst.ObjectType = SE_FILE_OBJECT;
-	oEntryFirst.FileSize = { tData.nFileSizeLow, (LONG)tData.nFileSizeHigh };
+	oEntryFirst.FileSize = { { tData.nFileSizeLow, (LONG) tData.nFileSizeHigh } };
 	oEntryFirst.Attributes = tData.dwFileAttributes;
 	oEntryFirst.CreationTime = tData.ftCreationTime;
 	oEntryFirst.ModifiedTime = tData.ftLastWriteTime;
@@ -50,9 +50,6 @@ void ObjectFile::GetBaseObject(std::wstring sPath)
 
 void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 {
-	// total files processed
-	thread_local BYTE DirectoryInfo[MAX_DIRECTORY_BUFFER];
-
 	// break out if entry flags a termination
 	if (oEntry.Name.empty()) return;
 
@@ -60,7 +57,7 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 	if (oEntry.Depth == 0 && IsHiddenSystem(oEntry.Attributes)
 		&& InputOutput::ExcludeHiddenSystem())
 	{
-		oProcessor.CompleteEntry(oEntry);
+		Processor::CompleteEntry(oEntry);
 		return;
 	}
 
@@ -70,13 +67,13 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 	// stop processing if not a directory
 	if (!IsDirectory(oEntry.Attributes))
 	{
-		oProcessor.CompleteEntry(oEntry);
+		Processor::CompleteEntry(oEntry);
 		return;
 	}
 
 	// construct a string that can be used in the rtl apis
-	UNICODE_STRING tPathU = { (USHORT)oEntry.Name.size() * sizeof(WCHAR),
-		(USHORT)oEntry.Name.size() * sizeof(WCHAR), (PWSTR)oEntry.Name.c_str() };
+	UNICODE_STRING tPathU = { USHORT(oEntry.Name.size() * sizeof(WCHAR)),
+		USHORT(oEntry.Name.size() * sizeof(WCHAR)),oEntry.Name.data() };
 
 	// update object attributes object
 	OBJECT_ATTRIBUTES oAttributes;
@@ -94,32 +91,33 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 	if (Status == STATUS_ACCESS_DENIED)
 	{
 		InputOutput::AddError(L"Access denied error occurred while enumerating directory");
-		oProcessor.CompleteEntry(oEntry);
-		oProcessor.ItemsEnumerationFailures++;
+		Processor::CompleteEntry(oEntry);
+		++oProcessor.ItemsEnumerationFailures;
 		return;
 	}
 	else if (Status == STATUS_OBJECT_PATH_NOT_FOUND ||
 		Status == STATUS_OBJECT_NAME_NOT_FOUND)
 	{
 		InputOutput::AddError(L"Path not found error occurred while enumerating directory");
-		oProcessor.CompleteEntry(oEntry);
-		oProcessor.ItemsEnumerationFailures++;
+		Processor::CompleteEntry(oEntry);
+		++oProcessor.ItemsEnumerationFailures;
 		return;
 	}
 	else if (Status != STATUS_SUCCESS)
 	{
 		InputOutput::AddError(L"Unknown error occurred while enumerating directory");
-		oProcessor.CompleteEntry(oEntry);
-		oProcessor.ItemsEnumerationFailures++;
+		Processor::CompleteEntry(oEntry);
+		++oProcessor.ItemsEnumerationFailures;
 		return;
 	}
 
 	// enumerate files in the directory
 	for (bool bFirstRun = true; true; bFirstRun = false)
 	{
+		thread_local BYTE DirectoryInfo[MAX_DIRECTORY_BUFFER];
 		Status = NtQueryDirectoryFile(hFindFile, nullptr, nullptr, nullptr, &IoStatusBlock,
-			DirectoryInfo, MAX_DIRECTORY_BUFFER, (FILE_INFORMATION_CLASS)FileDirectoryInformation,
-			FALSE, nullptr, (bFirstRun) ? TRUE : FALSE);
+		                              DirectoryInfo, MAX_DIRECTORY_BUFFER, (FILE_INFORMATION_CLASS)FileDirectoryInformation,
+		                              FALSE, nullptr, (bFirstRun) ? TRUE : FALSE);
 
 		// done processing
 		if (Status == STATUS_NO_MORE_FILES) break;
@@ -147,7 +145,7 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 			ObjectEntry oSubEntry;
 			oSubEntry.Depth = oEntry.Depth + 1;
 			oSubEntry.ObjectType = SE_FILE_OBJECT;
-			oSubEntry.FileSize = { oInfo->EndOfFile.LowPart, oInfo->EndOfFile.HighPart };
+			oSubEntry.FileSize = { { oInfo->EndOfFile.LowPart, oInfo->EndOfFile.HighPart } };
 			oSubEntry.Attributes = oInfo->FileAttributes;
 			oSubEntry.CreationTime = { oInfo->CreationTime.LowPart, (DWORD)oInfo->CreationTime.HighPart };
 			oSubEntry.ModifiedTime = { oInfo->LastWriteTime.LowPart, (DWORD)oInfo->LastWriteTime.HighPart };
@@ -161,7 +159,7 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 				if (oEntry.Depth <= OperationDepth::MaxDepth())
 				{
 					oProcessor.AnalyzeSecurity(oSubEntry);
-					oProcessor.CompleteEntry(oSubEntry);
+					Processor::CompleteEntry(oSubEntry);
 				}
 			}
 			else
@@ -176,6 +174,6 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 
 	// cleanup
 	NtClose(hFindFile);
-	oProcessor.CompleteEntry(oEntry);
+	Processor::CompleteEntry(oEntry);
 
 }

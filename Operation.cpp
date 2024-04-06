@@ -171,7 +171,7 @@ std::vector<std::wstring> Operation::ProcessAndCheckArgs(int iArgsRequired, std:
 	}
 
 	// parse the parameters, splitting on :
-	std::wstring sArg = oArgList.front(); oArgList.pop();
+	const std::wstring sArg = oArgList.front(); oArgList.pop();
 	std::vector<std::wstring> oSubArgs = SplitArgs(sArg, sDelimiter);
 
 	// verify we have enough parameters
@@ -190,7 +190,7 @@ void Operation::ProcessGranularTargetting(std::wstring sScope)
 	// parse the parameters, splitting on :
 	const std::wregex oRegex(L",");
 	const std::wsregex_token_iterator oFirst{ sScope.begin(), sScope.end(), oRegex, -1 }, oLast;
-	std::vector<std::wstring> sScopeOpts = { oFirst, oLast };
+	const std::vector<std::wstring> sScopeOpts = { oFirst, oLast };
 
 	// default all to false if calling this method
 	AppliesToDacl = false;

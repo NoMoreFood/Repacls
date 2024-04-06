@@ -26,7 +26,7 @@ bool OperationCheckCanonical::ProcessAclAction(const WCHAR * const sSdPart, Obje
 	return false;
 }
 
-bool OperationCheckCanonical::IsAclCanonical(PACL & tAcl)
+bool OperationCheckCanonical::IsAclCanonical(const PACL & tAcl)
 {
 	// sanity check (null acl is considered valid)
 	if (tAcl == nullptr) return true;

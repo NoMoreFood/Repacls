@@ -17,7 +17,7 @@ private:
 public:
 
 	// overrides
-	bool ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement) override;
+	bool ProcessAclAction(const WCHAR * sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement) override;
 
 	// constructors
 	OperationAddAccountIfMissing(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);

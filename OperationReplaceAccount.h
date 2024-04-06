@@ -12,14 +12,14 @@ private:
 
 	// operation specific
 	PSID tSearchAccount = nullptr;
-	std::wstring sSearchAccount = L"";
+	std::wstring sSearchAccount;
 	PSID tReplaceAccount = nullptr;
-	std::wstring sReplaceAccount = L"";
+	std::wstring sReplaceAccount;
 
 public:
 
 	// overrides
-	SidActionResult DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) override;
+	SidActionResult DetermineSid(const WCHAR * sSdPart, ObjectEntry & tObjectEntry, PSID tCurrentSid, PSID & tResultantSid) override;
 
 	// constructors
 	OperationReplaceAccount(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);

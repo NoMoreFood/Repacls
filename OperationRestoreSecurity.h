@@ -11,7 +11,7 @@ private:
 	static ClassFactory<OperationRestoreSecurity> RegisteredFactory;
 
 	std::map<std::wstring, PSECURITY_DESCRIPTOR> oImportMap;
-	std::wstring sFile = L"";
+	std::wstring sFile;
 
 public:
 

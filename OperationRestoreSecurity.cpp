@@ -33,7 +33,7 @@ OperationRestoreSecurity::OperationRestoreSecurity(std::queue<std::wstring> & oA
 		PSECURITY_DESCRIPTOR tDesc;
 		if (oLineItems.size() != 2 ||
 			ConvertStringSecurityDescriptorToSecurityDescriptor(oLineItems.at(1).c_str(),
-			SDDL_REVISION_1, &tDesc, NULL) == 0)
+			SDDL_REVISION_1, &tDesc, nullptr) == 0)
 		{
 			wprintf(L"ERROR: Unable to parse string security descriptor file for restoration.");
 			std::exit(-1);
@@ -56,7 +56,7 @@ OperationRestoreSecurity::OperationRestoreSecurity(std::queue<std::wstring> & oA
 
 bool OperationRestoreSecurity::ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement)
 {
-	auto oSecInfo = oImportMap.find(sFileName);
+	const auto oSecInfo = oImportMap.find(sFileName);
 	if (oSecInfo != oImportMap.end())
 	{
 		// lookup the string in the map

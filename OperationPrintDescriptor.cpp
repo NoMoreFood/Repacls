@@ -21,7 +21,7 @@ bool OperationPrintDescriptor::ProcessSdAction(std::wstring & sFileName, ObjectE
 	WCHAR * sInfo = nullptr;
 	if (ConvertSecurityDescriptorToStringSecurityDescriptor(tDescriptor, SDDL_REVISION_1,
 		DACL_SECURITY_INFORMATION | SACL_SECURITY_INFORMATION | OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION,
-		&sInfo, NULL) == 0)
+		&sInfo, nullptr) == 0)
 	{
 		InputOutput::AddError(L"Unable to generate string security descriptor.");
 		return false;

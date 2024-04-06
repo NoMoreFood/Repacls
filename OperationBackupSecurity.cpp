@@ -11,7 +11,7 @@ OperationBackupSecurity::OperationBackupSecurity(std::queue<std::wstring> & oArg
 
 	// fetch params
 	hFile = CreateFile(sSubArgs.at(0).c_str(), GENERIC_WRITE,
-		FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		FILE_SHARE_WRITE | FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 	// see if names could be resolved
 	if (hFile == INVALID_HANDLE_VALUE)
@@ -22,7 +22,7 @@ OperationBackupSecurity::OperationBackupSecurity(std::queue<std::wstring> & oArg
 	}
 
 	// write out the file type marker
-	const BYTE hHeader[] = { 0xEF,0xBB,0xBF };
+	constexpr BYTE hHeader[] = { 0xEF,0xBB,0xBF };
 	DWORD iBytes = 0;
 	if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 	{
@@ -41,17 +41,17 @@ OperationBackupSecurity::OperationBackupSecurity(std::queue<std::wstring> & oArg
 bool OperationBackupSecurity::ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement)
 {
 	// convert the current security descriptor to a string
-	WCHAR * sInfo = NULL;
+	WCHAR * sInfo = nullptr;
 	if (ConvertSecurityDescriptorToStringSecurityDescriptor(tDescriptor, SDDL_REVISION_1,
 		DACL_SECURITY_INFORMATION | SACL_SECURITY_INFORMATION | OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION,
-		&sInfo, NULL) == 0)
+		&sInfo, nullptr) == 0)
 	{
 		InputOutput::AddError(L"Unable to generate string security descriptor.");
 		return false;
 	}
 
 	// write the string to a file
-	std::wstring sToWrite = sFileName + L"|" + sInfo + L"\r\n";
+	const std::wstring sToWrite = sFileName + L"|" + sInfo + L"\r\n";
 	if (WriteToFile(sToWrite, hFile) == 0)
 	{
 		LocalFree(sInfo);

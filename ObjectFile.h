@@ -4,9 +4,7 @@
 
 class ObjectFile : public Object
 {
-private:
-
-	const static ULONG MAX_DIRECTORY_BUFFER = 65536;
+	static constexpr ULONG MAX_DIRECTORY_BUFFER = 65536;
 
 public:
 

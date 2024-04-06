@@ -3,8 +3,6 @@
 #include <Windows.h>
 #include <winternl.h>
 
-#define FileDirectoryInformation 1
-
 #pragma comment(lib,"ntdll.lib")
 
 typedef struct _PRELATIVE_NAME

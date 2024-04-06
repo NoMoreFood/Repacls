@@ -10,7 +10,7 @@
 #include <atlstr.h>
 #include <Wscapi.h>
 #include <iwscapi.h>
-#include <locale.h>
+#include <clocale>
 
 #include <string>
 #include <map>
@@ -50,8 +50,8 @@ PSID GetSidFromName(const std::wstring& sAccountName)
 	SID_NAME_USE tNameUse;
 
 	// do lookup
-	if (LookupAccountName(NULL, sAccountName.c_str(), (PSID)tSidFromName,
-		&iSidSize, sDomainName, &iDomainName, &tNameUse) == 0)
+	if (LookupAccountName(nullptr, sAccountName.c_str(), (PSID)tSidFromName,
+	                      &iSidSize, sDomainName, &iDomainName, &tNameUse) == 0)
 	{
 		std::unique_lock<std::shared_mutex> oLock(oMutex);
 		oNameToSidLookup[sAccountName] = nullptr;
@@ -60,7 +60,7 @@ PSID GetSidFromName(const std::wstring& sAccountName)
 
 	// reallocate memory and copy sid to a smaller part of memory and
 	// then add the sid to the cache map
-	auto tSid = (PSID)memcpy(malloc(iSidSize), tSidFromName, iSidSize);
+	const auto tSid = (PSID)memcpy(malloc(iSidSize), tSidFromName, iSidSize);
 
 	// scope lock for thread safety
 	{
@@ -75,7 +75,7 @@ PSID GetSidFromName(const std::wstring& sAccountName)
 std::wstring GetNameFromSid(const PSID tSid, bool* bMarkAsOrphan)
 {
 	// return immediately if sid is null
-	if (tSid == NULL) return L"";
+	if (tSid == nullptr) return L"";
 
 	// for caching
 	static std::shared_mutex oMutex;
@@ -84,13 +84,13 @@ std::wstring GetNameFromSid(const PSID tSid, bool* bMarkAsOrphan)
 	// scope lock for thread safety
 	{
 		std::shared_lock<std::shared_mutex> oLock(oMutex);
-		auto oInteractor = oSidToNameLookup.find(tSid);
+		const auto oInteractor = oSidToNameLookup.find(tSid);
 		if (oInteractor != oSidToNameLookup.end())
 		{
 			// if blank that means the account has no associated same
 			// and likely is an orphan
 			if (oInteractor->second.empty() &&
-				bMarkAsOrphan != NULL) *bMarkAsOrphan = true;
+				bMarkAsOrphan != nullptr) *bMarkAsOrphan = true;
 
 			// return the found full name
 			return oInteractor->second;
@@ -103,14 +103,14 @@ std::wstring GetNameFromSid(const PSID tSid, bool* bMarkAsOrphan)
 	DWORD iAccountNameSize = _countof(sAccountName);
 	WCHAR sDomainName[UNLEN + 1];
 	DWORD iDomainName = _countof(sDomainName);
-	std::wstring sFullName = L"";
-	if (LookupAccountSid(NULL, tSid, sAccountName,
-		&iAccountNameSize, sDomainName, &iDomainName, &tNameUse) == 0)
+	std::wstring sFullName;
+	if (LookupAccountSid(nullptr, tSid, sAccountName,
+	                     &iAccountNameSize, sDomainName, &iDomainName, &tNameUse) == 0)
 	{
 		const DWORD iError = GetLastError();
 		if (iError == ERROR_NONE_MAPPED)
 		{
-			if (bMarkAsOrphan != NULL) *bMarkAsOrphan = true;
+			if (bMarkAsOrphan != nullptr) *bMarkAsOrphan = true;
 		}
 		else
 		{
@@ -127,13 +127,11 @@ std::wstring GetNameFromSid(const PSID tSid, bool* bMarkAsOrphan)
 
 	// copy the sid for storage in our cache table
 	const DWORD iSidLength = SidGetLength(tSid);
-	auto tSidCopy = (PSID)memcpy(malloc(iSidLength), tSid, iSidLength);
+	const auto tSidCopy = memcpy(malloc(iSidLength), tSid, iSidLength);
 
 	// scope lock for thread safety
-	{
-		std::unique_lock<std::shared_mutex> oLock(oMutex);
-		oSidToNameLookup[tSidCopy] = sFullName;
-	}
+	std::unique_lock oLock(oMutex);
+	oSidToNameLookup[tSidCopy] = sFullName;
 
 	// return name
 	return sFullName;
@@ -156,7 +154,7 @@ std::wstring GetNameFromSidEx(const PSID tSid, bool* bMarkAsOrphan)
 std::wstring GetDomainNameFromSid(const PSID tSid)
 {
 	// do a reverse lookup using our normal call
-	std::wstring sDomainName = GetNameFromSidEx(tSid, NULL);
+	std::wstring sDomainName = GetNameFromSidEx(tSid, nullptr);
 
 	// sometimes the domain will be returned as DOMAIN\DOMAIN instead
 	// of just DOMAIN\ so lets trim off any excess characters
@@ -245,7 +243,7 @@ std::wstring GenerateAccessMask(DWORD iCurrentMask)
 VOID EnablePrivs() noexcept
 {
 	// open the current token
-	HANDLE hToken = NULL;
+	HANDLE hToken = nullptr;
 	if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES, &hToken) == 0)
 	{
 		// error
@@ -255,7 +253,7 @@ VOID EnablePrivs() noexcept
 
 	// get the current user sid out of the token
 	BYTE aBuffer[sizeof(TOKEN_USER) + SECURITY_MAX_SID_SIZE];
-	auto tTokenUser = (PTOKEN_USER)(aBuffer);
+	const auto tTokenUser = (PTOKEN_USER)(aBuffer);
 	DWORD iBytesFilled = 0;
 	if (GetTokenInformation(hToken, TokenUser, tTokenUser, sizeof(aBuffer), &iBytesFilled) == 0)
 	{
@@ -274,8 +272,8 @@ VOID EnablePrivs() noexcept
 		tPrivEntry.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
 		// translate the privilege name into the binary representation
-		if (LookupPrivilegeValue(NULL, i,
-			&tPrivEntry.Privileges[0].Luid) == 0)
+		if (LookupPrivilegeValue(nullptr, i,
+		                         &tPrivEntry.Privileges[0].Luid) == 0)
 		{
 			wprintf(L"ERROR: Could not lookup privilege: %s\n", i);
 			continue;
@@ -283,7 +281,7 @@ VOID EnablePrivs() noexcept
 
 		// adjust the process to change the privilege
 		if (AdjustTokenPrivileges(hToken, FALSE, &tPrivEntry,
-			sizeof(TOKEN_PRIVILEGES), NULL, NULL) != 0)
+			sizeof(TOKEN_PRIVILEGES), nullptr, nullptr) != 0)
 		{
 			// enabling was successful
 			continue;
@@ -296,8 +294,8 @@ VOID EnablePrivs() noexcept
 		// Get a handle to the Policy object.
 		LSA_HANDLE hPolicyHandle;
 		NTSTATUS iResult = 0;
-		if ((iResult = LsaOpenPolicy(NULL, &ObjectAttributes,
-			POLICY_LOOKUP_NAMES | POLICY_CREATE_ACCOUNT, &hPolicyHandle)) != STATUS_SUCCESS)
+		if ((iResult = LsaOpenPolicy(nullptr, &ObjectAttributes,
+		                             POLICY_LOOKUP_NAMES | POLICY_CREATE_ACCOUNT, &hPolicyHandle)) != STATUS_SUCCESS)
 		{
 			wprintf(L"ERROR: Local security policy could not be opened with error '%lu'\n",
 				LsaNtStatusToWinError(iResult));
@@ -324,7 +322,7 @@ VOID EnablePrivs() noexcept
 		LsaClose(hPolicyHandle);
 
 		if (AdjustTokenPrivileges(hToken, FALSE, &tPrivEntry,
-			sizeof(TOKEN_PRIVILEGES), NULL, NULL) == 0 || GetLastError() != ERROR_NOT_ALL_ASSIGNED)
+			sizeof(TOKEN_PRIVILEGES), nullptr, nullptr) == 0 || GetLastError() != ERROR_NOT_ALL_ASSIGNED)
 		{
 			wprintf(L"ERROR: Could not adjust privilege: %s\n", i);
 			continue;
@@ -347,7 +345,7 @@ HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring& sOperation)
 	static std::map<std::wstring, std::pair<HANDLE, std::wstring>> oFileLookup;
 
 	// do a reverse lookup on the file name
-	const auto iSize = (size_t)GetFinalPathNameByHandle(hFile, NULL, 0, VOLUME_NAME_NT);
+	const auto iSize = (size_t)GetFinalPathNameByHandle(hFile, nullptr, 0, VOLUME_NAME_NT);
 
 	// create a string that can accommodate that size (plus null terminating character)
 	std::wstring sPath;
@@ -365,7 +363,7 @@ HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring& sOperation)
 	sPath.resize(iSize);
 
 	// if the handle already exists, then use that one if the parameters match
-	auto oFile = oFileLookup.find(sPath);
+	const auto oFile = oFileLookup.find(sPath);
 	if (oFile != oFileLookup.end())
 	{
 		if (oFileLookup[sPath].second == sOperation)
@@ -389,7 +387,7 @@ HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring& sOperation)
 std::wstring GetAntivirusStateDescription()
 {
 	// initialize COM for checking the antivirus status
-	const HRESULT hResult = CoInitializeEx(0, COINIT_APARTMENTTHREADED);
+	const HRESULT hResult = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 	if (hResult != S_OK && hResult != S_FALSE)
 	{
 		return L"Unknown";
@@ -400,7 +398,7 @@ std::wstring GetAntivirusStateDescription()
 
 	// query the product list
 	IWSCProductList* PtrProductList = nullptr;
-	if (FAILED(CoCreateInstance(__uuidof(WSCProductList), NULL, CLSCTX_INPROC_SERVER,
+	if (FAILED(CoCreateInstance(__uuidof(WSCProductList), nullptr, CLSCTX_INPROC_SERVER,
 		__uuidof(IWSCProductList), reinterpret_cast<LPVOID*> (&PtrProductList))))
 	{
 		return L"Unknown";
@@ -458,11 +456,11 @@ std::wstring FileTimeToString(const FILETIME tFileTime)
 	// convert the date to a string and return
 	WCHAR sTime[24];
 	GetDateFormatEx(LOCALE_NAME_INVARIANT, LOCALE_USE_CP_ACP, &tTime,
-		L"yyyy'-'MM'-'dd ", sTime, _countof(sTime), NULL);
+		L"yyyy'-'MM'-'dd ", sTime, _countof(sTime), nullptr);
 	GetTimeFormatEx(LOCALE_NAME_INVARIANT, LOCALE_USE_CP_ACP, &tTime,
 		L"HH':'mm':'ss", sTime + wcslen(sTime), (int)
 		(_countof(sTime) - wcslen(sTime)));
-	return std::wstring(sTime);
+	return { sTime };
 }
 
 std::wstring FileSizeToString(const LARGE_INTEGER iFileSize)
@@ -471,7 +469,7 @@ std::wstring FileSizeToString(const LARGE_INTEGER iFileSize)
 	WCHAR sSize[32];
 	_wsetlocale(LC_NUMERIC, L"");
 	wsprintf(sSize, L"%I64u", (ULONGLONG)iFileSize.QuadPart);
-	return std::wstring(sSize);
+	return { sSize };
 }
 
 std::wstring FileAttributesToString(const DWORD iAttributes)
@@ -496,7 +494,7 @@ BOOL WriteToFile(const std::wstring& sStringToWrite, HANDLE hFile) noexcept
 	// see how many characters we need to store as utf-8
 	int iChars = WideCharToMultiByte(CP_UTF8, 0,
 		sStringToWrite.c_str(), (int)sStringToWrite.length(),
-		NULL, 0, NULL, NULL);
+		nullptr, 0, nullptr, nullptr);
 	if (iChars == 0)
 	{
 		return FALSE;
@@ -506,7 +504,7 @@ BOOL WriteToFile(const std::wstring& sStringToWrite, HANDLE hFile) noexcept
 	auto* sString = (BYTE*)malloc(iChars);
 	iChars = WideCharToMultiByte(CP_UTF8, 0,
 		sStringToWrite.c_str(), (int)sStringToWrite.length(),
-		(LPSTR)sString, iChars, NULL, NULL);
+		(LPSTR)sString, iChars, nullptr, nullptr);
 	if (iChars == 0)
 	{
 		free(sString);
@@ -515,14 +513,14 @@ BOOL WriteToFile(const std::wstring& sStringToWrite, HANDLE hFile) noexcept
 
 	// write to file, free memory, and return result
 	DWORD iBytes = 0;
-	const BOOL bResult = WriteFile(hFile, sString, iChars, &iBytes, NULL);
+	const BOOL bResult = WriteFile(hFile, sString, iChars, &iBytes, nullptr);
 	free(sString);
 	return bResult;
 }
 
 VOID InitThreadCom() noexcept
 {
-	thread_local static bool bComInitialized = false;
+	thread_local bool bComInitialized = false;
 	if (!bComInitialized)
 	{
 		bComInitialized = true;

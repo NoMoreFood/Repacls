@@ -68,7 +68,7 @@ SidActionResult OperationMoveDomain::DetermineSid(const WCHAR * const sSdPart, O
 			tSidTargetDomain->SubAuthority[3], tSidStruct->SubAuthority[4], 0, 0, 0, &tSidTmp);
 
 		// lookup the target name and see if it exists
-		std::wstring sTargetAccountName = GetNameFromSid(tSidTmp);
+		const std::wstring sTargetAccountName = GetNameFromSid(tSidTmp);
 		FreeSid(tSidTmp);
 		if (sTargetAccountName.empty())	return SidActionResult::Nothing;
 
@@ -77,7 +77,7 @@ SidActionResult OperationMoveDomain::DetermineSid(const WCHAR * const sSdPart, O
 		tResultantSid = GetSidFromName(sTargetAccountName);
 
 		// lookup the source name for reporting
-		std::wstring sSourceAccountName = GetNameFromSidEx(tCurrentSid);
+		const std::wstring sSourceAccountName = GetNameFromSidEx(tCurrentSid);
 
 		// update the sid in the ace
 		InputOutput::AddInfo(L"Changing Well Known '" + sSourceAccountName + L"' to '" + sTargetAccountName + L"'", sSdPart);
@@ -85,11 +85,11 @@ SidActionResult OperationMoveDomain::DetermineSid(const WCHAR * const sSdPart, O
 	else
 	{
 		// translate the old sid to an account name
-		std::wstring sSourceAccountName = GetNameFromSid(tCurrentSid, nullptr);
+		const std::wstring sSourceAccountName = GetNameFromSid(tCurrentSid, nullptr);
 		if (sSourceAccountName.empty())	return SidActionResult::Nothing;
 
 		// check to see if an equivalent account exists in the target domain
-		std::wstring sTargetAccountName = sTargetDomain + (wcsstr(sSourceAccountName.c_str(), L"\\") + 1);
+		const std::wstring sTargetAccountName = sTargetDomain + (wcsstr(sSourceAccountName.c_str(), L"\\") + 1);
 		tResultantSid = GetSidFromName(sTargetAccountName);
 
 		// exit if no match was found
