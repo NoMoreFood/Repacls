@@ -8,7 +8,6 @@
 
 class OperationLocateHash final : public Operation
 {
-private:
 
 	// statics used by command registration utility
 	static std::wstring GetCommand() { return L"LocateHash"; }
@@ -36,5 +35,5 @@ public:
 	OperationLocateHash(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
 
 	// destructor
-	~OperationLocateHash();
+	~OperationLocateHash() override;
 };

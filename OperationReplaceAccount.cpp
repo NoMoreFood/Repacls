@@ -17,7 +17,7 @@ OperationReplaceAccount::OperationReplaceAccount(std::queue<std::wstring> & oArg
 	if (tSearchAccount == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid search account '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid search account '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
 		std::exit(0);
 	}
 
@@ -25,7 +25,7 @@ OperationReplaceAccount::OperationReplaceAccount(std::queue<std::wstring> & oArg
 	if (tReplaceAccount == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid replace account '%s' specified for parameter '%s'.\n", sSubArgs.at(1).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid replace account '{}' specified for parameter '{}'.", sSubArgs.at(1), GetCommand());
 		std::exit(0);
 	}
 
@@ -50,8 +50,8 @@ SidActionResult OperationReplaceAccount::DetermineSid(const WCHAR * const sSdPar
 	{
 		InputOutput::AddInfo(L"Replacing account '" + sSearchAccount + L"' with '" + sReplaceAccount + L"'", sSdPart);
 		tResultantSid = tReplaceAccount;
-		return SidActionResult::Replace;
+		return Replace;
 	}
 
-	return SidActionResult::Nothing;
+	return Nothing;
 }

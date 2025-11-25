@@ -7,8 +7,6 @@
 
 ClassFactory<OperationLocateShortcut> OperationLocateShortcut::RegisteredFactory(GetCommand());
 
-#define Q(x) L"\"" + (x) + L"\""
-
 OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring>& oArgList, const std::wstring& sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
@@ -23,7 +21,7 @@ OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring>& oArgL
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		// complain
-		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sReportFile.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Could not create file '{}' specified for parameter '{}'.", sReportFile.at(0), GetCommand());
 		std::exit(-1);
 	}
 
@@ -38,17 +36,15 @@ OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring>& oArgL
 		DWORD iBytes = 0;
 		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 		{
-			wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
+			Print(L"ERROR: Could not write out file type marker '{}'.", GetCommand());
 			std::exit(-1);
 		}
 
 		// write out the header
-		std::wstring sToWrite = std::wstring(L"") + Q(L"Path") + L"," + Q(L"Creation Time") + L"," +
-			Q(L"Modified Time") + L"," + Q(L"Size") + L"," + Q(L"Attributes") + L"," +
-			Q(L"Target Path") + L"," + Q(L"Working Directory") + L"\r\n";
-		if (WriteToFile(sToWrite, hReportFile) == 0)
+		if (WriteToFile(OutToCsv(L"Path", L"Creation Time", L"Modified Time",
+			L"Size", L"Attributes", L"Target Path", L"Working Directory"), hReportFile) == 0)
 		{
-			wprintf(L"ERROR: Could not write header to report file for parameter '%s'.\n", GetCommand().c_str());
+			Print(L"ERROR: Could not write header to report file for parameter '{}'.", GetCommand());
 			std::exit(-1);
 		}
 	}
@@ -64,7 +60,7 @@ OperationLocateShortcut::OperationLocateShortcut(std::queue<std::wstring>& oArgL
 	}
 	catch (const std::regex_error&)
 	{
-		wprintf(L"ERROR: Invalid regular expression '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid regular expression '{}' specified for parameter '{}'.", sMatchAndArgs.at(0), GetCommand());
 		std::exit(-1);
 	}
 }
@@ -102,7 +98,7 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry& tObjectEntry)
 	if (CoCreateInstance(__uuidof(ShellLink), nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&oLink)) != S_OK ||
 		oLink->QueryInterface(IID_PPV_ARGS(&oFile)) != S_OK)
 	{
-		wprintf(L"ERROR: Could not initialize ShellLink COM instance.\n");
+		Print(L"ERROR: Could not initialize ShellLink COM instance.");
 		return;
 	}
 
@@ -119,7 +115,7 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry& tObjectEntry)
 			SLDF_FORCE_NO_LINKTRACK |
 			SLDF_NO_KF_ALIAS)))
 	{
-		wprintf(L"ERROR: Could not read ShellLink COM instance.\n");
+		Print(L"ERROR: Could not read ShellLink COM instance.");
 		return;
 	}
 
@@ -133,7 +129,7 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry& tObjectEntry)
 		FAILED(oUpdatedLinkStream->Seek(tSeekLocation, 0, nullptr)) ||
 		FAILED(oUpdatedLinkPersistStream->Load(oUpdatedLinkStream)))
 	{
-		wprintf(L"ERROR: Could not reload ShellLink COM instance.\n");
+		Print(L"ERROR: Could not reload ShellLink COM instance.");
 		return;
 	}
 
@@ -149,10 +145,8 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry& tObjectEntry)
 	if (std::regex_match(sTargetPath, tRegexTarget))
 	{
 		// write output to file
-		std::wstring sToWrite = std::wstring(L"") + Q(tObjectEntry.Name) + L"," +
-			Q(sCreationTime) + L"," + Q(sModifiedTime) + L"," + Q(sSize) + L"," +
-			Q(sAttributes) + L"," + Q(sTargetPath) + L"," + Q(sWorkingDirectory) + L"\r\n";
-		if (WriteToFile(sToWrite, hReportFile) == 0)
+		if (WriteToFile(OutToCsv(tObjectEntry.Name, sCreationTime, sModifiedTime,
+			sSize, sAttributes, sTargetPath, sWorkingDirectory), hReportFile) == 0)
 		{
 			InputOutput::AddError(L"Unable to write security information to report file.");
 		}

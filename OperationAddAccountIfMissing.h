@@ -5,7 +5,6 @@
 
 class OperationAddAccountIfMissing final : public Operation
 {
-private:
 
 	// statics used by command registration utility
 	static std::wstring GetCommand() { return L"AddAccountIfMissing"; }

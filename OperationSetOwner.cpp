@@ -16,7 +16,7 @@ OperationSetOwner::OperationSetOwner(std::queue<std::wstring> & oArgList, const 
 	if (tOwnerSid == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid account '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid account '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
 		std::exit(-1);
 	}
 
@@ -32,14 +32,14 @@ OperationSetOwner::OperationSetOwner(std::queue<std::wstring> & oArgList, const 
 
 SidActionResult OperationSetOwner::DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
-	// only process if sid does not matches
+	// only process if sid does not match
 	if (SidMatch(tCurrentSid, tOwnerSid))
 	{
-		return SidActionResult::Nothing;
+		return Nothing;
 	}
 
 	// update the sid in the ace
 	InputOutput::AddInfo(L"Set owner to account '" + sOwnerSid + L"'", sSdPart);
 	tResultantSid = tOwnerSid;
-	return SidActionResult::Replace;
+	return Replace;
 }

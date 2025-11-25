@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <cwchar>
 #include <map>
+#include <format>
+#include <iostream>
 
 typedef struct ObjectEntry
 {
@@ -42,7 +44,7 @@ using PACE_ACCESS_HEADER = ACE_ACCESS_HEADER*;;
 #define NextAce(Ace) reinterpret_cast<PACE_ACCESS_HEADER>((PUCHAR)(Ace) + ((PACE_ACCESS_HEADER)(Ace))->AceSize)
 
 // define our own version of sid length since its faster
-constexpr DWORD SidGetLength(PSID x) { return sizeof(SID) + (((SID*)(x))->SubAuthorityCount - 1) * sizeof(((SID*)(x))->SubAuthority); };
+constexpr DWORD SidGetLength(PSID x) { return sizeof(SID) + (static_cast<SID*>(x)->SubAuthorityCount - 1) * sizeof(static_cast<SID*>(x)->SubAuthority); };
 constexpr bool SidMatch(PSID x, PSID y) { return __builtin_memcmp(x, y, min(SidGetLength(x), SidGetLength(y))) == 0; };
 constexpr bool SidNotMatch(PSID x, PSID y) { return !SidMatch(x, y); };
 
@@ -61,9 +63,25 @@ constexpr bool HasNoPropogate(PACE_ACCESS_HEADER x) { return CheckBitSet((x)->Ac
 constexpr DWORD GetNonOiCiIoBits(PACE_ACCESS_HEADER x) { return ((~(CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE | INHERIT_ONLY_ACE)) & (x)->AceFlags); };
 
 // string helper operations
-constexpr void ConvertToUpper(std::wstring & str)
+constexpr void ConvertToUpper(std::wstring& str)
 {
-	std::ranges::transform(str, str.begin(), ::towupper);
+	std::ranges::transform(str, str.begin(), towupper);
+}
+
+template <typename... Args>
+constexpr std::wstring OutToCsv(Args const&... args)
+{
+	std::wstring out;
+	((out += out.empty() ? L"\"" : L",\"",
+		out += std::wstring_view{ args },
+		out += L"\""), ...);
+	return out + L"\n";
+}
+
+template<typename... Args>
+void Print(std::wformat_string<Args...> fmt, Args&&... args) noexcept
+{
+	std::wcout << std::format(fmt, std::forward<Args>(args)...) << L"\n";
 }
 
 typedef enum SidActionResult : char
@@ -101,8 +119,8 @@ public:
 	virtual bool ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement) { return false; }
 	virtual bool ProcessAclAction(const WCHAR * sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement);
 	virtual bool ProcessSidAction(const WCHAR * sSdPart, ObjectEntry & tObjectEntry, PSID & tCurrentSid, bool & bSidReplacement);
-	virtual SidActionResult DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) { return SidActionResult::Nothing; }
-	virtual void ProcessObjectAction(ObjectEntry & tObjectEntry) { return; }
+	virtual SidActionResult DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid) { return Nothing; }
+	virtual void ProcessObjectAction(ObjectEntry & tObjectEntry) { }
 	static PSID GetSidFromAce(PACE_ACCESS_HEADER tAce) noexcept;
 
 	Operation(std::queue<std::wstring> & oArgList);

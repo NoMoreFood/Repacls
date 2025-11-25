@@ -16,7 +16,7 @@ OperationFindDomain::OperationFindDomain(std::queue<std::wstring> & oArgList, co
 	if (tDomainSid == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid domain '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid domain '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
 		std::exit(0);
 	}
 
@@ -42,7 +42,7 @@ SidActionResult OperationFindDomain::DetermineSid(const WCHAR * const sSdPart, O
 		bDomainSidsEqual == FALSE)
 	{
 		// no match - cease processing this instruction
-		return SidActionResult::Nothing;
+		return Nothing;
 	}
 	
 	// resolve the sid for reporting
@@ -50,5 +50,5 @@ SidActionResult OperationFindDomain::DetermineSid(const WCHAR * const sSdPart, O
 
 	// report the
 	InputOutput::AddInfo(L"Found domain identifier '" + sDomainName + L"' on account '" + sAccount + L"'", sSdPart);
-	return SidActionResult::Nothing;
+	return Nothing;
 }

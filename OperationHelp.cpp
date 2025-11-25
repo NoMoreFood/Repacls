@@ -45,7 +45,7 @@ or end of your command as to not confuse them with ordered parameters.
    Enumerating registry paths and Active Directory containers is also supported
    when /PathMode is set. Registry paths should be specified as HIVE\Key 
    (e.g., HKLM\Software). Active Directory scanning is supported but should 
-   be limited to read-only operations since permissions targetted at specific 
+   be limited to read-only operations since permissions targeted at specific 
    properties are not supported; Active Directory paths should be specified as 
    distinguished names (e.g., OU=Users,DC=Home,DC=Local)
 
@@ -62,7 +62,7 @@ or end of your command as to not confuse them with ordered parameters.
 /MaxDepth <NumberOfContainersDeep>
    Specifies how deep the scan should go within the path. This default is
    to be fully recursive (infinite). Specifying 0 will only enumerate the 
-   root node. This does not limit the propogation of inheritable permissions 
+   root node. This does not limit the propagation of inheritable permissions 
    that could be set on children due to a change at a parent.
 
 /SharePaths <ComputerName>[:AdminOnly|IncludeHidden|NoDeDupe|Match=|NoMatch=]
@@ -74,7 +74,7 @@ or end of your command as to not confuse them with ordered parameters.
    :IncludeHidden to the computer name. By appending :Match= or :NoMatch=
    followed by a regular expression, any share name that does not match or 
    mismatch the specified string, respectively, will be excluded. By default, 
-   shares whose directories are already convered by other shares are
+   shares whose directories are already covered by other shares are
    automatically de-duped; to stop this behavior use the :NoDeDupe flag.
 
 /DomainPaths <DomainName>[:StopOnError|<See /SharePaths>]
@@ -171,7 +171,7 @@ Commands That Do Not Alter Settings
    Similar to /Locate, but the report file will also contain the hash  
    of files that match the search criteria. The hash algorithm is automatically
    determined based on the length of the provided SearchHash values, which must
-   be provided in hex chracters. Supported hashes are MD5, SHA1, SHA256, SHA384,
+   be provided in hex characters. Supported hashes are MD5, SHA1, SHA256, SHA384,
    and SHA512. The search criteria can optionally include a hash file size. 
    Specifying file size can dramatically increase search performance since only 
    files with matching sizes are read for hash comparison.
@@ -224,7 +224,7 @@ Commands That Can Alter Settings (When /WhatIf Is Not Present)
 /CopyMap <FileName>
    This command will read in the specified file that contains a list of 
    account mappings in <SearchName>:<CopyName> format. This command only
-   affects the DACL and SACL. This common is similiar to the /ReplaceMap 
+   affects the DACL and SACL. This common is similar to the /ReplaceMap 
    command but it does not affect the owner and does not removed the original
    account.
 

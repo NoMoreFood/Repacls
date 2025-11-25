@@ -26,7 +26,7 @@ OperationLocateText::OperationLocateText(std::queue<std::wstring> & oArgList, co
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		// complain
-		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sReportFile.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Could not create file `'{}'` specified for parameter '{}'.\n", sReportFile.at(0), GetCommand());
 		exit(-1);
 	}
 
@@ -41,7 +41,7 @@ OperationLocateText::OperationLocateText(std::queue<std::wstring> & oArgList, co
 		DWORD iBytes = 0;
 		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 		{
-			wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
+			Print(L"ERROR: Could not write out file type marker `'{}'`.\n", GetCommand());
 			exit(-1);
 		}
 
@@ -50,7 +50,7 @@ OperationLocateText::OperationLocateText(std::queue<std::wstring> & oArgList, co
 			Q(L"Modified Time") + L"," + Q(L"Size") + L"," + Q(L"Attributes") + L"\r\n";
 		if (WriteToFile(sToWrite, hReportFile) == 0)
 		{
-			wprintf(L"ERROR: Could not write header to report file for parameter '%s'.\n", GetCommand().c_str());
+			Print(L"ERROR: Could not write header to report file for parameter '{}'.\n", GetCommand());
 			exit(-1);
 		}
 	}
@@ -68,7 +68,7 @@ OperationLocateText::OperationLocateText(std::queue<std::wstring> & oArgList, co
 		if (CryptStringToBinary(sMatchAndArgs.at(1).c_str(), (DWORD) sMatchAndArgs.at(1).size(),
 			CRYPT_STRING_HEX_ANY, aHashToMatch, &iBytesRead, NULL, NULL) == FALSE || iBytesRead != HASH_IN_BYTES)
 		{
-			wprintf(L"ERROR: Invalid hash '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(1).c_str(), GetCommand().c_str());
+			Print(L"ERROR: Invalid hash '{}' specified for parameter '{}'.\n", sMatchAndArgs.at(1), GetCommand());
 			exit(-1);
 		}
 		*/
@@ -105,7 +105,7 @@ void OperationLocateText::ProcessObjectAction(ObjectEntry & tObjectEntry)
 			(Hash = (PBYTE) malloc(HashLength)) == NULL ||
 			(FileBuffer = (PBYTE) malloc(iFileBuffer)) == NULL)
 		{
-			wprintf(L"ERROR: Could not setup hashing environment.\n");
+			Print(L"ERROR: Could not setup hashing environment.\n");
 			exit(-1);
 		}
 	}

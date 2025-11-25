@@ -43,7 +43,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 				// verify a regular expression was actually specified
 				if (oMatchArgs.size() != 2)
 				{
-					wprintf(L"ERROR: No regular expression specified for parameter '%s'\n", sSubArgs.at(0).c_str());
+					Print(L"ERROR: No regular expression specified for parameter '{}'", sSubArgs.at(0));
 					std::exit(-1);
 				}
 
@@ -55,8 +55,8 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 				}
 				catch (std::exception &)
 				{
-					// regular expression could no be parsed
-					wprintf(L"ERROR: Invalid regular expression '%s'\n", oMatchArgs.at(1).c_str());
+					// regular expression could not be parsed
+					Print(L"ERROR: Invalid regular expression '{}'", oMatchArgs.at(1));
 					std::exit(-1);
 				}
 			}
@@ -78,7 +78,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 			}
 			else
 			{
-				wprintf(L"ERROR: Unrecognized share lookup option '%s'\n", oShareArg.c_str());
+				Print(L"ERROR: Unrecognized share lookup option '{}'", oShareArg);
 				std::exit(-1);
 			}
 		}
@@ -94,13 +94,13 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 		DWORD iTotalEntries = 0;
 
 		// enumerate file share
-		iReturn = NetShareEnum((LPWSTR)sSubArgs.at(0).c_str(), 2, (LPBYTE*)&tInfo,
+		iReturn = NetShareEnum(const_cast<LPWSTR>(sSubArgs.at(0).c_str()), 2, reinterpret_cast<LPBYTE*>(&tInfo),
 			MAX_PREFERRED_LENGTH, &iEntries, &iTotalEntries, &hResumeHandle);
 
 		// check for unknown error
 		if (iReturn != ERROR_SUCCESS && iReturn != ERROR_MORE_DATA)
 		{
-			wprintf(L"ERROR: Could not enumerate shares on '%s'\n", sSubArgs.at(0).c_str());
+			Print(L"ERROR: Could not enumerate shares on '{}'", sSubArgs.at(0));
 			if (bStopOnErrors) std::exit(-1); else return;
 		}
 
@@ -151,8 +151,8 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 			if (oPathInner->first != oPathOuter->first &&
 				oPathOuter->second.find(oPathInner->second) != std::wstring::npos)
 			{
-				wprintf(L"NOTE: Share '%s' is included in '%s' on '%s'; skipping\n",
-					oPathOuter->first.c_str(), oPathInner->first.c_str(), sSubArgs.at(0).c_str());
+				Print(L"NOTE: Share '{}' is included in '{}' on '{}'; skipping",
+					oPathOuter->first, oPathInner->first, sSubArgs.at(0));
 				bAddToPathList = false;
 				break;
 			}

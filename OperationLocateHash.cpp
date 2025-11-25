@@ -9,8 +9,6 @@
 
 ClassFactory<OperationLocateHash> OperationLocateHash::RegisteredFactory(GetCommand());
 
-#define Q(x) L"\"" + (x) + L"\""
-
 OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
@@ -25,7 +23,7 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		// complain
-		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sReportFile.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Could not create file '{}' specified for parameter '{}'.", sReportFile.at(0), GetCommand());
 		std::exit(-1);
 	}
 
@@ -40,17 +38,15 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 		DWORD iBytes = 0;
 		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 		{
-			wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
+			Print(L"ERROR: Could not write out file type marker '{}'.", GetCommand());
 			std::exit(-1);
 		}
 
 		// write out the header
-		const std::wstring sToWrite = std::wstring(L"") + Q(L"Path") + L"," + Q(L"Creation Time") + L"," +
-			Q(L"Modified Time") + L"," + Q(L"Size") + L"," + Q(L"Attributes") + L"," + 
-			Q(L"Hash") + L"\r\n";
-		if (WriteToFile(sToWrite, hReportFile) == 0)
+		if (WriteToFile(OutToCsv(L"Path", L"Creation Time", L"Modified Time",
+			L"Size", L"Attributes", L"Hash"), hReportFile) == 0)
 		{
-			wprintf(L"ERROR: Could not write header to report file for parameter '%s'.\n", GetCommand().c_str());
+			Print(L"ERROR: Could not write header to report file for parameter '{}'.", GetCommand());
 			std::exit(-1);
 		}
 	}
@@ -65,7 +61,7 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 	}
 	catch (const std::regex_error &)
 	{
-		wprintf(L"ERROR: Invalid regular expression '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid regular expression '{}' specified for parameter '{}'.", sMatchAndArgs.at(0), GetCommand());
 		std::exit(-1);
 	}
 
@@ -81,7 +77,7 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 	const auto hashAlg = hashAlgorithms.find(iHashStringLength);
 	if (hashAlg == hashAlgorithms.end())
 	{
-		wprintf(L"ERROR: Invalid hash '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(1).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid hash '{}' specified for parameter '{}'.", sMatchAndArgs.at(1), GetCommand());
 		std::exit(-1);
 	}
 
@@ -91,17 +87,17 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 		BCryptGetProperty(hAlgHandle, BCRYPT_HASH_LENGTH, (PBYTE)&iHashLength, sizeof(DWORD), &ResultLength, 0) != 0 ||
 		BCryptCreateHash(hAlgHandle, &hHashHandle, nullptr, 0, nullptr, 0, BCRYPT_HASH_REUSABLE_FLAG) != 0)
 	{
-		wprintf(L"ERROR: Could not setup hashing environment.\n");
+		Print(L"ERROR: Could not setup hashing environment.");
 		std::exit(-1);
 	}
 
 	// determine hash to match
 	aHashToMatch.resize(iHashLength);
 	DWORD iBytesRead = iHashLength;
-	if (CryptStringToBinary(sMatchAndArgs.at(1).c_str(), (DWORD) sMatchAndArgs.at(1).size(),
+	if (CryptStringToBinary(sMatchAndArgs.at(1).c_str(), static_cast<DWORD>(sMatchAndArgs.at(1).size()),
 		CRYPT_STRING_HEX_ANY, aHashToMatch.data(), &iBytesRead, nullptr, nullptr) == FALSE || iBytesRead != (DWORD)iHashLength)
 	{
-		wprintf(L"ERROR: Invalid hash '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(1).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid hash '{}' specified for parameter '{}'.", sMatchAndArgs.at(1), GetCommand());
 		std::exit(-1);
 	}
 
@@ -151,7 +147,7 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	DWORD iReadResult = 0;
 	DWORD iHashResult = 0;
 	DWORD iReadBytes = 0;
-	while ((iReadResult = ReadFile(hFile, aFileBuffer.data(), (DWORD)aFileBuffer.size(), &iReadBytes, nullptr)) != 0 && iReadBytes > 0)
+	while ((iReadResult = ReadFile(hFile, aFileBuffer.data(), static_cast<DWORD>(aFileBuffer.size()), &iReadBytes, nullptr)) != 0 && iReadBytes > 0)
 	{
 		iHashResult = BCryptHashData(hHashHandle, aFileBuffer.data(), iReadBytes, 0);
 		if (iHashResult != 0) break;
@@ -193,10 +189,8 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	const std::wstring sCreationTime = FileTimeToString(tObjectEntry.CreationTime);
 
 	// write output to file
-	const std::wstring sToWrite = std::wstring(L"") + Q(tObjectEntry.Name) + L"," +
-		Q(sCreationTime) + L"," + Q(sModifiedTime) + L"," + 
-		Q(sSize) + L"," + Q(sAttributes) + L"," + Q(sHash.data()) + L"," + L"\r\n";
-	if (WriteToFile(sToWrite, hReportFile) == 0)
+	if (WriteToFile(OutToCsv(tObjectEntry.Name, sCreationTime, sModifiedTime,
+		sSize, sAttributes, sHash.data()), hReportFile) == 0)
 	{
 		InputOutput::AddError(L"Unable to write information to report file.");
 	}

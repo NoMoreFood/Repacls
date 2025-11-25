@@ -38,7 +38,7 @@ bool OperationCheckCanonical::IsAclCanonical(const PACL & tAcl)
 		// check inheritance bits
 		const AceOrder oThisAceOrder = DetermineAceOrder(tAce);
 
-		// make sure this order is not less then the current order
+		// make sure this order is not less than the current order
 		if (oThisAceOrder < oOrderOverall)
 		{
 			return false;

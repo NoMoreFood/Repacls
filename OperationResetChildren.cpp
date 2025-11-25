@@ -23,7 +23,7 @@ bool OperationResetChildren::ProcessAclAction(const WCHAR * const sSdPart, Objec
 	if (bAclReplacement) LocalFree(tCurrentAcl);
 	bAclReplacement = false;
 
-	// setting the null acl will overwrite all explicit entires
+	// setting the null acl will overwrite all explicit entries
 	tCurrentAcl = &tAclNull;
 
 	// nothing to do -- the special commit flags will take care of it

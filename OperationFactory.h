@@ -23,13 +23,13 @@ public:
 		// get the first element off the list
 		std::wstring sCommand = oArgList.front(); oArgList.pop();
 
-		// error if the string is least one character long
+		// error if the string is at least one character long
 		if (sCommand.empty()) return nullptr;
 
 		// error if the string does not start with "/" or "-"
 		if (sCommand.at(0) != '/' && sCommand.at(0) != '-')
 		{
-			wprintf(L"ERROR: Unrecognized parameter '%s'\n", sCommand.c_str());
+			Print(L"ERROR: Unrecognized parameter '{}'", sCommand);
 			std::exit(-1);
 		}
 
@@ -45,18 +45,17 @@ public:
 		// error if there is no matching command
 		if (oCommand == GetCommands().end())
 		{
-			wprintf(L"ERROR: Unrecognized parameter '%s'\n", sCommand.c_str());
+			Print(L"ERROR: Unrecognized parameter '{}'", sCommand);
 			std::exit(-1);
 		}
 
-		// create the the new class
+		// create the new class
 		return GetCommands()[sCommand]->CreateInstanceSub(oArgList, sCommand);
 	}
 };
 
 template <class SubType> class ClassFactory final : public FactoryPlant
 {
-private:
 
 	Operation * CreateInstanceSub(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) override
 	{

@@ -17,7 +17,7 @@ OperationMoveDomain::OperationMoveDomain(std::queue<std::wstring> & oArgList, co
 	if (tSourceDomain == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid source domain '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid source domain '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
 		std::exit(0);
 	}
 
@@ -25,7 +25,7 @@ OperationMoveDomain::OperationMoveDomain(std::queue<std::wstring> & oArgList, co
 	if (tTargetDomain == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid target domain '%s' specified for parameter '%s'.\n", sSubArgs.at(1).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid target domain '{}' specified for parameter '{}'.", sSubArgs.at(1), GetCommand());
 		std::exit(0);
 	}
 
@@ -51,12 +51,12 @@ SidActionResult OperationMoveDomain::DetermineSid(const WCHAR * const sSdPart, O
 		bDomainSidsEqual == FALSE)
 	{
 		// no match - cease processing this instruction
-		return SidActionResult::Nothing;
+		return Nothing;
 	}
 
 	// see if this SID is a well-known, built-in SID in the form S-1-5-21-<domain>-(<1000)
-	const PISID tSidStruct = (PISID) tCurrentSid;
-	const PISID tSidTargetDomain = (PISID) tTargetDomain;
+	const PISID tSidStruct = static_cast<PISID>(tCurrentSid);
+	const PISID tSidTargetDomain = static_cast<PISID>(tTargetDomain);
 	if (tSidStruct->SubAuthorityCount == 5 &&
 		tSidStruct->SubAuthority[0] == 21 &&
 		tSidStruct->SubAuthority[4] < 1000)
@@ -70,7 +70,7 @@ SidActionResult OperationMoveDomain::DetermineSid(const WCHAR * const sSdPart, O
 		// lookup the target name and see if it exists
 		const std::wstring sTargetAccountName = GetNameFromSid(tSidTmp);
 		FreeSid(tSidTmp);
-		if (sTargetAccountName.empty())	return SidActionResult::Nothing;
+		if (sTargetAccountName.empty())	return Nothing;
 
 		// do a forward lookup on the name in order to get a reference to the 
 		// SID that we do not have to worry about cleaning up
@@ -86,7 +86,7 @@ SidActionResult OperationMoveDomain::DetermineSid(const WCHAR * const sSdPart, O
 	{
 		// translate the old sid to an account name
 		const std::wstring sSourceAccountName = GetNameFromSid(tCurrentSid, nullptr);
-		if (sSourceAccountName.empty())	return SidActionResult::Nothing;
+		if (sSourceAccountName.empty())	return Nothing;
 
 		// check to see if an equivalent account exists in the target domain
 		const std::wstring sTargetAccountName = sTargetDomain + (wcsstr(sSourceAccountName.c_str(), L"\\") + 1);
@@ -97,14 +97,14 @@ SidActionResult OperationMoveDomain::DetermineSid(const WCHAR * const sSdPart, O
 		{
 			InputOutput::AddWarning(L"Could not find matching account in target domain '" +
 				sTargetDomain + L"' for '" + sSourceAccountName + L"'", sSdPart);
-			return SidActionResult::Nothing;
+			return Nothing;
 		}
 
 		// do a reverse lookup to see if this might be a sid history item
-		if (GetNameFromSidEx(tResultantSid) == sSourceAccountName) return SidActionResult::Nothing;
+		if (GetNameFromSidEx(tResultantSid) == sSourceAccountName) return Nothing;
 
 		// stop processing if the account does not exist
-		if (tResultantSid == nullptr) return SidActionResult::Nothing;
+		if (tResultantSid == nullptr) return Nothing;
 
 		// update the sid in the ace
 		InputOutput::AddInfo(L"Changing '" + sSourceAccountName + L"' to '" + sTargetAccountName + L"'", sSdPart);
@@ -112,5 +112,5 @@ SidActionResult OperationMoveDomain::DetermineSid(const WCHAR * const sSdPart, O
 	}
 
 	// update the sid in the ace
-	return SidActionResult::Replace;
+	return Replace;
 }

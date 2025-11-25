@@ -4,7 +4,6 @@
 #include <Windows.h>
 #include <sddl.h>
 #include <lmcons.h>
-#include <cstdio>
 #include <NTSecAPI.h>
 #include <atlbase.h>
 #include <atlstr.h>
@@ -42,7 +41,7 @@ PSID GetSidFromName(const std::wstring& sAccountName)
 		return tSidFromSid;
 	}
 
-	// assume the sid is as large as it possible can be
+	// assume the sid is as large as it possibly can be
 	BYTE tSidFromName[SECURITY_MAX_SID_SIZE];
 	WCHAR sDomainName[UNLEN + 1];
 	DWORD iDomainName = _countof(sDomainName);
@@ -60,7 +59,7 @@ PSID GetSidFromName(const std::wstring& sAccountName)
 
 	// reallocate memory and copy sid to a smaller part of memory and
 	// then add the sid to the cache map
-	const auto tSid = (PSID)memcpy(malloc(iSidSize), tSidFromName, iSidSize);
+	const auto tSid = memcpy(malloc(iSidSize), tSidFromName, iSidSize);
 
 	// scope lock for thread safety
 	{
@@ -114,7 +113,7 @@ std::wstring GetNameFromSid(const PSID tSid, bool* bMarkAsOrphan)
 		}
 		else
 		{
-			wprintf(L"ERROR: Unexpected error returned from account lookup (%lu).\n", iError);
+			Print(L"ERROR: Unexpected error returned from account lookup ({}).", iError);
 			return L"";
 		}
 	}
@@ -247,7 +246,7 @@ VOID EnablePrivs() noexcept
 	if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES, &hToken) == 0)
 	{
 		// error
-		wprintf(L"%s\n", L"ERROR: Could not open process token for enabling privileges.");
+		Print(L"ERROR: Could not open process token for enabling privileges.");
 		return;
 	}
 
@@ -258,7 +257,7 @@ VOID EnablePrivs() noexcept
 	if (GetTokenInformation(hToken, TokenUser, tTokenUser, sizeof(aBuffer), &iBytesFilled) == 0)
 	{
 		// error
-		wprintf(L"%s\n", L"ERROR: Could retrieve process token information.");
+		Print(L"ERROR: Could retrieve process token information.");
 		return;
 	}
 
@@ -275,7 +274,7 @@ VOID EnablePrivs() noexcept
 		if (LookupPrivilegeValue(nullptr, i,
 		                         &tPrivEntry.Privileges[0].Luid) == 0)
 		{
-			wprintf(L"ERROR: Could not lookup privilege: %s\n", i);
+			Print(L"ERROR: Could not lookup privilege: {}", i);
 			continue;
 		}
 
@@ -297,7 +296,7 @@ VOID EnablePrivs() noexcept
 		if ((iResult = LsaOpenPolicy(nullptr, &ObjectAttributes,
 		                             POLICY_LOOKUP_NAMES | POLICY_CREATE_ACCOUNT, &hPolicyHandle)) != STATUS_SUCCESS)
 		{
-			wprintf(L"ERROR: Local security policy could not be opened with error '%lu'\n",
+			Print(L"ERROR: Local security policy could not be opened with error '{}'",
 				LsaNtStatusToWinError(iResult));
 			continue;
 		}
@@ -305,15 +304,15 @@ VOID EnablePrivs() noexcept
 		// convert the privilege name to a unicode string format
 		LSA_UNICODE_STRING sPrivilege;
 		sPrivilege.Buffer = (PWSTR)i;
-		sPrivilege.Length = (USHORT)(wcslen(i) * sizeof(WCHAR));
-		sPrivilege.MaximumLength = (USHORT)((wcslen(i) + 1) * sizeof(WCHAR));
+		sPrivilege.Length = static_cast<USHORT>(wcslen(i) * sizeof(WCHAR));
+		sPrivilege.MaximumLength = static_cast<USHORT>((wcslen(i) + 1) * sizeof(WCHAR));
 
 		// attempt to add the account to policy
 		if ((iResult = LsaAddAccountRights(hPolicyHandle,
 			tTokenUser->User.Sid, &sPrivilege, 1)) != STATUS_SUCCESS)
 		{
 			LsaClose(hPolicyHandle);
-			wprintf(L"ERROR: Privilege '%s' was not able to be added with error '%lu'\n",
+			Print(L"ERROR: Privilege '{}' was not able to be added with error '{}'",
 				i, LsaNtStatusToWinError(iResult));
 			continue;
 		}
@@ -324,14 +323,14 @@ VOID EnablePrivs() noexcept
 		if (AdjustTokenPrivileges(hToken, FALSE, &tPrivEntry,
 			sizeof(TOKEN_PRIVILEGES), nullptr, nullptr) == 0 || GetLastError() != ERROR_NOT_ALL_ASSIGNED)
 		{
-			wprintf(L"ERROR: Could not adjust privilege: %s\n", i);
+			Print(L"ERROR: Could not adjust privilege: {}", i);
 			continue;
 		}
 
 		// error if not all items were assigned
 		if (GetLastError() == ERROR_NOT_ALL_ASSIGNED)
 		{
-			wprintf(L"ERROR: Could not enable privilege: %s\n", i);
+			Print(L"ERROR: Could not enable privilege: {}", i);
 		}
 	}
 
@@ -345,17 +344,17 @@ HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring& sOperation)
 	static std::map<std::wstring, std::pair<HANDLE, std::wstring>> oFileLookup;
 
 	// do a reverse lookup on the file name
-	const auto iSize = (size_t)GetFinalPathNameByHandle(hFile, nullptr, 0, VOLUME_NAME_NT);
+	const auto iSize = static_cast<size_t>(GetFinalPathNameByHandle(hFile, nullptr, 0, VOLUME_NAME_NT));
 
 	// create a string that can accommodate that size (plus null terminating character)
 	std::wstring sPath;
 	sPath.resize(iSize + 1);
 
 	// get the full name
-	if (GetFinalPathNameByHandle(hFile, (LPWSTR)sPath.data(), (DWORD)sPath.capacity(),
+	if (GetFinalPathNameByHandle(hFile, (LPWSTR)sPath.data(), static_cast<DWORD>(sPath.capacity()),
 		FILE_NAME_NORMALIZED | VOLUME_NAME_NT) == 0)
 	{
-		wprintf(L"ERROR: The true path to the specified file could not be determined.\n");
+		Print(L"ERROR: The true path to the specified file could not be determined.");
 		std::exit(-1);
 	}
 
@@ -373,7 +372,7 @@ HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring& sOperation)
 		}
 		else
 		{
-			wprintf(L"ERROR: The same file was used in mismatching read/write operations.\n");
+			Print(L"ERROR: The same file was used in mismatching read/write operations.");
 			std::exit(-1);
 		}
 	}
@@ -458,18 +457,15 @@ std::wstring FileTimeToString(const FILETIME tFileTime)
 	GetDateFormatEx(LOCALE_NAME_INVARIANT, LOCALE_USE_CP_ACP, &tTime,
 		L"yyyy'-'MM'-'dd ", sTime, _countof(sTime), nullptr);
 	GetTimeFormatEx(LOCALE_NAME_INVARIANT, LOCALE_USE_CP_ACP, &tTime,
-		L"HH':'mm':'ss", sTime + wcslen(sTime), (int)
-		(_countof(sTime) - wcslen(sTime)));
+		L"HH':'mm':'ss", sTime + wcslen(sTime), static_cast<int>((_countof(sTime) - wcslen(sTime))));
 	return { sTime };
 }
 
 std::wstring FileSizeToString(const LARGE_INTEGER iFileSize)
 {
 	// convert the file size to a string
-	WCHAR sSize[32];
 	_wsetlocale(LC_NUMERIC, L"");
-	wsprintf(sSize, L"%I64u", (ULONGLONG)iFileSize.QuadPart);
-	return { sSize };
+	return std::format(L"{}", static_cast<ULONGLONG>(iFileSize.QuadPart));
 }
 
 std::wstring FileAttributesToString(const DWORD iAttributes)
@@ -492,30 +488,26 @@ std::wstring FileAttributesToString(const DWORD iAttributes)
 BOOL WriteToFile(const std::wstring& sStringToWrite, HANDLE hFile) noexcept
 {
 	// see how many characters we need to store as utf-8
-	int iChars = WideCharToMultiByte(CP_UTF8, 0,
-		sStringToWrite.c_str(), (int)sStringToWrite.length(),
-		nullptr, 0, nullptr, nullptr);
+	int iChars = WideCharToMultiByte(CP_UTF8, 0, sStringToWrite.c_str(),
+		-1, nullptr, 0, nullptr, nullptr);
 	if (iChars == 0)
 	{
 		return FALSE;
 	}
 
 	// allocate and do the conversion
-	auto* sString = (BYTE*)malloc(iChars);
-	iChars = WideCharToMultiByte(CP_UTF8, 0,
-		sStringToWrite.c_str(), (int)sStringToWrite.length(),
-		(LPSTR)sString, iChars, nullptr, nullptr);
+	thread_local std::string sString;
+	sString.resize(iChars - 1);
+	iChars = WideCharToMultiByte(CP_UTF8, 0, sStringToWrite.c_str(), -1, sString.data(), 
+		static_cast<int>(sString.size() + 1), nullptr, nullptr);
 	if (iChars == 0)
 	{
-		free(sString);
 		return FALSE;
 	}
 
 	// write to file, free memory, and return result
 	DWORD iBytes = 0;
-	const BOOL bResult = WriteFile(hFile, sString, iChars, &iBytes, nullptr);
-	free(sString);
-	return bResult;
+	return WriteFile(hFile, sString.data(), iChars, &iBytes, nullptr);
 }
 
 VOID InitThreadCom() noexcept
@@ -527,7 +519,7 @@ VOID InitThreadCom() noexcept
 		const HRESULT hComInit = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 		if (hComInit != S_OK && hComInit != S_FALSE)
 		{
-			wprintf(L"Could not initialize COM.\n");
+			Print(L"Could not initialize COM.");
 			std::exit(-1);
 		}
 	}

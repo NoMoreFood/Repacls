@@ -17,7 +17,7 @@
 
 Processor::Processor(const std::vector<Operation*>& poOperationList, bool pbFetchDacl, bool pbFetchSacl, bool pbFetchOwner, bool pbFetchGroup) :
 	bFetchDacl(pbFetchDacl), bFetchSacl(pbFetchSacl), bFetchOwner(pbFetchOwner), bFetchGroup(pbFetchGroup),
-	oOperationList(poOperationList), oQueue()
+	oOperationList(poOperationList)
 {
 	if (bFetchDacl) iInformationToLookup |= DACL_SECURITY_INFORMATION;
 	if (bFetchSacl) iInformationToLookup |= SACL_SECURITY_INFORMATION;
@@ -55,7 +55,7 @@ void Processor::AnalyzeSecurity(ObjectEntry & oEntry)
 		LPWSTR sError = nullptr;
 		const size_t iSize = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
 			FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK,
-			nullptr, iError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&sError, 0, nullptr);
+			nullptr, iError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPWSTR>(&sError), 0, nullptr);
 		InputOutput::AddError(L"Unable to read security information", (iSize == 0) ? L"" : sError);
 		if (iSize > 0) LocalFree(sError);
 
@@ -161,7 +161,7 @@ void Processor::AnalyzeSecurity(ObjectEntry & oEntry)
 		// only commit changes if not in what-if scenario
 		if (!InputOutput::InWhatIfMode())
 		{
-			if ((iError = SetNamedSecurityInfo((LPWSTR)oEntry.Name.c_str(), oEntry.ObjectType, iInformationToCommit,
+			if ((iError = SetNamedSecurityInfo(oEntry.Name.data(), oEntry.ObjectType, iInformationToCommit,
 				(bOwnerIsDirty) ? tOwnerSid : nullptr, (bGroupIsDirty) ? tGroupSid : nullptr,
 				(bDaclIsDirty) ? tAclDacl : nullptr, (bSaclIsDirty) ? tAclSacl : nullptr)) != ERROR_SUCCESS)
 			{
@@ -169,7 +169,7 @@ void Processor::AnalyzeSecurity(ObjectEntry & oEntry)
 				LPWSTR sError = nullptr;
 				const size_t iSize = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
 					FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK,
-					nullptr, iError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&sError, 0, nullptr);
+					nullptr, iError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPWSTR>(&sError), 0, nullptr);
 				InputOutput::AddError(L"Unable to update security information", (iSize == 0) ? L"" : sError);
 				if (iSize > 0) LocalFree(sError);
 
@@ -184,7 +184,6 @@ void Processor::AnalyzeSecurity(ObjectEntry & oEntry)
 			}
 		}
 	}
-
 
 	// cleanup
 	if (bDaclCleanupRequired) LocalFree(tAclDacl);

@@ -6,13 +6,13 @@
 
 PSID Operation::GetSidFromAce(PACE_ACCESS_HEADER tAce) noexcept
 {
-	PSID pSid = &((ACCESS_ALLOWED_ACE*) tAce)->SidStart;
+	PSID pSid = &reinterpret_cast<ACCESS_ALLOWED_ACE*>(tAce)->SidStart;
 	if (tAce->AceType == ACCESS_ALLOWED_OBJECT_ACE_TYPE ||
 		tAce->AceType == ACCESS_DENIED_OBJECT_ACE_TYPE ||
 		tAce->AceType == SYSTEM_AUDIT_OBJECT_ACE_TYPE)
 	{
-		ACCESS_ALLOWED_OBJECT_ACE* oObjectAce = (ACCESS_ALLOWED_OBJECT_ACE*)tAce;
-		LPBYTE pSidStart = (LPBYTE)&oObjectAce->ObjectType;
+		ACCESS_ALLOWED_OBJECT_ACE* oObjectAce = reinterpret_cast<ACCESS_ALLOWED_OBJECT_ACE*>(tAce);
+		LPBYTE pSidStart = reinterpret_cast<LPBYTE>(&oObjectAce->ObjectType);
 		if (oObjectAce->Flags & ACE_OBJECT_TYPE_PRESENT) pSidStart += sizeof(GUID);
 		if (oObjectAce->Flags & ACE_INHERITED_OBJECT_TYPE_PRESENT) pSidStart += sizeof(GUID);
 		pSid = (SID*)pSidStart;
@@ -45,14 +45,14 @@ bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 		PSID tResultantSid;
 		const SidActionResult tResult = DetermineSid(sSdPart, tObjectEntry, tCurrentSid, tResultantSid);
 
-		if (tResult == SidActionResult::Remove)
+		if (tResult == Remove)
 		{
 			DeleteAce(tCurrentAcl, iEntry);
 			bMadeChange = true;
 			bSkipIncrement = true;
 			continue;
 		}
-		else if (tResult == SidActionResult::Replace)
+		else if (tResult == Replace)
 		{
 			PSID const tOldSid = GetSidFromAce(tAce);
 			PSID const tNewSid = tResultantSid;
@@ -76,7 +76,7 @@ bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 			PACL const tAcl = tCurrentAcl;
 			PBYTE const tAclLoc = (PBYTE)tAcl;
 			PBYTE const tAceLoc = (PBYTE)tAce;
-			PBYTE const tOldSidLoc = (PBYTE)tOldSid;
+			PBYTE const tOldSidLoc = static_cast<PBYTE>(tOldSid);
 
 			// if the new length is less than the old length, then copy the new sid
 			// and then shift the remaining bytes in the acl down to collapse the gap
@@ -90,10 +90,10 @@ bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 			// new size and then copy the various parts into the new memory
 			else
 			{
-				PBYTE const tNewAcl = (PBYTE)LocalAlloc(LMEM_FIXED, tAcl->AclSize + (iNewLen - iOldLen));
+				PBYTE const tNewAcl = static_cast<PBYTE>(LocalAlloc(LMEM_FIXED, tAcl->AclSize + (iNewLen - iOldLen)));
 				if (tNewAcl == nullptr)
 				{
-					wprintf(L"ERROR: Unable to allocate memory for new SID.\n");
+					Print(L"ERROR: Unable to allocate memory for new SID.");
 					std::exit(-1);
 				}
 
@@ -109,10 +109,10 @@ bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 			}
 
 			// update size in ace header
-			tAce->AceSize += (WORD)(iNewLen - iOldLen);
+			tAce->AceSize += static_cast<WORD>(iNewLen - iOldLen);
 
 			// update size in acl header and return size differential
-			tCurrentAcl->AclSize += (WORD)(iNewLen - iOldLen);
+			tCurrentAcl->AclSize += static_cast<WORD>(iNewLen - iOldLen);
 		}
 	}
 
@@ -133,13 +133,13 @@ bool Operation::ProcessSidAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 	const SidActionResult tResult = DetermineSid(sSdPart, tObjectEntry, tCurrentSid, tResultantSid);
 	bool bMadeChange = false;
 
-	if (tResult == SidActionResult::Remove)
+	if (tResult == Remove)
 	{
 		// populate the default sid value to be used if the sid is empty
 		tCurrentSid = DefaultSidWhenEmpty;
 		bMadeChange = true;
 	}
-	else if (tResult == SidActionResult::Replace)
+	else if (tResult == Replace)
 	{
 		// only process change if sid is actually different
 		if (SidNotMatch(tCurrentSid, tResultantSid))
@@ -166,7 +166,7 @@ std::vector<std::wstring> Operation::ProcessAndCheckArgs(int iArgsRequired, std:
 	// check if around arguments exist yet
 	if (iArgsRequired > 0 && oArgList.empty())
 	{
-		wprintf(L"ERROR: An option that was specified is missing a required parameter.\n");
+		Print(L"ERROR: An option that was specified is missing a required parameter.");
 		std::exit(-1);
 	}
 
@@ -175,9 +175,9 @@ std::vector<std::wstring> Operation::ProcessAndCheckArgs(int iArgsRequired, std:
 	std::vector<std::wstring> oSubArgs = SplitArgs(sArg, sDelimiter);
 
 	// verify we have enough parameters
-	if (oSubArgs.size() < (size_t) iArgsRequired)
+	if (oSubArgs.size() < static_cast<size_t>(iArgsRequired))
 	{
-		wprintf(L"ERROR: An option that was specified is missing a required parameter.\n");
+		Print(L"ERROR: An option that was specified is missing a required parameter.");
 		std::exit(-1);
 	}
 
@@ -208,7 +208,7 @@ void Operation::ProcessGranularTargetting(std::wstring sScope)
 		else
 		{
 			// complain
-			wprintf(L"ERROR: Unrecognized scope qualifier '%s'\n", sScopeOpt.c_str());
+			Print(L"ERROR: Unrecognized scope qualifier '{}'", sScopeOpt);
 			std::exit(-1);
 		}
 	}
