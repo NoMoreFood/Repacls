@@ -33,6 +33,16 @@ void ObjectRegistry::GetBaseObject(std::wstring sPath)
 		std::exit(-1);
 	}
 
+	// valid registry key is valid
+	HKEY hParentKey = nullptr;
+	if (RegOpenKeyEx(oRootEntry->second.first, tReg.NameExtended.c_str(), REG_OPTION_OPEN_LINK,
+		KEY_ENUMERATE_SUB_KEYS, &hParentKey) != ERROR_SUCCESS)
+	{
+		Print(L"ERROR: Could not parse registry path: {}", sPath);
+		std::exit(-1);
+	}
+	CloseHandle(hParentKey);
+
 	tReg.Depth = 0;
 	tReg.ObjectType = SE_REGISTRY_KEY;
 	tReg.Name = oRootEntry->second.second + L"\\" + tReg.NameExtended;

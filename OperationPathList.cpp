@@ -15,6 +15,11 @@ OperationPathList::OperationPathList(std::queue<std::wstring> & oArgList, const 
 
 	// open the file
 	std::wifstream fFile(sSubArgs.at(0).c_str());
+	if (!fFile.is_open() || !fFile.good())
+	{
+		Print(L"ERROR: Could not open file '{}'.", sSubArgs.at(0));
+		std::exit(-1);
+	}
 
 	// adapt the stream to read windows unicode files
 	(void) fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf8<wchar_t,
