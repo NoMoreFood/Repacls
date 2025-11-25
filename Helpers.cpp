@@ -507,7 +507,7 @@ BOOL WriteToFile(const std::wstring& sStringToWrite, HANDLE hFile) noexcept
 
 	// write to file, free memory, and return result
 	DWORD iBytes = 0;
-	return WriteFile(hFile, sString.data(), iChars, &iBytes, nullptr);
+	return WriteFile(hFile, sString.data(), static_cast<DWORD>(sString.size()), &iBytes, nullptr);
 }
 
 VOID InitThreadCom() noexcept
