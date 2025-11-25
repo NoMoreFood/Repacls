@@ -1,10 +1,10 @@
 # Repacls Usage Information
 
-Link To Latest Binaries: [Here](https://github.com/NoMoreFood/Repacls/raw/v2.1.0.1/Build/Repacls.zip)
+Link To Latest Binaries: [Here](https://github.com/NoMoreFood/Repacls/raw/v2.3.0.0/Build/Repacls.zip)
 
 ```
 ===============================================================================
-= Repacls Version 2.1.0.1 by Bryan Berns
+= Repacls Version 2.3.0.0 by Bryan Berns
 ===============================================================================
 
 repacls.exe /Path <Absolute Path> ... other options ....
@@ -42,7 +42,7 @@ or end of your command as to not confuse them with ordered parameters.
    Enumerating registry paths and Active Directory containers is also supported
    when /PathMode is set. Registry paths should be specified as HIVE\Key 
    (e.g., HKLM\Software). Active Directory scanning is supported but should 
-   be limited to read-only operations since permissions targetted at specific 
+   be limited to read-only operations since permissions targeted at specific 
    properties are not supported; Active Directory paths should be specified as 
    distinguished names (e.g., OU=Users,DC=Home,DC=Local)
 
@@ -59,18 +59,20 @@ or end of your command as to not confuse them with ordered parameters.
 /MaxDepth <NumberOfContainersDeep>
    Specifies how deep the scan should go within the path. This default is
    to be fully recursive (infinite). Specifying 0 will only enumerate the 
-   root node. This does not limit the propogation of inheritable permissions 
+   root node. This does not limit the propagation of inheritable permissions 
    that could be set on children due to a change at a parent.
 
-/SharePaths <ComputerName>[:AdminOnly|IncludeHidden|Match=<Str>|NoMatch=<Str>]
+/SharePaths <ComputerName>[:AdminOnly|IncludeHidden|NoDeDupe|Match=|NoMatch=]
    Specifies a server that has one or more shares to process. This command is
    equivalent to specifying /Path for every share on a particular file server.
    By default, only non-administrative, non-hidden shares are scanned.
    To only scan administrative shares (e.g. C$), append :AdminOnly to the
    computer name. To include hidden, non-administrative shares, append
    :IncludeHidden to the computer name. By appending :Match= or :NoMatch=
-   with a literal string or regular expression, any share name that does not
-   match or mismatch the specified string, respectively, will be excluded.
+   followed by a regular expression, any share name that does not match or 
+   mismatch the specified string, respectively, will be excluded. By default, 
+   shares whose directories are already covered by other shares are
+   automatically de-duped; to stop this behavior use the :NoDeDupe flag.
 
 /DomainPaths <DomainName>[:StopOnError|<See /SharePaths>]
    Specifies a domain to scan for member servers that should be processed.
@@ -159,12 +161,14 @@ Commands That Do Not Alter Settings
    distinguished name is searched. For registry scans, the key name is searched
    To report all data, pass .* as the regular expression.
 
-/LocateHash <FileName> <FileRegularExpression>[:<SearchHash>[:<SearchSize>]]
-   Similar to /Locate, but the report file will also contain the SHA256 hash  
-   of files that match the search criteria. The search criteria can optionally
-   include a SHA256 hash (in hex) and file size. Specifying file size can 
-   dramatically increase search performance since only files with matching 
-   sizes are read for hash comparison.
+/LocateHash <FileName> <FileRegularExpression>:<SearchHash>[:<SearchSize>]
+   Similar to /Locate, but the report file will also contain the hash  
+   of files that match the search criteria. The hash algorithm is automatically
+   determined based on the length of the provided SearchHash values, which must
+   be provided in hex characters. Supported hashes are MD5, SHA1, SHA256, SHA384,
+   and SHA512. The search criteria can optionally include a hash file size. 
+   Specifying file size can dramatically increase search performance since only 
+   files with matching sizes are read for hash comparison.
 
 /Report <FileName> <AccountRegularExpression>
    This command will write a comma separated value file with the fields of
@@ -214,7 +218,7 @@ Commands That Can Alter Settings (When /WhatIf Is Not Present)
 /CopyMap <FileName>
    This command will read in the specified file that contains a list of 
    account mappings in <SearchName>:<CopyName> format. This command only
-   affects the DACL and SACL. This common is similiar to the /ReplaceMap 
+   affects the DACL and SACL. This common is similar to the /ReplaceMap 
    command but it does not affect the owner and does not removed the original
    account.
 
@@ -248,7 +252,10 @@ Commands That Can Alter Settings (When /WhatIf Is Not Present)
    how to set up inheritance.
 
 /RemoveStreams
-   Removes any alternate data streams on targeted files.
+/RemoveStreamsByName <RegularExpression>
+   Removes any alternate data streams on targeted files. With 
+   /RemoveStreamsByName, you can also specify a regular expression to target a
+   specific stream. For example: /RemoveStreamsByName ".*Zone\.Identifier.*"
 
 /ReplaceAccount <SearchName|SearchSid>:<ReplaceName|ReplaceSid>
    Search for an account and replace it with another account.
