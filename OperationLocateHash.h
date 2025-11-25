@@ -1,6 +1,8 @@
 #pragma once
 
+#include <Windows.h>
 #include <regex>
+#include <vector>
 
 #include "Operation.h"
 
@@ -13,12 +15,17 @@ private:
 	static ClassFactory<OperationLocateHash> RegisteredFactory;
 
 	// operation specific
-	static constexpr int HASH_IN_BYTES = (256 / 8);
-	static constexpr int HASH_IN_HEXCHARS = (HASH_IN_BYTES * 2);
 	HANDLE hReportFile = INVALID_HANDLE_VALUE;
 	std::wregex tRegex;
-	PBYTE aHashToMatch = nullptr;
+	std::vector<BYTE> aHashToMatch;
 	LONGLONG iSizeToMatch = -1;
+
+	// hashing environment
+	BCRYPT_ALG_HANDLE hAlgHandle = nullptr;
+	BCRYPT_HASH_HANDLE hHashHandle = nullptr;
+	std::vector<BYTE> aHash;
+	std::vector<BYTE> aFileBuffer;
+	DWORD iHashLength = 0;
 
 public:
 
@@ -27,4 +34,7 @@ public:
 
 	// constructors
 	OperationLocateHash(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
+
+	// destructor
+	~OperationLocateHash();
 };

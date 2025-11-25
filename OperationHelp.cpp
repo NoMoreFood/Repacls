@@ -167,12 +167,14 @@ Commands That Do Not Alter Settings
 
 	std::wcout <<
 		LR"(
-/LocateHash <FileName> <FileRegularExpression>[:<SearchHash>[:<SearchSize>]]
-   Similar to /Locate, but the report file will also contain the SHA256 hash  
-   of files that match the search criteria. The search criteria can optionally
-   include a SHA256 hash (in hex) and file size. Specifying file size can 
-   dramatically increase search performance since only files with matching 
-   sizes are read for hash comparison.
+/LocateHash <FileName> <FileRegularExpression>:<SearchHash>[:<SearchSize>]
+   Similar to /Locate, but the report file will also contain the hash  
+   of files that match the search criteria. The hash algorithm is automatically
+   determined based on the length of the provided SearchHash values, which must
+   be provided in hex chracters. Supported hashes are MD5, SHA1, SHA256, SHA384,
+   and SHA512. The search criteria can optionally include a hash file size. 
+   Specifying file size can dramatically increase search performance since only 
+   files with matching sizes are read for hash comparison.
 
 /Report <FileName> <AccountRegularExpression>
    This command will write a comma separated value file with the fields of

@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 #include <queue>
+#include <algorithm>
+#include <cwchar>
 #include <map>
 
 typedef struct ObjectEntry
