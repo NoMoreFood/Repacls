@@ -5,7 +5,6 @@
 #pragma comment(lib, "bcrypt.lib")
 #pragma comment(lib, "crypt32.lib")
 
-#include <bcrypt.h>
 #include <sal.h>
 
 ClassFactory<OperationLocateHash> OperationLocateHash::RegisteredFactory(GetCommand());
@@ -70,11 +69,37 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 		std::exit(-1);
 	}
 
+	// determine hash algorithm based on hash string length
+	const size_t iHashStringLength = sMatchAndArgs.at(1).size();
+	const std::map<size_t, LPCWSTR> hashAlgorithms = {
+		{ 32, BCRYPT_MD5_ALGORITHM },
+		{ 40, BCRYPT_SHA1_ALGORITHM },
+		{ 64, BCRYPT_SHA256_ALGORITHM },
+		{ 96, BCRYPT_SHA384_ALGORITHM },
+		{ 128, BCRYPT_SHA512_ALGORITHM }
+	};
+	const auto hashAlg = hashAlgorithms.find(iHashStringLength);
+	if (hashAlg == hashAlgorithms.end())
+	{
+		wprintf(L"ERROR: Invalid hash '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(1).c_str(), GetCommand().c_str());
+		std::exit(-1);
+	}
+
+	// initialize hashing environment
+	DWORD ResultLength = 0;
+	if (BCryptOpenAlgorithmProvider(&hAlgHandle, hashAlg->second, nullptr, BCRYPT_HASH_REUSABLE_FLAG) != 0 ||
+		BCryptGetProperty(hAlgHandle, BCRYPT_HASH_LENGTH, (PBYTE)&iHashLength, sizeof(DWORD), &ResultLength, 0) != 0 ||
+		BCryptCreateHash(hAlgHandle, &hHashHandle, nullptr, 0, nullptr, 0, BCRYPT_HASH_REUSABLE_FLAG) != 0)
+	{
+		wprintf(L"ERROR: Could not setup hashing environment.\n");
+		std::exit(-1);
+	}
+
 	// determine hash to match
-	aHashToMatch = new BYTE[HASH_IN_BYTES];
-	DWORD iBytesRead = HASH_IN_BYTES;
+	aHashToMatch.resize(iHashLength);
+	DWORD iBytesRead = iHashLength;
 	if (CryptStringToBinary(sMatchAndArgs.at(1).c_str(), (DWORD) sMatchAndArgs.at(1).size(),
-		CRYPT_STRING_HEX_ANY, aHashToMatch, &iBytesRead, nullptr, nullptr) == FALSE || iBytesRead != HASH_IN_BYTES)
+		CRYPT_STRING_HEX_ANY, aHashToMatch.data(), &iBytesRead, nullptr, nullptr) == FALSE || iBytesRead != (DWORD)iHashLength)
 	{
 		wprintf(L"ERROR: Invalid hash '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(1).c_str(), GetCommand().c_str());
 		std::exit(-1);
@@ -84,6 +109,21 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 	if (sMatchAndArgs.size() > 2)
 	{
 		iSizeToMatch = _wtoll(sMatchAndArgs.at(2).c_str());
+	}
+
+	aHash.resize(iHashLength);
+	aFileBuffer.resize(2ull * 1024ull * 1024ull);
+}
+
+OperationLocateHash::~OperationLocateHash()
+{
+	if (hHashHandle != nullptr)
+	{
+		BCryptDestroyHash(hHashHandle);
+	}
+	if (hAlgHandle != nullptr)
+	{
+		BCryptCloseAlgorithmProvider(hAlgHandle, 0);
 	}
 }
 
@@ -100,29 +140,8 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	if (wcsrchr(sFileName, '\\') != nullptr) sFileName = wcsrchr(sFileName, '\\') + 1;
 	if (!std::regex_match(sFileName, tRegex)) return;
 
-	// initialize hash for this thread
-	static constexpr size_t iFileBuffer = 2ull * 1024ull * 1024ull;
-	thread_local BCRYPT_HASH_HANDLE HashHandle = nullptr;
-	thread_local PBYTE Hash = nullptr;
-	thread_local PBYTE FileBuffer = nullptr; 
-	thread_local DWORD HashLength = 0;
-	if (Hash == nullptr)
-	{
-		BCRYPT_ALG_HANDLE AlgHandle = nullptr;
-		DWORD ResultLength = 0;
-		if (BCryptOpenAlgorithmProvider(&AlgHandle, BCRYPT_SHA256_ALGORITHM, nullptr, BCRYPT_HASH_REUSABLE_FLAG) != 0 ||
-			BCryptGetProperty(AlgHandle, BCRYPT_HASH_LENGTH, (PBYTE) &HashLength, sizeof(HashLength), &ResultLength, 0) != 0 ||
-			BCryptCreateHash(AlgHandle, &HashHandle, nullptr, 0, nullptr, 0, BCRYPT_HASH_REUSABLE_FLAG) != 0 ||
-			(Hash = (PBYTE) malloc(HashLength)) == nullptr ||
-			(FileBuffer = (PBYTE) malloc(iFileBuffer)) == nullptr)
-		{
-			wprintf(L"ERROR: Could not setup hashing environment.\n");
-			std::exit(-1);
-		}
-	}
-
 	HANDLE hFile = CreateFile(tObjectEntry.Name.c_str(), GENERIC_READ, FILE_SHARE_READ,
-	                          nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+	           nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		InputOutput::AddError(L"Unable to open file for reading.");
@@ -132,9 +151,9 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	DWORD iReadResult = 0;
 	DWORD iHashResult = 0;
 	DWORD iReadBytes = 0;
-	while ((iReadResult = ReadFile(hFile, FileBuffer, iFileBuffer, &iReadBytes, nullptr)) != 0 && iReadBytes > 0)
+	while ((iReadResult = ReadFile(hFile, aFileBuffer.data(), (DWORD)aFileBuffer.size(), &iReadBytes, nullptr)) != 0 && iReadBytes > 0)
 	{
-		iHashResult = BCryptHashData(HashHandle, FileBuffer, iReadBytes, 0);
+		iHashResult = BCryptHashData(hHashHandle, aFileBuffer.data(), iReadBytes, 0);
 		if (iHashResult != 0) break;
 	}
 
@@ -142,7 +161,7 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	CloseHandle(hFile);
 	
 	// complete hash data
-	if (BCryptFinishHash(HashHandle, Hash, HashLength, 0) != 0)
+	if (BCryptFinishHash(hHashHandle, aHash.data(), iHashLength, 0) != 0)
 	{
 		InputOutput::AddError(L"Could not finalize file data for hashing.");
 		std::exit(-1);
@@ -156,16 +175,16 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	}
 
 	// skip if a hash was specified and there is no match
-	if (aHashToMatch != nullptr && memcmp(aHashToMatch, Hash, HASH_IN_BYTES) != 0)
+	if (!aHashToMatch.empty() && memcmp(aHashToMatch.data(), aHash.data(), iHashLength) != 0)
 	{
 		return;
 	}
 
-	// convert to base64
-	WCHAR sHash[HASH_IN_HEXCHARS + 1] = L"";
-	DWORD iHashStringLength = HASH_IN_HEXCHARS + 1;
-	CryptBinaryToStringW(Hash, HashLength, CRYPT_STRING_HEXRAW | CRYPT_STRING_NOCRLF, 
-		sHash, &iHashStringLength);
+	// convert to hex string
+	DWORD iHashStringLength = iHashLength * 2 + 1;
+	std::vector<WCHAR> sHash(iHashStringLength);
+	CryptBinaryToStringW(aHash.data(), iHashLength, CRYPT_STRING_HEXRAW | CRYPT_STRING_NOCRLF, 
+		sHash.data(), &iHashStringLength);
 
 	// get common file attributes
 	const std::wstring sSize = FileSizeToString(tObjectEntry.FileSize);
@@ -176,7 +195,7 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	// write output to file
 	const std::wstring sToWrite = std::wstring(L"") + Q(tObjectEntry.Name) + L"," +
 		Q(sCreationTime) + L"," + Q(sModifiedTime) + L"," + 
-		Q(sSize) + L"," + Q(sAttributes) + L"," + Q(sHash) + L"," + L"\r\n";
+		Q(sSize) + L"," + Q(sAttributes) + L"," + Q(sHash.data()) + L"," + L"\r\n";
 	if (WriteToFile(sToWrite, hReportFile) == 0)
 	{
 		InputOutput::AddError(L"Unable to write information to report file.");
