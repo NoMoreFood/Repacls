@@ -2,11 +2,8 @@
 #include <ntstatus.h>
 
 #include <Windows.h>
-#include <cstdio>
 #include <queue>
 #include <vector>
-#include <io.h>
-#include <fcntl.h>
 #include <lmcons.h>
 
 #include <string>
@@ -36,7 +33,8 @@ VOID BeginScan(Processor & oProcessor)
 	// startup some threads for processing
 	std::vector<std::thread> oThreads;
 	oProcessor.GetQueue().SetWaiterCounter(InputOutput::MaxThreads());
-	for (USHORT iNum = 0; iNum < InputOutput::MaxThreads(); iNum++)
+	oThreads.reserve(InputOutput::MaxThreads());
+	for (SHORT iNum = 0; iNum < InputOutput::MaxThreads(); iNum++)
 		oThreads.emplace_back([&oProcessor,oObject]() {
 		for (;;)
 		{
@@ -80,16 +78,12 @@ VOID BeginScan(Processor & oProcessor)
 
 int wmain(int iArgs, WCHAR * aArgs[])
 {
-	// allow output of unicode characters
-	std::ignore = _setmode(_fileno(stderr), _O_U16TEXT);
-	std::ignore = _setmode(_fileno(stdout), _O_U16TEXT);
-
 	// fetch currently running executable name
 	std::wstring sVersion;
 	LPWSTR sCurrentExe = nullptr;
 	if (_get_wpgmptr(&sCurrentExe) != 0 || sCurrentExe == nullptr)
 	{
-		wprintf(L"%s\n", L"ERROR: Cannot get currently running executable name.");
+		Print(L"ERROR: Cannot get currently running executable name.");
 		std::exit(-1);
 	}
 	
@@ -106,9 +100,9 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	}
 
 	// print standard header
-	wprintf(L"===============================================================================\n");
-	wprintf(L"= Repacls Version %s by Bryan Berns\n", sVersion.c_str());
-	wprintf(L"===============================================================================\n");
+	Print(L"===============================================================================");
+	Print(L"= Repacls Version {} by Bryan Berns", sVersion);
+	Print(L"===============================================================================");
 
 	// translate
 	std::queue<std::wstring> oArgList;
@@ -150,7 +144,7 @@ int wmain(int iArgs, WCHAR * aArgs[])
 			// do exclusivity check and error
 			if (bExclusiveOperation && oOperation->ExclusiveOperation)
 			{
-				wprintf(L"%s\n", L"ERROR: More than one exclusive operation was specified.");
+				Print(L"ERROR: More than one exclusive operation was specified.");
 				std::exit(-1);
 			}
 
@@ -169,7 +163,7 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	// verify a path was specified
 	if (InputOutput::ScanPaths().empty())
 	{
-		wprintf(L"%s\n", L"ERROR: No path was specified.");
+		Print(L"ERROR: No path was specified.");
 		std::exit(-1);
 	}
 
@@ -183,16 +177,16 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	}
 	
 	// note parameter information
-	wprintf(L"\n");
-	wprintf(L"===============================================================================\n");
-	wprintf(L"= Initial Scan Details\n");
-	wprintf(L"===============================================================================\n");
+	Print(L"");
+	Print(L"===============================================================================");
+	Print(L"= Initial Scan Details");
+	Print(L"===============================================================================");
 	for (auto& sScanPath : InputOutput::ScanPaths())
-		wprintf(L"= Scan Path(s): %s\n", sScanPath.c_str());
-	wprintf(L"= Maximum Threads: %d\n", (int)InputOutput::MaxThreads());
-	wprintf(L"= What If Mode: %s\n", InputOutput::InWhatIfMode() ? L"Yes" : L"No");
-	wprintf(L"= Antivirus Active: %s\n", GetAntivirusStateDescription().c_str());
-	wprintf(L"===============================================================================\n");
+		Print(L"= Scan Path(s): {}", sScanPath);
+	Print(L"= Maximum Threads: {}", static_cast<int>(InputOutput::MaxThreads()));
+	Print(L"= What If Mode: {}", InputOutput::InWhatIfMode() ? L"Yes" : L"No");
+	Print(L"= Antivirus Active: {}", GetAntivirusStateDescription());
+	Print(L"===============================================================================");
 
 	// do the scan
 	const ULONGLONG iTimeStart = GetTickCount64();
@@ -201,13 +195,13 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	const ULONGLONG iTimeStop = GetTickCount64();
 
 	// print out statistics
-	wprintf(L"===============================================================================\n");
-	wprintf(L"= Total Scanned: %llu\n", (ULONGLONG)oProcessor.ItemsScanned);
-	wprintf(L"= Read Failures: %llu\n", (ULONGLONG)oProcessor.ItemsEnumerationFailures);
-	wprintf(L"= Enumeration Failures: %llu\n", (ULONGLONG)oProcessor.ItemsReadFailures);
-	wprintf(L"= Update Successes: %llu\n", (ULONGLONG)oProcessor.ItemsUpdatedSuccess);
-	wprintf(L"= Update Failures: %llu\n", (ULONGLONG)oProcessor.ItemsUpdatedFailure);
-	wprintf(L"= Time Elapsed: %.3f\n", ((double)(iTimeStop - iTimeStart)) / 1000.0);
-	wprintf(L"= Note: Update statistics do not include changes due to inherited rights.\n");
-	wprintf(L"===============================================================================\n");
+	Print(L"===============================================================================");
+	Print(L"= Total Scanned: {}", static_cast<ULONGLONG>(oProcessor.ItemsScanned));
+	Print(L"= Read Failures: {}", static_cast<ULONGLONG>(oProcessor.ItemsEnumerationFailures));
+	Print(L"= Enumeration Failures: {}", static_cast<ULONGLONG>(oProcessor.ItemsReadFailures));
+	Print(L"= Update Successes: {}", static_cast<ULONGLONG>(oProcessor.ItemsUpdatedSuccess));
+	Print(L"= Update Failures: {}", static_cast<ULONGLONG>(oProcessor.ItemsUpdatedFailure));
+	Print(L"= Time Elapsed: {:.3f}", static_cast<double>(iTimeStop - iTimeStart) / 1000.0);
+	Print(L"= Note: Update statistics do not include changes due to inherited rights.");
+	Print(L"===============================================================================");
 }

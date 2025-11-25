@@ -7,7 +7,6 @@
 template <typename T>
 class ConcurrentQueue final
 {
-private:
 	std::condition_variable oItemAvailableCondition;
 	std::condition_variable oIsEmptyCondition;
 	std::queue<T> oQueue;

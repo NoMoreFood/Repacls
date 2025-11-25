@@ -1,5 +1,4 @@
 #include "OperationDepth.h"
-#include "InputOutput.h"
 #include "Helpers.h"
 
 ClassFactory<OperationDepth> OperationDepth::RegisteredFactory(GetCommand());
@@ -14,10 +13,10 @@ OperationDepth::OperationDepth(std::queue<std::wstring> & oArgList, const std::w
 	if (iDepth < 0)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid depth specified for parameter '%s'.\n", GetCommand().c_str());
+		Print(L"ERROR: Invalid depth specified for parameter '{}'.", GetCommand());
 		std::exit(-1);
 	}
 
 	// store for dynamic lookup
-	OperationDepth::MaxDepth() = iDepth;
+	MaxDepth() = iDepth;
 };

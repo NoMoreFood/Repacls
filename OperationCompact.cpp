@@ -29,7 +29,7 @@ bool OperationCompact::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry
 			tAceOuter->AceType != ACCESS_DENIED_ACE_TYPE &&
 			tAceOuter->AceType != SYSTEM_AUDIT_ACE_TYPE) continue;
 
-		// only process explicit entires
+		// only process explicit entries
 		if (IsInherited(tAceOuter)) continue;
 
 		bool bSkipIncrement = false;
@@ -42,7 +42,7 @@ bool OperationCompact::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry
 
 			// stop processing completely if the flags are not identical or
 			// the flags aren't mergeable with identical masks
-			if (!(tAceInner->AceFlags == tAceOuter->AceFlags) &&
+			if (tAceInner->AceFlags != tAceOuter->AceFlags &&
 				!((tAceInner->Mask == tAceOuter->Mask) &&
 				(GetNonOiCiIoBits(tAceInner) == GetNonOiCiIoBits(tAceOuter)))) continue;
 

@@ -16,7 +16,7 @@ OperationFindAccount::OperationFindAccount(std::queue<std::wstring> & oArgList, 
 	if (tFindSid == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid account '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid account '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
 		std::exit(0);
 	}
 
@@ -41,5 +41,5 @@ SidActionResult OperationFindAccount::DetermineSid(const WCHAR * const sSdPart, 
 		InputOutput::AddInfo(L"Found identifier '" + sFindSid + L"'", sSdPart, true);
 	}
 
-	return SidActionResult::Nothing; 
+	return Nothing; 
 }

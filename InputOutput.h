@@ -1,13 +1,11 @@
 #pragma once
 
 #include <string>
-#include <iostream>
 
 #include "OperationLog.h"
 
 class InputOutput
 {
-private:
 
 	static std::wstring & GetFileName() noexcept
 	{
@@ -68,8 +66,8 @@ public:
 		{
 			const std::wstring sUnc = L"\\??\\UNC\\";
 			const std::wstring sLocal = L"\\??\\";
-			if (sLine.compare(0, sUnc.size(), sUnc) == 0) { iPrefix = sUnc.size(); sPrefix = L"\\\\"; }
-			else if (sLine.compare(0, sLocal.size(), sLocal) == 0) iPrefix = sLocal.size();
+			if (sLine.starts_with(sUnc)) { iPrefix = sUnc.size(); sPrefix = L"\\\\"; }
+			else if (sLine.starts_with(sLocal)) iPrefix = sLocal.size();
 			else iPrefix = 0;
 		}
 
@@ -116,7 +114,7 @@ public:
 		// output to screen if there is anything to write
 		if (!GetFileName().empty() && !GetDetail().empty())
 		{
-			wprintf(L"OBJECT: %s", (GetFileName() + L"\n" + GetDetail()).c_str());
+			Print(L"OBJECT: {}", GetFileName() + L"\n" + GetDetail());
 		}
 
 		// clear out buffer now that it's printed

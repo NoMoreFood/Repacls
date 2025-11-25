@@ -15,7 +15,7 @@ OperationRemoveStreams::OperationRemoveStreams(std::queue<std::wstring>& oArgLis
 	if (hModule == nullptr || (NtQueryInformationFile = (decltype(NtQueryInformationFile)) 
 		GetProcAddress(hModule, "NtQueryInformationFile")) == nullptr)
 	{
-		wprintf(L"ERROR: Unable to obtain function pointer in parameter '%s'.\n", GetCommand().c_str());
+		Print(L"ERROR: Unable to obtain function pointer in parameter '{}'.", GetCommand());
 		std::exit(-1);
 	}
 
@@ -32,7 +32,7 @@ OperationRemoveStreams::OperationRemoveStreams(std::queue<std::wstring>& oArgLis
 	}
 	catch (const std::regex_error&)
 	{
-		wprintf(L"ERROR: Invalid regular expression specified for parameter '%s'.\n", GetCommandByName().c_str());
+		Print(L"ERROR: Invalid regular expression specified for parameter '{}'.", GetCommandByName());
 		std::exit(-1);
 	}
 
@@ -57,7 +57,7 @@ void OperationRemoveStreams::ProcessObjectAction(ObjectEntry& tObjectEntry)
 	for (iStatus = STATUS_BUFFER_OVERFLOW; iStatus == STATUS_BUFFER_OVERFLOW;
 		sInfoBuffer.resize(sInfoBuffer.size() * 2, 0))
 	{
-		iStatus = NtQueryInformationFile(hFile, &tIOStatus, sInfoBuffer.data(), (ULONG) sInfoBuffer.size(), FileStreamInformation);
+		iStatus = NtQueryInformationFile(hFile, &tIOStatus, sInfoBuffer.data(), static_cast<ULONG>(sInfoBuffer.size()), FileStreamInformation);
 		if (iStatus == STATUS_SUCCESS) break;
 	}
 

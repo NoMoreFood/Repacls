@@ -30,7 +30,7 @@ OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgL
 	// error if no options set
 	if (aPermList.empty())
 	{
-		wprintf(L"ERROR: Invalid or no permissions string specified for parameter '%s'.\n", GetCommandAdd().c_str());
+		Print(L"ERROR: Invalid or no permissions string specified for parameter '{}'.", GetCommandAdd());
 		std::exit(-1);
 	}
 
@@ -44,11 +44,11 @@ OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgL
 	tEa.Trustee.TrusteeType = TRUSTEE_IS_UNKNOWN;
 
 	// see if names could be resolved
-	tEa.Trustee.ptstrName = (LPWCH) GetSidFromName(sIdentity);
+	tEa.Trustee.ptstrName = static_cast<LPWCH>(GetSidFromName(sIdentity));
 	if (tEa.Trustee.ptstrName == nullptr)
 	{
-		wprintf(L"ERROR: Invalid account '%s' specified for parameter '%s'.\n", 
-			sIdentity.c_str(), GetCommandAdd().c_str());
+		Print(L"ERROR: Invalid account '{}' specified for parameter '{}'.", 
+			sIdentity, GetCommandAdd());
 		std::exit(-1);
 	}
 
@@ -104,7 +104,7 @@ OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgL
 		else
 		{
 			// complain
-			wprintf(L"ERROR: Invalid permission string '%s' specified for parameter '%s'.\n", sPerms.c_str(), GetCommandAdd().c_str());
+			Print(L"ERROR: Invalid permission string '{}' specified for parameter '{}'.", sPerms, GetCommandAdd());
 			std::exit(-1);
 		}
 	}
@@ -142,7 +142,7 @@ bool OperationGrantDenyPerms::ProcessAclAction(const WCHAR* const sSdPart, Objec
 			if (tAceDacl->Mask != tEa.grfAccessPermissions) continue;
 
 			// skip this ace inheritance mask is not the same except if it is inherited
-			if ((tAceDacl->AceFlags & ((DWORD) ~INHERITED_ACE)) != 
+			if ((tAceDacl->AceFlags & static_cast<DWORD>(~INHERITED_ACE)) != 
 				(tEa.grfInheritance & iObjectTypeMask)) continue;
 
 			// if we got this far, it means we have a duplicate ace so just skip it

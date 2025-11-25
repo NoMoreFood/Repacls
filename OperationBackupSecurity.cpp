@@ -17,7 +17,7 @@ OperationBackupSecurity::OperationBackupSecurity(std::queue<std::wstring> & oArg
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		// complain
-		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Could not create file '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
 		std::exit(-1);
 	}
 
@@ -26,7 +26,7 @@ OperationBackupSecurity::OperationBackupSecurity(std::queue<std::wstring> & oArg
 	DWORD iBytes = 0;
 	if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 	{
-		wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
+		Print(L"ERROR: Could not write out file type marker '{}'.", GetCommand());
 		std::exit(-1);
 	}
 

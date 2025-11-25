@@ -16,7 +16,7 @@ OperationRemoveDomain::OperationRemoveDomain(std::queue<std::wstring> & oArgList
 	if (tDomainSid == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid domain '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid domain '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
 		std::exit(0);
 	}
 
@@ -41,12 +41,12 @@ SidActionResult OperationRemoveDomain::DetermineSid(const WCHAR * const sSdPart,
 		bDomainSidsEqual == FALSE)
 	{
 		// no match - cease processing this instruction
-		return SidActionResult::Nothing;
+		return Nothing;
 	}
 
 	// update the sid in the ace
 	const std::wstring sSid = GetNameFromSidEx(tCurrentSid);
 	InputOutput::AddInfo(L"Removing account or sid reference '" + sSid + L"' from domain '" + sDomainName + L"'", sSdPart);
 	tResultantSid = nullptr;
-	return SidActionResult::Remove;
+	return Remove;
 }

@@ -37,7 +37,7 @@ void ObjectFile::GetBaseObject(std::wstring sPath)
 	GetFileAttributesExW(oEntryFirst.Name.c_str(), GetFileExInfoStandard, &tData);
 	oEntryFirst.Depth = 0;
 	oEntryFirst.ObjectType = SE_FILE_OBJECT;
-	oEntryFirst.FileSize = { { tData.nFileSizeLow, (LONG) tData.nFileSizeHigh } };
+	oEntryFirst.FileSize = { { tData.nFileSizeLow, static_cast<LONG>(tData.nFileSizeHigh) } };
 	oEntryFirst.Attributes = tData.dwFileAttributes;
 	oEntryFirst.CreationTime = tData.ftCreationTime;
 	oEntryFirst.ModifiedTime = tData.ftLastWriteTime;
@@ -72,8 +72,8 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 	}
 
 	// construct a string that can be used in the rtl apis
-	UNICODE_STRING tPathU = { USHORT(oEntry.Name.size() * sizeof(WCHAR)),
-		USHORT(oEntry.Name.size() * sizeof(WCHAR)),oEntry.Name.data() };
+	UNICODE_STRING tPathU = { static_cast<USHORT>(oEntry.Name.size() * sizeof(WCHAR)),
+		static_cast<USHORT>(oEntry.Name.size() * sizeof(WCHAR)),oEntry.Name.data() };
 
 	// update object attributes object
 	OBJECT_ATTRIBUTES oAttributes;
@@ -116,7 +116,7 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 	{
 		thread_local BYTE DirectoryInfo[MAX_DIRECTORY_BUFFER];
 		Status = NtQueryDirectoryFile(hFindFile, nullptr, nullptr, nullptr, &IoStatusBlock,
-		                              DirectoryInfo, MAX_DIRECTORY_BUFFER, (FILE_INFORMATION_CLASS)FileDirectoryInformation,
+		                              DirectoryInfo, MAX_DIRECTORY_BUFFER, static_cast<FILE_INFORMATION_CLASS>(FileDirectoryInformation),
 		                              FALSE, nullptr, (bFirstRun) ? TRUE : FALSE);
 
 		// done processing
@@ -147,8 +147,8 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 			oSubEntry.ObjectType = SE_FILE_OBJECT;
 			oSubEntry.FileSize = { { oInfo->EndOfFile.LowPart, oInfo->EndOfFile.HighPart } };
 			oSubEntry.Attributes = oInfo->FileAttributes;
-			oSubEntry.CreationTime = { oInfo->CreationTime.LowPart, (DWORD)oInfo->CreationTime.HighPart };
-			oSubEntry.ModifiedTime = { oInfo->LastWriteTime.LowPart, (DWORD)oInfo->LastWriteTime.HighPart };
+			oSubEntry.CreationTime = { oInfo->CreationTime.LowPart, static_cast<DWORD>(oInfo->CreationTime.HighPart) };
+			oSubEntry.ModifiedTime = { oInfo->LastWriteTime.LowPart, static_cast<DWORD>(oInfo->LastWriteTime.HighPart) };
 			oSubEntry.Name += oEntry.Name + ((oEntry.Depth == 0 && oEntry.Name.back() == '\\') ? L"" : L"\\")
 				+ std::wstring(oInfo->FileName, oInfo->FileNameLength / sizeof(WCHAR));
 

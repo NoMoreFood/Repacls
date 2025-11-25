@@ -4,11 +4,6 @@
 
 ClassFactory<OperationReport> OperationReport::RegisteredFactory(GetCommand());
 
-constexpr std::wstring Q(const std::wstring& x)
-{
-	return L"\"" + x + L"\"";
-}
-
 OperationReport::OperationReport(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
@@ -23,7 +18,7 @@ OperationReport::OperationReport(std::queue<std::wstring> & oArgList, const std:
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		// complain
-		wprintf(L"ERROR: Could not create file '%s' specified for parameter '%s'.\n", sReportFile.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Could not create file '{}' specified for parameter '{}'.", sReportFile.at(0), GetCommand());
 		std::exit(-1);
 	}
 
@@ -38,16 +33,15 @@ OperationReport::OperationReport(std::queue<std::wstring> & oArgList, const std:
 		DWORD iBytes = 0;
 		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 		{
-			wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
+			Print(L"ERROR: Could not write out file type marker '{}'.", GetCommand());
 			std::exit(-1);
 		}
 
 		// write out the header
-		const std::wstring sToWrite = std::wstring(L"") + Q(L"Path") + L"," + Q(L"Descriptor Part") + L"," +
-			Q(L"Account Name") + L"," + Q(L"Permissions") + L"," + Q(L"Inheritance") + L"," + Q(L"Object Type") + L"\r\n";
-		if (WriteToFile(sToWrite, hReportFile) == 0)
+		if (WriteToFile(OutToCsv(L"Path", L"Descriptor Part", L"Account Name", 
+			L"Permissions", L"Inheritance", L"Object Type"), hReportFile) == 0)
 		{
-			wprintf(L"ERROR: Could not write header to report file for parameter '%s'.\n", GetCommand().c_str());
+			Print(L"ERROR: Could not write header to report file for parameter '{}'.", GetCommand());
 			std::exit(-1);
 		}
 	}
@@ -59,7 +53,7 @@ OperationReport::OperationReport(std::queue<std::wstring> & oArgList, const std:
 	}
 	catch (const std::regex_error &)
 	{
-		wprintf(L"ERROR: Invalid regular expression '%s' specified for parameter '%s'.\n", sMatchAndArgs.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid regular expression '{}' specified for parameter '{}'.", sMatchAndArgs.at(0), GetCommand());
 		std::exit(-1);
 	}
 
@@ -76,22 +70,21 @@ OperationReport::OperationReport(std::queue<std::wstring> & oArgList, const std:
 SidActionResult OperationReport::DetermineSid(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PSID const tCurrentSid, PSID & tResultantSid)
 {
 	// do not report null sids
-	if (tCurrentSid == nullptr) return SidActionResult::Nothing;
+	if (tCurrentSid == nullptr) return Nothing;
 
 	// fetch the account from the sid
 	const std::wstring sAccount = GetNameFromSidEx(tCurrentSid);
 
 	// skip any accounts that do not match the regex
-	if (!std::regex_match(sAccount, tRegex)) return SidActionResult::Nothing;
+	if (!std::regex_match(sAccount, tRegex)) return Nothing;
 
 	// write the string to a file
-	const std::wstring sToWrite = Q(tObjectEntry.Name) + L"," + Q(sSdPart) + L"," + Q(sAccount) + L"\r\n";
-	if (WriteToFile(sToWrite, hReportFile) == 0)
+	if (WriteToFile(OutToCsv(tObjectEntry.Name, sSdPart, sAccount), hReportFile) == 0)
 	{
 		InputOutput::AddError(L"Unable to write security information to report file.");
 	}
 
-	return SidActionResult::Nothing;
+	return Nothing;
 }
 
 bool OperationReport::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
@@ -121,9 +114,7 @@ bool OperationReport::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry 
 		const std::wstring sType = (tObjectEntry.Attributes & FILE_ATTRIBUTE_DIRECTORY) ? L"Container" : L"Leaf";
 
 		// write the string to a file
-		std::wstring sToWrite = Q(tObjectEntry.Name) + L"," + Q(sSdPart) + L"," +
-			Q(sAccount) + L"," + Q(sMask) + L"," + Q(sFlags) + L"," + Q(sType) + L"\r\n";
-		if (WriteToFile(sToWrite, hReportFile) == 0)
+		if (WriteToFile(OutToCsv(tObjectEntry.Name, sSdPart, sAccount, sMask, sFlags, sType), hReportFile) == 0)
 		{
 			InputOutput::AddError(L"Unable to write security information to report file.");
 		}

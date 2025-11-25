@@ -16,7 +16,7 @@ OperationRemoveAccount::OperationRemoveAccount(std::queue<std::wstring> & oArgLi
 	if (tRemoveSid == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid account '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid account '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
 		std::exit(-1);
 	}
 
@@ -38,11 +38,11 @@ SidActionResult OperationRemoveAccount::DetermineSid(const WCHAR * const sSdPart
 	// only process if sid matches
 	if (SidNotMatch(tCurrentSid, tRemoveSid))
 	{
-		return SidActionResult::Nothing;
+		return Nothing;
 	}
 
 	// update the sid in the ace
 	InputOutput::AddInfo(L"Removing account '" + sRemoveSid + L"'", sSdPart);
 	tResultantSid = nullptr;
-	return SidActionResult::Remove;
+	return Remove;
 }

@@ -16,7 +16,7 @@ OperationPathMode::OperationPathMode(std::queue<std::wstring> & oArgList, const 
 	else
 	{
 		// complain
-		wprintf(L"ERROR: Invalid path mode specified for parameter '%s'.\n", GetCommand().c_str());
+		Print(L"ERROR: Invalid path mode specified for parameter '{}'.", GetCommand());
 		std::exit(-1);
 	}
 };

@@ -18,7 +18,7 @@ OperationCopyDomain::OperationCopyDomain(std::queue<std::wstring> & oArgList, co
 	if (tSourceDomain == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid source domain '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid source domain '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
 		std::exit(0);
 	}
 
@@ -26,7 +26,7 @@ OperationCopyDomain::OperationCopyDomain(std::queue<std::wstring> & oArgList, co
 	if (tTargetDomain == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid target domain '%s' specified for parameter '%s'.\n", sSubArgs.at(1).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid target domain '{}' specified for parameter '{}'.", sSubArgs.at(1), GetCommand());
 		std::exit(0);
 	}
 
@@ -44,7 +44,7 @@ OperationCopyDomain::OperationCopyDomain(std::queue<std::wstring> & oArgList, co
 
 bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
-	// check on canonicalization status so if can error if the acl needs to be updated
+	// check on canonicalization status so it can error if the acl needs to be updated
 	const bool bAclIsCanonical = OperationCheckCanonical::IsAclCanonical(tCurrentAcl);
 
 	// check explicit effective rights from sid (no groups)
@@ -60,7 +60,7 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 			
 			// see if this sid in the source domain
 			BOOL bDomainSidsEqual = FALSE;
-			const PISID tSidStruct = (PISID)GetSidFromAce(tAceDacl);
+			const PISID tSidStruct = static_cast<PISID>(GetSidFromAce(tAceDacl));
 			if (EqualDomainSid(tSidStruct, tSourceDomain, &bDomainSidsEqual) == 0 ||
 				bDomainSidsEqual == FALSE)
 			{
@@ -68,7 +68,7 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 				continue;
 			}
 
-			const PISID tSidTargetDomain = (PISID)tTargetDomain;
+			const PISID tSidTargetDomain = static_cast<PISID>(tTargetDomain);
 			PSID tTargetAccountSid = nullptr;
 			std::wstring sInfoToReport;
 			if (tSidStruct->SubAuthorityCount == 5 &&
@@ -125,7 +125,7 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 			}
 
 			// determine access mode
-			ACCESS_MODE tMode = ACCESS_MODE::NOT_USED_ACCESS;
+			ACCESS_MODE tMode = NOT_USED_ACCESS;
 			if (tAceDacl->AceType == ACCESS_ALLOWED_ACE_TYPE)
 			{
 				tMode = GRANT_ACCESS;
@@ -138,11 +138,11 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 			{
 				if (CheckBitSet(tAceDacl->AceFlags, SUCCESSFUL_ACCESS_ACE_FLAG))
 				{
-					tMode = (ACCESS_MODE) (tMode | SET_AUDIT_SUCCESS);
+					tMode = static_cast<ACCESS_MODE>(tMode | SET_AUDIT_SUCCESS);
 				}
 				if (CheckBitSet(tAceDacl->AceFlags, FAILED_ACCESS_ACE_FLAG))
 				{
-					tMode = (ACCESS_MODE) (tMode | SET_AUDIT_FAILURE);
+					tMode = static_cast<ACCESS_MODE>(tMode | SET_AUDIT_FAILURE);
 				}
 			}
 			else
@@ -168,7 +168,7 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 			tEa.grfInheritance = VALID_INHERIT_FLAGS & tAceDacl->AceFlags;
 			tEa.Trustee.MultipleTrusteeOperation = NO_MULTIPLE_TRUSTEE;
 			tEa.Trustee.pMultipleTrustee = nullptr;
-			tEa.Trustee.ptstrName = (LPWSTR) tTargetAccountSid;
+			tEa.Trustee.ptstrName = static_cast<LPWSTR>(tTargetAccountSid);
 			tEa.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 			tEa.Trustee.TrusteeType = TRUSTEE_IS_UNKNOWN;
 

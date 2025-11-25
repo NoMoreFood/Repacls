@@ -29,7 +29,7 @@ OperationPathList::OperationPathList(std::queue<std::wstring> & oArgList, const 
 		std::vector<std::wstring> oLineItems = SplitArgs(sLine, L"\r");
 		if (oLineItems.size() != 1)
 		{
-			wprintf(L"ERROR: Unable to parse string path list file.");
+			Print(L"ERROR: Unable to parse string path list file.");
 			std::exit(-1);
 		}
 

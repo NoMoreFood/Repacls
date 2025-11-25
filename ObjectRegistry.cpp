@@ -29,7 +29,7 @@ void ObjectRegistry::GetBaseObject(std::wstring sPath)
 	const auto oRootEntry = oRegMap.find(sRootName);
 	if (oRootEntry == oRegMap.end())
 	{
-		wprintf(L"ERROR: Could not parse registry path: %s", sPath.data());
+		Print(L"ERROR: Could not parse registry path: {}", sPath);
 		std::exit(-1);
 	}
 
@@ -45,7 +45,7 @@ void ObjectRegistry::GetChildObjects(ObjectEntry& oEntry)
 {
 	// open handle so we can enumerate subkeys
 	HKEY hParentKey = nullptr;
-	if (RegOpenKeyEx((HKEY) oEntry.hObject, oEntry.NameExtended.c_str(), REG_OPTION_OPEN_LINK, 
+	if (RegOpenKeyEx(static_cast<HKEY>(oEntry.hObject), oEntry.NameExtended.c_str(), REG_OPTION_OPEN_LINK, 
 		KEY_ENUMERATE_SUB_KEYS, &hParentKey) != ERROR_SUCCESS)
 	{
 		InputOutput::AddError(L"Access denied error occurred while enumerating registry key");

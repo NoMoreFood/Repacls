@@ -6,8 +6,6 @@
 
 ClassFactory<OperationLog> OperationLog::RegisteredFactory(GetCommand());
 
-#define Q(x) L"\"" + (x) + L"\""
-
 HANDLE OperationLog::hLogHandle = INVALID_HANDLE_VALUE;
 
 OperationLog::OperationLog(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
@@ -18,7 +16,7 @@ OperationLog::OperationLog(std::queue<std::wstring> & oArgList, const std::wstri
 	// exit immediately if command had already been called
 	if (hLogHandle != INVALID_HANDLE_VALUE)
 	{
-		wprintf(L"ERROR: %s cannot be specified more than once.", GetCommand().c_str());
+		Print(L"ERROR: {} cannot be specified more than once.", GetCommand());
 		std::exit(-1);
 	}
 
@@ -31,15 +29,14 @@ OperationLog::OperationLog(std::queue<std::wstring> & oArgList, const std::wstri
 	DWORD iBytes = 0;
 	if (WriteFile(hLogHandle, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 	{
-		wprintf(L"ERROR: Could not write out file type marker '%s'.\n", GetCommand().c_str());
+		Print(L"ERROR: Could not write out file type marker '{}'.", GetCommand());
 		std::exit(-1);
 	}
 
 	// write out the header
-	const std::wstring sToWrite = std::wstring(L"") + Q(L"Time") + L"," + Q(L"Type") + L"," + Q(L"Path") + L"," + Q(L"Message") + L"\r\n";
-	if (WriteToFile(sToWrite, hLogHandle) == 0)
+	if (WriteToFile(OutToCsv(L"Time", L"Type", L"Path", L"Message"), hLogHandle) == 0)
 	{
-		wprintf(L"ERROR: Could not write header to log file for parameter '%s'.\n", GetCommand().c_str());
+		Print(L"ERROR: Could not write header to log file for parameter '{}'.", GetCommand());
 		std::exit(-1);
 	}
 
@@ -60,10 +57,9 @@ void OperationLog::LogFileItem(const std::wstring & sInfoLevel, const std::wstri
 	std::ignore = wcsftime(sDate, _countof(sDate), L"%Y-%m-%d %H:%M:%S", &tLocalTime);
 
 	// write out information
-	const std::wstring sToWrite = std::wstring(L"") + Q(sDate) + L"," + Q(sInfoLevel) + L"," + Q(sPath) + L"," + Q(sMessage) + L"\r\n";
-	if (WriteToFile(sToWrite, hLogHandle) == 0)
+	if (WriteToFile(OutToCsv(sDate, sInfoLevel, sPath, sMessage), hLogHandle) == 0)
 	{
-		wprintf(L"ERROR: Could not write data to log file for parameter '%s'.\n", GetCommand().c_str());
+		Print(L"ERROR: Could not write data to log file for parameter '{}'.", GetCommand());
 		std::exit(-1);
 	}
 }

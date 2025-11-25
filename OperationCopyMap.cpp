@@ -33,7 +33,7 @@ OperationCopyMap::OperationCopyMap(std::queue<std::wstring> & oArgList, const st
 		// verify the line contains at least two elements
 		if (oLineItems.size() != 2)
 		{
-			wprintf(L"ERROR: The replacement map line '%s' is invalid.", sLine.c_str());
+			Print(L"ERROR: The replacement map line '{}' is invalid.", sLine);
 			std::exit(-1);
 		}
 		
@@ -41,7 +41,7 @@ OperationCopyMap::OperationCopyMap(std::queue<std::wstring> & oArgList, const st
 		const PSID tSearchSid = GetSidFromName(oLineItems.at(0));
 		if (tSearchSid == nullptr)
 		{
-			wprintf(L"ERROR: The map search value '%s' is invalid.", oLineItems.at(0).c_str());
+			Print(L"ERROR: The map search value '{}' is invalid.", oLineItems.at(0));
 			std::exit(-1);
 		}
 
@@ -49,7 +49,7 @@ OperationCopyMap::OperationCopyMap(std::queue<std::wstring> & oArgList, const st
 		const PSID tReplaceSid = GetSidFromName(oLineItems.at(1));
 		if (tReplaceSid == nullptr)
 		{
-			wprintf(L"ERROR: The map replace value '%s' is invalid.", oLineItems.at(1).c_str());
+			Print(L"ERROR: The map replace value '{}' is invalid.", oLineItems.at(1));
 			std::exit(-1);
 		}
 
@@ -71,7 +71,7 @@ OperationCopyMap::OperationCopyMap(std::queue<std::wstring> & oArgList, const st
 
 bool OperationCopyMap::ProcessAclAction(const WCHAR* const sSdPart, ObjectEntry& tObjectEntry, PACL& tCurrentAcl, bool& bAclReplacement)
 {
-	// check on canonicalization status so if can error if the acl needs to be updated
+	// check on canonicalization status so it can error if the acl needs to be updated
 	const bool bAclIsCanonical = OperationCheckCanonical::IsAclCanonical(tCurrentAcl);
 
 	// check explicit effective rights from sid (no groups)
@@ -99,7 +99,7 @@ bool OperationCopyMap::ProcessAclAction(const WCHAR* const sSdPart, ObjectEntry&
 			std::wstring sInfoToReport = L"Copying '" + sSourceAccountName + L"' to '" + sTargetAccountName + L"'";
 
 			// determine access mode
-			ACCESS_MODE tMode = ACCESS_MODE::NOT_USED_ACCESS;
+			ACCESS_MODE tMode = NOT_USED_ACCESS;
 			if (tAceDacl->AceType == ACCESS_ALLOWED_ACE_TYPE)
 			{
 				tMode = GRANT_ACCESS;
@@ -112,11 +112,11 @@ bool OperationCopyMap::ProcessAclAction(const WCHAR* const sSdPart, ObjectEntry&
 			{
 				if (CheckBitSet(tAceDacl->AceFlags, SUCCESSFUL_ACCESS_ACE_FLAG))
 				{
-					tMode = (ACCESS_MODE)(tMode | SET_AUDIT_SUCCESS);
+					tMode = static_cast<ACCESS_MODE>(tMode | SET_AUDIT_SUCCESS);
 				}
 				if (CheckBitSet(tAceDacl->AceFlags, FAILED_ACCESS_ACE_FLAG))
 				{
-					tMode = (ACCESS_MODE)(tMode | SET_AUDIT_FAILURE);
+					tMode = static_cast<ACCESS_MODE>(tMode | SET_AUDIT_FAILURE);
 				}
 			}
 			else
@@ -141,7 +141,7 @@ bool OperationCopyMap::ProcessAclAction(const WCHAR* const sSdPart, ObjectEntry&
 			tEa.grfInheritance = VALID_INHERIT_FLAGS & tAceDacl->AceFlags;
 			tEa.Trustee.MultipleTrusteeOperation = NO_MULTIPLE_TRUSTEE;
 			tEa.Trustee.pMultipleTrustee = nullptr;
-			tEa.Trustee.ptstrName = (LPWSTR) oInteractor->second;
+			tEa.Trustee.ptstrName = static_cast<LPWSTR>(oInteractor->second);
 			tEa.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 			tEa.Trustee.TrusteeType = TRUSTEE_IS_UNKNOWN;
 

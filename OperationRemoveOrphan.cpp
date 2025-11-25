@@ -16,7 +16,7 @@ OperationRemoveOrphan::OperationRemoveOrphan(std::queue<std::wstring> & oArgList
 	if (tDomainSid == nullptr)
 	{
 		// complain
-		wprintf(L"ERROR: Invalid domain '%s' specified for parameter '%s'.\n", sSubArgs.at(0).c_str(), GetCommand().c_str());
+		Print(L"ERROR: Invalid domain '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
 		std::exit(0);
 	}
 
@@ -44,17 +44,17 @@ SidActionResult OperationRemoveOrphan::DetermineSid(const WCHAR * const sSdPart,
 			bDomainSidsEqual == FALSE)
 		{
 			// no match - cease processing this instruction
-			return SidActionResult::Nothing;
+			return Nothing;
 		}
 	}
 
 	// see if the sid is unresolvable; if it is then this is not an orphan
 	bool bIsOrphan = false;
 	const std::wstring sSid = GetNameFromSidEx(tCurrentSid, &bIsOrphan);
-	if (!bIsOrphan) return SidActionResult::Nothing;
+	if (!bIsOrphan) return Nothing;
 
 	// update the sid in the ace
 	InputOutput::AddInfo(L"Removing orphan of security identifier '" + sSid + L"' from domain '" + sDomainName + L"'", sSdPart);
 	tResultantSid = nullptr;
-	return SidActionResult::Remove;
+	return Remove;
 }

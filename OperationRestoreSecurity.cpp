@@ -35,7 +35,7 @@ OperationRestoreSecurity::OperationRestoreSecurity(std::queue<std::wstring> & oA
 			ConvertStringSecurityDescriptorToSecurityDescriptor(oLineItems.at(1).c_str(),
 			SDDL_REVISION_1, &tDesc, nullptr) == 0)
 		{
-			wprintf(L"ERROR: Unable to parse string security descriptor file for restoration.");
+			Print(L"ERROR: Unable to parse string security descriptor file for restoration.");
 			std::exit(-1);
 		}
 

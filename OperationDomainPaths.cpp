@@ -40,7 +40,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 	WSADATA tWinSockData;
 	if (WSAStartup(MAKEWORD(2, 2), &tWinSockData) != 0)
 	{
-		wprintf(L"Could not initialize Windows Sockets.\n");
+		Print(L"Could not initialize Windows Sockets.");
 		std::exit(-1);
 	}
 
@@ -50,7 +50,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 		DS_IS_FLAT_NAME | DS_RETURN_DNS_NAME | DS_TRY_NEXTCLOSEST_SITE | DS_FORCE_REDISCOVERY,
 		&pDomainControllerInfo) != ERROR_SUCCESS)
 	{
-		wprintf(L"ERROR: Could not locate domain controller for domain '%s'\n", sSubArgs.at(0).c_str());
+		Print(L"ERROR: Could not locate domain controller for domain '{}'", sSubArgs.at(0));
 		std::exit(-1);
 	}
 
@@ -67,7 +67,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 	if (FAILED(ADsOpenObject(sPath.c_str(), nullptr, nullptr, ADS_SECURE_AUTHENTICATION,
 		IID_IDirectorySearch, (void**)&oSearch)))
 	{
-		wprintf(L"ERROR: Could not establish search for domain '%s'\n", sSubArgs.at(0).c_str());
+		Print(L"ERROR: Could not establish search for domain '{}'", sSubArgs.at(0));
 		std::exit(-1);
 	}
 
@@ -80,7 +80,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 	// set the search preference.
 	if (FAILED(oSearch->SetSearchPreference(&SearchPref, 1)))
 	{
-		wprintf(L"ERROR: Could not set search preference for domain '%s'\n", sSubArgs.at(0).c_str());
+		Print(L"ERROR: Could not set search preference for domain '{}'", sSubArgs.at(0));
 		std::exit(-1);
 
 	}
@@ -94,7 +94,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 	ADS_SEARCH_HANDLE hSearch;
 	if (FAILED(oSearch->ExecuteSearch(sSearchFilter, (LPWSTR*)sAttributes, _countof(sAttributes), &hSearch)))
 	{
-		wprintf(L"ERROR: Could not execute search for domain '%s'\n", sSubArgs.at(0).c_str());
+		Print(L"ERROR: Could not execute search for domain '{}'", sSubArgs.at(0));
 		std::exit(-1);
 	}
 
@@ -125,7 +125,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 			if (GetAddrInfo(sHostName.c_str(), nullptr, nullptr, &pAddressInfo) != 0) continue;
 			SOCKET_ADDRESS tAddressArray[1];
 			tAddressArray[0].lpSockaddr = pAddressInfo->ai_addr;
-			tAddressArray[0].iSockaddrLength = (int)pAddressInfo->ai_addrlen;
+			tAddressArray[0].iSockaddrLength = static_cast<int>(pAddressInfo->ai_addrlen);
 
 			// fetch the site name associated with the device
 			LPWSTR* sSiteName = nullptr;
@@ -151,7 +151,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 	// close search handle
 	if (oSearch->CloseSearchHandle(hSearch) != NULL)
 	{
-		wprintf(L"ERROR: Could not close search for domain '%s'\n", sSubArgs.at(0).c_str());
+		Print(L"ERROR: Could not close search for domain '{}'", sSubArgs.at(0));
 		std::exit(-1);
 	}
 };

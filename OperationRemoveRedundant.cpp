@@ -47,16 +47,16 @@ bool OperationRemoveRedundant::ProcessAclAction(const WCHAR * const sSdPart, Obj
 			// stop processing if we have a mismatching type
 			if (tAceInherited->AceType != tAceExplicit->AceType) continue;
 
-			// stop processing if the explit mask is not a subset of the inherited mask
+			// stop processing if the explicit mask is not a subset of the inherited mask
 			if ((tAceExplicit->Mask | tAceInherited->Mask) != tAceInherited->Mask) continue;
 
-			// stop processing if the explcit mask has container or object inherit
+			// stop processing if the explicit mask has container or object inherit
 			// but the inherited entry does not
 			if (HasContainerInherit(tAceExplicit) && !HasContainerInherit(tAceInherited)) continue;
 			if (HasObjectInherit(tAceExplicit) && !HasObjectInherit(tAceInherited)) continue;
 
-			// stop processing if the inherited ace has a inherit only limitation but
-			// the explcit entry does not
+			// stop processing if the inherited ace has an inherit only limitation but
+			// the explicit entry does not
 			if (HasInheritOnly(tAceInherited) && !HasInheritOnly(tAceExplicit)) continue;
 			if (HasNoPropogate(tAceInherited) && !HasNoPropogate(tAceExplicit)) continue;
 

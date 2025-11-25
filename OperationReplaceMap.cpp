@@ -32,7 +32,7 @@ OperationReplaceMap::OperationReplaceMap(std::queue<std::wstring> & oArgList, co
 		// verify the line contains at least two elements
 		if (oLineItems.size() != 2)
 		{
-			wprintf(L"ERROR: The replacement map line '%s' is invalid.", sLine.c_str());
+			Print(L"ERROR: The replacement map line '{}' is invalid.", sLine);
 			std::exit(-1);
 		}
 		
@@ -40,7 +40,7 @@ OperationReplaceMap::OperationReplaceMap(std::queue<std::wstring> & oArgList, co
 		const PSID tSearchSid = GetSidFromName(oLineItems.at(0));
 		if (tSearchSid == nullptr)
 		{
-			wprintf(L"ERROR: The map search value '%s' is invalid.", oLineItems.at(0).c_str());
+			Print(L"ERROR: The map search value '{}' is invalid.", oLineItems.at(0));
 			std::exit(-1);
 		}
 
@@ -48,7 +48,7 @@ OperationReplaceMap::OperationReplaceMap(std::queue<std::wstring> & oArgList, co
 		const PSID tReplaceSid = GetSidFromName(oLineItems.at(1));
 		if (tReplaceSid == nullptr)
 		{
-			wprintf(L"ERROR: The map replace value '%s' is invalid.", oLineItems.at(1).c_str());
+			Print(L"ERROR: The map replace value '{}' is invalid.", oLineItems.at(1));
 			std::exit(-1);
 		}
 
@@ -73,12 +73,12 @@ SidActionResult OperationReplaceMap::DetermineSid(const WCHAR * const sSdPart, O
 {
 	// check if the sid matches the ace
 	const auto oInteractor = oReplaceMap.find(tCurrentSid);
-	if (oInteractor == oReplaceMap.end()) return SidActionResult::Nothing;
+	if (oInteractor == oReplaceMap.end()) return Nothing;
 	
 	// return the replacement sid
 	const std::wstring sSearchAccount = GetNameFromSidEx(oInteractor->first);
 	const std::wstring sReplaceAccount = GetNameFromSidEx(oInteractor->second);
 	InputOutput::AddInfo(L"Replacing '" + sSearchAccount + L"' with '" + sReplaceAccount + L"'", sSdPart);
 	tResultantSid = oInteractor->second;
-	return SidActionResult::Replace;
+	return Replace;
 }
