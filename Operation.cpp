@@ -56,8 +56,8 @@ bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 		{
 			PSID const tOldSid = GetSidFromAce(tAce);
 			PSID const tNewSid = tResultantSid;
-			const DWORD iOldLen = SidGetLength(tOldSid);
-			const DWORD iNewLen = SidGetLength(tNewSid);
+			const DWORD iOldLen = SidLength(tOldSid);
+			const DWORD iNewLen = SidLength(tNewSid);
 
 			// if the old sid in the ace matches the new sid, just return immediately
 			if (SidMatch(tOldSid, tNewSid)) return false;

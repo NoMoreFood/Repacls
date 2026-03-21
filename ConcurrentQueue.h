@@ -11,7 +11,7 @@ class ConcurrentQueue final
 	std::condition_variable oIsEmptyCondition;
 	std::queue<T> oQueue;
 	std::mutex oQueueMutex;
-	short iWaiters;
+	short iWaiters = 0;
 
 public:
 	ConcurrentQueue() = default;

@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <sddl.h>
 #include <string>
+#include <functional>
 
 #include "Operation.h"
 
@@ -27,11 +28,83 @@ typedef struct SidCompare
 {
 	bool operator()(PSID p1, PSID p2) const
 	{
-		const DWORD iLength1 = SidGetLength(p1);
-		const DWORD iLength2 = SidGetLength(p2);
+		const DWORD iLength1 = SidLength(p1);
+		const DWORD iLength2 = SidLength(p2);
 		if (iLength1 != iLength2) return iLength1 < iLength2;
 		return memcmp(p1, p2, iLength1) > 0;
 	}
 }
 SidCompare;
 
+//
+// SmartPointer<>. Custom template for WinAPI resource cleanup.
+// Automatically invokes the provided cleanup callable in its destructor.
+//
+template <typename T>
+class SmartPointer final
+{
+public:
+
+    SmartPointer(const SmartPointer&) = delete; // non-copyable
+    T operator=(const SmartPointer& lp) = delete; // copy assignment forbidden
+
+    SmartPointer(std::function<void(T)> cleanup) : m_cleanup(std::move(cleanup)), m_data(nullptr) {}
+    SmartPointer(std::function<void(T)> cleanup, T data) : m_cleanup(std::move(cleanup)), m_data(data) {}
+
+    ~SmartPointer()
+    {
+        Release();
+    }
+
+    SmartPointer(SmartPointer&& src) noexcept
+    {
+        m_cleanup = src.m_cleanup;
+        m_data = src.m_data;
+        src.m_data = nullptr;
+    }
+
+    SmartPointer& operator=(SmartPointer&& src) noexcept
+    {
+        if (std::addressof(*this) != std::addressof(src))
+        {
+            Release();
+            m_cleanup = std::move(src.m_cleanup);
+            m_data = src.m_data;
+            src.m_data = nullptr;
+        }
+
+        return *this;
+    }
+
+    bool IsValid() const noexcept
+    {
+        return m_data != nullptr && m_data != INVALID_HANDLE_VALUE;
+    }
+
+    void Release() noexcept
+    {
+        if (IsValid())
+        {
+            m_cleanup(m_data);
+            m_data = nullptr;
+        }
+    }
+
+    T operator=(T lp)
+    {
+        Release();
+        m_data = lp;
+        return m_data;
+    }
+
+    operator T() { return m_data; }
+    T& operator*() { return m_data; }
+    T* operator&() { return &m_data; }
+    T operator->() { return m_data; }
+    bool operator!() { return m_data == nullptr; }
+
+private:
+
+    std::function<void(T)> m_cleanup;
+    T m_data;
+};

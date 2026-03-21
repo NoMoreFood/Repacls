@@ -10,6 +10,7 @@
 
 #include "Operation.h"
 #include "InputOutput.h"
+#include "Helpers.h"
 #include "DriverKitPartial.h"
 
 #include "Object.h"
@@ -52,7 +53,8 @@ void Processor::AnalyzeSecurity(ObjectEntry & oEntry)
 		(bFetchDacl) ? &tAclDacl : nullptr, (bFetchSacl) ? &tAclSacl : nullptr, &tDesc)) != ERROR_SUCCESS)
 	{
 		// attempt to look up error message
-		LPWSTR sError = nullptr;
+		++ItemsReadFailures;
+		SmartPointer<WCHAR*> sError(LocalFree, nullptr);
 		const size_t iSize = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
 			FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK,
 			nullptr, iError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPWSTR>(&sError), 0, nullptr);
@@ -114,9 +116,9 @@ void Processor::AnalyzeSecurity(ObjectEntry & oEntry)
 			{
 				// cleanup previous operations if necessary
 				if (bDaclCleanupRequired) { LocalFree(tAclDacl); bDaclCleanupRequired = false; }
-				if (bSaclCleanupRequired) { LocalFree(tAclDacl); bSaclCleanupRequired = false; }
-				if (bOwnerCleanupRequired) { LocalFree(tAclDacl); bOwnerCleanupRequired = false; }
-				if (bGroupCleanupRequired) { LocalFree(tAclDacl); bGroupCleanupRequired = false; }
+				if (bSaclCleanupRequired) { LocalFree(tAclSacl); bSaclCleanupRequired = false; }
+				if (bOwnerCleanupRequired) { LocalFree(tOwnerSid); bOwnerCleanupRequired = false; }
+				if (bGroupCleanupRequired) { LocalFree(tGroupSid); bGroupCleanupRequired = false; }
 
 				// extract the elements from the raw security descriptor
 				BOOL bItemPresent = FALSE;

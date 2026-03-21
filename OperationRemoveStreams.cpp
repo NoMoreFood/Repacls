@@ -42,8 +42,11 @@ OperationRemoveStreams::OperationRemoveStreams(std::queue<std::wstring>& oArgLis
 
 void OperationRemoveStreams::ProcessObjectAction(ObjectEntry& tObjectEntry)
 {
-	HANDLE hFile = CreateFile(tObjectEntry.Name.c_str(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE,
-	                          nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+	// skip directories
+	if (IsDirectory(tObjectEntry.Attributes)) return;
+
+	SmartPointer<HANDLE> hFile(CloseHandle, CreateFile(tObjectEntry.Name.c_str(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE,
+		nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr));
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		InputOutput::AddError(L"Unable open file for stream deletion.");
@@ -62,12 +65,11 @@ void OperationRemoveStreams::ProcessObjectAction(ObjectEntry& tObjectEntry)
 	}
 
 	// cleanup and verify we got the data we needed
-	CloseHandle(hFile);
 	if (iStatus != STATUS_SUCCESS || tIOStatus.Information == 0) return;
 
 	// Loop for all streams
-	for (PFILE_STREAM_INFORMATION pStreamInfo = (PFILE_STREAM_INFORMATION)sInfoBuffer.data(); pStreamInfo->StreamNameLength != 0;
-		pStreamInfo = (PFILE_STREAM_INFORMATION)((LPBYTE)pStreamInfo + pStreamInfo->NextEntryOffset))
+	for (PFILE_STREAM_INFORMATION pStreamInfo = reinterpret_cast<PFILE_STREAM_INFORMATION>(sInfoBuffer.data()); pStreamInfo->StreamNameLength != 0;
+		pStreamInfo = reinterpret_cast<PFILE_STREAM_INFORMATION>(reinterpret_cast<LPBYTE>(pStreamInfo) + pStreamInfo->NextEntryOffset))
 	{
 		// skip main data stream
 		constexpr WCHAR sData[] = L"::$DATA";
