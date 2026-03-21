@@ -41,7 +41,7 @@ OperationBackupSecurity::OperationBackupSecurity(std::queue<std::wstring> & oArg
 bool OperationBackupSecurity::ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement)
 {
 	// convert the current security descriptor to a string
-	WCHAR * sInfo = nullptr;
+	SmartPointer<WCHAR*> sInfo(LocalFree, nullptr);
 	if (ConvertSecurityDescriptorToStringSecurityDescriptor(tDescriptor, SDDL_REVISION_1,
 		DACL_SECURITY_INFORMATION | SACL_SECURITY_INFORMATION | OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION,
 		&sInfo, nullptr) == 0)
@@ -51,15 +51,13 @@ bool OperationBackupSecurity::ProcessSdAction(std::wstring & sFileName, ObjectEn
 	}
 
 	// write the string to a file
-	const std::wstring sToWrite = sFileName + L"|" + sInfo + L"\r\n";
+	const std::wstring sToWrite = sFileName + L"|" + *&sInfo + L"\r\n";
 	if (WriteToFile(sToWrite, hFile) == 0)
 	{
-		LocalFree(sInfo);
 		InputOutput::AddError(L"Unable to write security descriptor.");
 		return false;
 	}
 
 	// cleanup
-	LocalFree(sInfo);
 	return false;
 }

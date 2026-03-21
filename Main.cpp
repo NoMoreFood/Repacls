@@ -197,8 +197,8 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	// print out statistics
 	Print(L"===============================================================================");
 	Print(L"= Total Scanned: {}", static_cast<ULONGLONG>(oProcessor.ItemsScanned));
-	Print(L"= Read Failures: {}", static_cast<ULONGLONG>(oProcessor.ItemsEnumerationFailures));
-	Print(L"= Enumeration Failures: {}", static_cast<ULONGLONG>(oProcessor.ItemsReadFailures));
+	Print(L"= Read Failures: {}", static_cast<ULONGLONG>(oProcessor.ItemsReadFailures));
+	Print(L"= Enumeration Failures: {}", static_cast<ULONGLONG>(oProcessor.ItemsEnumerationFailures));
 	Print(L"= Update Successes: {}", static_cast<ULONGLONG>(oProcessor.ItemsUpdatedSuccess));
 	Print(L"= Update Failures: {}", static_cast<ULONGLONG>(oProcessor.ItemsUpdatedFailure));
 	Print(L"= Time Elapsed: {:.3f}", static_cast<double>(iTimeStop - iTimeStart) / 1000.0);

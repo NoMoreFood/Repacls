@@ -92,8 +92,8 @@ OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgL
 	{
 		{ L"OI", OBJECT_INHERIT_ACE },
 		{ L"CI", CONTAINER_INHERIT_ACE },
-		{ L"IO", NO_PROPAGATE_INHERIT_ACE },
-		{ L"NP", INHERIT_ONLY_ACE }
+		{ L"IO", INHERIT_ONLY_ACE },
+		{ L"NP", NO_PROPAGATE_INHERIT_ACE }
 	};
 
 	// decode the permissions string to their binary values

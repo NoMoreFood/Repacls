@@ -1,5 +1,6 @@
 #include "InputOutput.h"
 #include "ObjectRegistry.h"
+#include "Helpers.h"
 
 void ObjectRegistry::GetBaseObject(std::wstring sPath)
 {
@@ -34,14 +35,13 @@ void ObjectRegistry::GetBaseObject(std::wstring sPath)
 	}
 
 	// valid registry key is valid
-	HKEY hParentKey = nullptr;
+	SmartPointer<HKEY> hParentKey(RegCloseKey, nullptr);
 	if (RegOpenKeyEx(oRootEntry->second.first, tReg.NameExtended.c_str(), REG_OPTION_OPEN_LINK,
 		KEY_ENUMERATE_SUB_KEYS, &hParentKey) != ERROR_SUCCESS)
 	{
 		Print(L"ERROR: Could not parse registry path: {}", sPath);
 		std::exit(-1);
 	}
-	CloseHandle(hParentKey);
 
 	tReg.Depth = 0;
 	tReg.ObjectType = SE_REGISTRY_KEY;
@@ -54,7 +54,7 @@ void ObjectRegistry::GetBaseObject(std::wstring sPath)
 void ObjectRegistry::GetChildObjects(ObjectEntry& oEntry)
 {
 	// open handle so we can enumerate subkeys
-	HKEY hParentKey = nullptr;
+	SmartPointer<HKEY> hParentKey(RegCloseKey, nullptr);
 	if (RegOpenKeyEx(static_cast<HKEY>(oEntry.hObject), oEntry.NameExtended.c_str(), REG_OPTION_OPEN_LINK, 
 		KEY_ENUMERATE_SUB_KEYS, &hParentKey) != ERROR_SUCCESS)
 	{
@@ -91,6 +91,5 @@ void ObjectRegistry::GetChildObjects(ObjectEntry& oEntry)
 	}
 
 	// cleanup and commit
-	RegCloseKey(hParentKey);
 	Processor::CompleteEntry(oEntry);
 }

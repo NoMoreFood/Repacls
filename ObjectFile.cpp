@@ -4,6 +4,7 @@
 #include "InputOutput.h"
 #include "ObjectFile.h"
 #include "DriverKitPartial.h"
+#include "Helpers.h"
 #include "OperationDepth.h"
 
 void ObjectFile::GetBaseObject(std::wstring sPath)
@@ -81,7 +82,7 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 	oAttributes.ObjectName = &tPathU;
 
 	// get an open file handle
-	HANDLE hFindFile;
+	SmartPointer<HANDLE> hFindFile(NtClose, nullptr);
 	IO_STATUS_BLOCK IoStatusBlock;
 	NTSTATUS Status = NtOpenFile(&hFindFile, FILE_LIST_DIRECTORY | SYNCHRONIZE,
 		&oAttributes, &IoStatusBlock, FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -173,7 +174,5 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 	}
 
 	// cleanup
-	NtClose(hFindFile);
 	Processor::CompleteEntry(oEntry);
-
 }

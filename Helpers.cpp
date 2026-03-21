@@ -125,7 +125,7 @@ std::wstring GetNameFromSid(const PSID tSid, bool* bMarkAsOrphan)
 	}
 
 	// copy the sid for storage in our cache table
-	const DWORD iSidLength = SidGetLength(tSid);
+	const DWORD iSidLength = SidLength(tSid);
 	const auto tSidCopy = memcpy(malloc(iSidLength), tSid, iSidLength);
 
 	// scope lock for thread safety
@@ -143,10 +143,9 @@ std::wstring GetNameFromSidEx(const PSID tSid, bool* bMarkAsOrphan)
 	if (!sName.empty()) return sName;
 
 	// if sid is unresolvable then return sid in string form
-	WCHAR* sSidBuf;
+	SmartPointer<WCHAR*> sSidBuf(LocalFree, nullptr);
 	ConvertSidToStringSid(tSid, &sSidBuf);
 	std::wstring sSid(sSidBuf);
-	LocalFree(sSidBuf);
 	return sSid;
 }
 
@@ -242,7 +241,7 @@ std::wstring GenerateAccessMask(DWORD iCurrentMask)
 VOID EnablePrivs() noexcept
 {
 	// open the current token
-	HANDLE hToken = nullptr;
+	SmartPointer<HANDLE> hToken(CloseHandle, nullptr);
 	if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES, &hToken) == 0)
 	{
 		// error
@@ -252,7 +251,7 @@ VOID EnablePrivs() noexcept
 
 	// get the current user sid out of the token
 	BYTE aBuffer[sizeof(TOKEN_USER) + SECURITY_MAX_SID_SIZE];
-	const auto tTokenUser = (PTOKEN_USER)(aBuffer);
+	const auto tTokenUser = reinterpret_cast<PTOKEN_USER>(aBuffer);
 	DWORD iBytesFilled = 0;
 	if (GetTokenInformation(hToken, TokenUser, tTokenUser, sizeof(aBuffer), &iBytesFilled) == 0)
 	{
@@ -291,7 +290,7 @@ VOID EnablePrivs() noexcept
 		ZeroMemory(&ObjectAttributes, sizeof(ObjectAttributes));
 
 		// Get a handle to the Policy object.
-		LSA_HANDLE hPolicyHandle;
+		SmartPointer<LSA_HANDLE> hPolicyHandle(LsaClose, nullptr);
 		NTSTATUS iResult = 0;
 		if ((iResult = LsaOpenPolicy(nullptr, &ObjectAttributes,
 		                             POLICY_LOOKUP_NAMES | POLICY_CREATE_ACCOUNT, &hPolicyHandle)) != STATUS_SUCCESS)
@@ -303,7 +302,7 @@ VOID EnablePrivs() noexcept
 
 		// convert the privilege name to a unicode string format
 		LSA_UNICODE_STRING sPrivilege;
-		sPrivilege.Buffer = (PWSTR)i;
+		sPrivilege.Buffer = const_cast<PWSTR>(i);
 		sPrivilege.Length = static_cast<USHORT>(wcslen(i) * sizeof(WCHAR));
 		sPrivilege.MaximumLength = static_cast<USHORT>((wcslen(i) + 1) * sizeof(WCHAR));
 
@@ -311,14 +310,10 @@ VOID EnablePrivs() noexcept
 		if ((iResult = LsaAddAccountRights(hPolicyHandle,
 			tTokenUser->User.Sid, &sPrivilege, 1)) != STATUS_SUCCESS)
 		{
-			LsaClose(hPolicyHandle);
 			Print(L"ERROR: Privilege '{}' was not able to be added with error '{}'",
 				i, LsaNtStatusToWinError(iResult));
 			continue;
 		}
-
-		// cleanup
-		LsaClose(hPolicyHandle);
 
 		if (AdjustTokenPrivileges(hToken, FALSE, &tPrivEntry,
 			sizeof(TOKEN_PRIVILEGES), nullptr, nullptr) == 0 || GetLastError() != ERROR_NOT_ALL_ASSIGNED)
@@ -333,9 +328,6 @@ VOID EnablePrivs() noexcept
 			Print(L"ERROR: Could not enable privilege: {}", i);
 		}
 	}
-
-	CloseHandle(hToken);
-	return;
 }
 
 HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring& sOperation)
@@ -512,8 +504,7 @@ BOOL WriteToFile(const std::wstring& sStringToWrite, HANDLE hFile) noexcept
 
 VOID InitThreadCom() noexcept
 {
-	thread_local bool bComInitialized = false;
-	if (!bComInitialized)
+	if (thread_local bool bComInitialized = false; !bComInitialized)
 	{
 		bComInitialized = true;
 		const HRESULT hComInit = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);

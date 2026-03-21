@@ -22,7 +22,7 @@ protected:
 
 public:
 
-	ULONGLONG ItemsScanned = 0;
+	std::atomic<ULONGLONG> ItemsScanned = 0;
 	std::atomic<ULONGLONG> ItemsUpdatedSuccess = 0;
 	std::atomic<ULONGLONG> ItemsUpdatedFailure = 0;
 	std::atomic<ULONGLONG> ItemsEnumerationFailures = 0;

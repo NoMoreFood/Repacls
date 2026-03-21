@@ -44,8 +44,8 @@ using PACE_ACCESS_HEADER = ACE_ACCESS_HEADER*;;
 #define NextAce(Ace) reinterpret_cast<PACE_ACCESS_HEADER>((PUCHAR)(Ace) + ((PACE_ACCESS_HEADER)(Ace))->AceSize)
 
 // define our own version of sid length since its faster
-constexpr DWORD SidGetLength(PSID x) { return sizeof(SID) + (static_cast<SID*>(x)->SubAuthorityCount - 1) * sizeof(static_cast<SID*>(x)->SubAuthority); };
-constexpr bool SidMatch(PSID x, PSID y) { return __builtin_memcmp(x, y, min(SidGetLength(x), SidGetLength(y))) == 0; };
+constexpr DWORD SidLength(PSID x) { return sizeof(SID) + (static_cast<SID*>(x)->SubAuthorityCount - 1) * sizeof(static_cast<SID*>(x)->SubAuthority); };
+constexpr bool SidMatch(PSID x, PSID y) { return SidLength(x) == SidLength(y) && __builtin_memcmp(x, y, min(SidLength(x), SidLength(y))) == 0; };
 constexpr bool SidNotMatch(PSID x, PSID y) { return !SidMatch(x, y); };
 
 // macros for checking file attributes
