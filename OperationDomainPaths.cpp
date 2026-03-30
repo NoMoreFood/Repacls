@@ -45,7 +45,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 	}
 
 	// find a domain controller for the specified domain
-	PDOMAIN_CONTROLLER_INFO pDomainControllerInfo;
+	SmartPointer<PDOMAIN_CONTROLLER_INFO> pDomainControllerInfo(NetApiBufferFree, nullptr);
 	if (DsGetDcName(nullptr, sSubArgs.at(0).c_str(), nullptr, nullptr,
 		DS_IS_FLAT_NAME | DS_RETURN_DNS_NAME | DS_TRY_NEXTCLOSEST_SITE | DS_FORCE_REDISCOVERY,
 		&pDomainControllerInfo) != ERROR_SUCCESS)
@@ -57,7 +57,6 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 	// grab the domain controller name
 	const std::wstring sDomainController = pDomainControllerInfo->DomainControllerName;
 	const std::wstring sDomainSuffix = pDomainControllerInfo->DomainName;
-	NetApiBufferFree(pDomainControllerInfo);
 
 	// create a string 
 	std::wstring sPath = std::wstring(L"LDAP://") + (wcsrchr(sDomainController.c_str(), '\\') + 1);
@@ -128,12 +127,11 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 			tAddressArray[0].iSockaddrLength = static_cast<int>(pAddressInfo->ai_addrlen);
 
 			// fetch the site name associated with the device
-			LPWSTR* sSiteName = nullptr;
+			SmartPointer<LPWSTR*> sSiteName(NetApiBufferFree, nullptr);
 			bool bMatchSite = false;
 			if (DsAddressToSiteNames(sDomainController.c_str(), 1, tAddressArray, &sSiteName) == NO_ERROR)
 			{
-				if (sSiteName[0] != nullptr) bMatchSite = std::regex_match(std::wstring(sSiteName[0]), std::wregex(sSiteArgs.at(0)));
-				NetApiBufferFree(sSiteName);
+				if ((*&sSiteName)[0] != nullptr) bMatchSite = std::regex_match(std::wstring((*&sSiteName)[0]), std::wregex(sSiteArgs.at(0)));
 			}
 
 			// cleanup

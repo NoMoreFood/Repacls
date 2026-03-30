@@ -145,6 +145,9 @@
     <ClCompile Include="OperationRemoveDomain.cpp">
       <Filter>Source\Operations</Filter>
     </ClCompile>
+    <ClCompile Include="OperationLocateText.cpp">
+      <Filter>Source\Operations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConcurrentQueue.h">
@@ -304,6 +307,9 @@
       <Filter>Includes\Operations</Filter>
     </ClInclude>
     <ClInclude Include="OperationLocateHash.h">
+      <Filter>Includes\Operations</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationLocateText.h">
       <Filter>Includes\Operations</Filter>
     </ClInclude>
   </ItemGroup>

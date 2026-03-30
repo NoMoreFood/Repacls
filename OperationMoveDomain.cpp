@@ -62,14 +62,13 @@ SidActionResult OperationMoveDomain::DetermineSid(const WCHAR * const sSdPart, O
 		tSidStruct->SubAuthority[4] < 1000)
 	{
 		// create a new sid that has the domain identifier of the target domain
-		PSID tSidTmp = nullptr;
+		SmartPointer<PSID> tSidTmp(FreeSid, nullptr);
 		AllocateAndInitializeSid(&tSidStruct->IdentifierAuthority, tSidStruct->SubAuthorityCount,
 			tSidStruct->SubAuthority[0], tSidTargetDomain->SubAuthority[1], tSidTargetDomain->SubAuthority[2],
 			tSidTargetDomain->SubAuthority[3], tSidStruct->SubAuthority[4], 0, 0, 0, &tSidTmp);
 
 		// lookup the target name and see if it exists
 		const std::wstring sTargetAccountName = GetNameFromSid(tSidTmp);
-		FreeSid(tSidTmp);
 		if (sTargetAccountName.empty())	return Nothing;
 
 		// do a forward lookup on the name in order to get a reference to the 

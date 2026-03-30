@@ -176,6 +176,16 @@ Commands That Do Not Alter Settings
    Specifying file size can dramatically increase search performance since only 
    files with matching sizes are read for hash comparison.
 
+/LocateText <FileName> <FileRegularExpression>:<TextRegularExpression>
+   Similar to /Locate, but instead of matching on file metadata, the content of
+   each file is searched line by line. Any line that matches the text regular
+   expression is written to the report with three columns: the full file path,
+   the line number, and the matched line. Files encoded as UTF-16 LE, UTF-8
+   (with or without BOM), and ANSI are all supported. The file name regular
+   expression is applied first so that only relevant file types are read;
+   for example, pass .*\.log as the file expression to restrict the search
+   to .log files.
+
 /Report <FileName> <AccountRegularExpression>
    This command will write a comma separated value file with the fields of
    filename, security descriptor part (e.g., DACL), account name, permissions,

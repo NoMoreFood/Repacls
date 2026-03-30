@@ -35,10 +35,19 @@ PSID GetSidFromName(const std::wstring& sAccountName)
 	}
 
 	// first see if the name looks like a sid
-	PSID tSidFromSid;
+	SmartPointer<PSID> tSidFromSid(LocalFree, nullptr);
 	if (ConvertStringSidToSid(sAccountName.c_str(), &tSidFromSid) != 0)
 	{
-		return tSidFromSid;
+		// copy into malloc'd memory (consistent with the rest of the cache);
+		// LocalAlloc'd pointer returned by ConvertStringSidToSid freed automatically
+		const DWORD iSidLen = SidLength(tSidFromSid);
+		const auto tSidMem = malloc(iSidLen);
+		if (tSidMem == nullptr) return nullptr;
+		const auto tSidCopy = static_cast<PSID>(memcpy(tSidMem, tSidFromSid, iSidLen));
+
+		std::unique_lock<std::shared_mutex> oLock(oMutex);
+		oNameToSidLookup[sAccountName] = tSidCopy;
+		return tSidCopy;
 	}
 
 	// assume the sid is as large as it possibly can be
@@ -59,7 +68,9 @@ PSID GetSidFromName(const std::wstring& sAccountName)
 
 	// reallocate memory and copy sid to a smaller part of memory and
 	// then add the sid to the cache map
-	const auto tSid = memcpy(malloc(iSidSize), tSidFromName, iSidSize);
+	const auto tSidMem = malloc(iSidSize);
+	if (tSidMem == nullptr) return nullptr;
+	const auto tSid = static_cast<PSID>(memcpy(tSidMem, tSidFromName, iSidSize));
 
 	// scope lock for thread safety
 	{
@@ -126,7 +137,9 @@ std::wstring GetNameFromSid(const PSID tSid, bool* bMarkAsOrphan)
 
 	// copy the sid for storage in our cache table
 	const DWORD iSidLength = SidLength(tSid);
-	const auto tSidCopy = memcpy(malloc(iSidLength), tSid, iSidLength);
+	const auto tSidMem = malloc(iSidLength);
+	if (tSidMem == nullptr) return L"";
+	const auto tSidCopy = memcpy(tSidMem, tSid, iSidLength);
 
 	// scope lock for thread safety
 	std::unique_lock oLock(oMutex);
@@ -316,7 +329,7 @@ VOID EnablePrivs() noexcept
 		}
 
 		if (AdjustTokenPrivileges(hToken, FALSE, &tPrivEntry,
-			sizeof(TOKEN_PRIVILEGES), nullptr, nullptr) == 0 || GetLastError() != ERROR_NOT_ALL_ASSIGNED)
+			sizeof(TOKEN_PRIVILEGES), nullptr, nullptr) == 0)
 		{
 			Print(L"ERROR: Could not adjust privilege: {}", i);
 			continue;
@@ -383,6 +396,9 @@ std::wstring GetAntivirusStateDescription()
 	{
 		return L"Unknown";
 	}
+
+	// ensure CoUninitialize is called for every success path that returns
+	struct ComGuard { ~ComGuard() { CoUninitialize(); } } comGuard;
 
 	// assume not installed by default
 	bool bIsEnabled = false;
@@ -456,7 +472,6 @@ std::wstring FileTimeToString(const FILETIME tFileTime)
 std::wstring FileSizeToString(const LARGE_INTEGER iFileSize)
 {
 	// convert the file size to a string
-	_wsetlocale(LC_NUMERIC, L"");
 	return std::format(L"{}", static_cast<ULONGLONG>(iFileSize.QuadPart));
 }
 

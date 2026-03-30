@@ -19,11 +19,9 @@ class OperationLocateHash final : public Operation
 	std::vector<BYTE> aHashToMatch;
 	LONGLONG iSizeToMatch = -1;
 
-	// hashing environment
+	// hashing environment (algorithm handle and hash length are read-only after construction;
+	// per-thread hash/buffer state lives as thread_local inside ProcessObjectAction)
 	BCRYPT_ALG_HANDLE hAlgHandle = nullptr;
-	BCRYPT_HASH_HANDLE hHashHandle = nullptr;
-	std::vector<BYTE> aHash;
-	std::vector<BYTE> aFileBuffer;
 	DWORD iHashLength = 0;
 
 public:

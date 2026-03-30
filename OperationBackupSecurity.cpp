@@ -38,7 +38,7 @@ OperationBackupSecurity::OperationBackupSecurity(std::queue<std::wstring> & oArg
 	AppliesToGroup = true;
 }
 
-bool OperationBackupSecurity::ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement)
+bool OperationBackupSecurity::ProcessSdAction(std::wstring& sFileName, ObjectEntry& tObjectEntry, PSECURITY_DESCRIPTOR& tDescriptor, bool& bDescReplacement)
 {
 	// convert the current security descriptor to a string
 	SmartPointer<WCHAR*> sInfo(LocalFree, nullptr);

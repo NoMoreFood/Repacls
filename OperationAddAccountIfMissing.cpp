@@ -19,6 +19,11 @@ OperationAddAccountIfMissing::OperationAddAccountIfMissing(std::queue<std::wstri
 	AppliesToDacl = true;
 }
 
+OperationAddAccountIfMissing::~OperationAddAccountIfMissing()
+{
+	delete oDelegate;
+}
+
 bool OperationAddAccountIfMissing::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
 	return oDelegate->ProcessAclAction(sSdPart, tObjectEntry, tCurrentAcl, bAclReplacement);
