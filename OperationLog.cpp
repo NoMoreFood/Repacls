@@ -3,10 +3,11 @@
 #include "Helpers.h"
 
 #include <locale>
+#include <mutex>
 
 ClassFactory<OperationLog> OperationLog::RegisteredFactory(GetCommand());
 
-HANDLE OperationLog::hLogHandle = INVALID_HANDLE_VALUE;
+SmartPointer<HANDLE> OperationLog::hLogHandle(CloseHandle);
 
 OperationLog::OperationLog(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
 {
@@ -14,7 +15,7 @@ OperationLog::OperationLog(std::queue<std::wstring> & oArgList, const std::wstri
 	const std::vector<std::wstring> sLogFile = ProcessAndCheckArgs(1, oArgList, L"\\0");
 
 	// exit immediately if command had already been called
-	if (hLogHandle != INVALID_HANDLE_VALUE)
+	if (hLogHandle.IsValid())
 	{
 		Print(L"ERROR: {} cannot be specified more than once.", GetCommand());
 		std::exit(-1);
@@ -44,10 +45,15 @@ OperationLog::OperationLog(std::queue<std::wstring> & oArgList, const std::wstri
 	InputOutput::Log() = true;
 }
 
+OperationLog::~OperationLog()
+{
+	hLogHandle.Release();
+}
+
 void OperationLog::LogFileItem(const std::wstring & sInfoLevel, const std::wstring & sPath, const std::wstring & sMessage)
 {
 	// sanity check
-	if (hLogHandle == INVALID_HANDLE_VALUE) return;
+	if (!hLogHandle.IsValid()) return;
 
 	// get time string
 	WCHAR sDate[20];
@@ -55,6 +61,10 @@ void OperationLog::LogFileItem(const std::wstring & sInfoLevel, const std::wstri
 	tm tLocalTime;
 	_localtime64_s(&tLocalTime, &tUtcTime);
 	std::ignore = wcsftime(sDate, _countof(sDate), L"%Y-%m-%d %H:%M:%S", &tLocalTime);
+
+	// serialize concurrent writes from worker threads to avoid interleaved CSV rows
+	static std::mutex oWriteMutex;
+	std::lock_guard<std::mutex> oLock(oWriteMutex);
 
 	// write out information
 	if (WriteToFile(OutToCsv(sDate, sInfoLevel, sPath, sMessage), hLogHandle) == 0)

@@ -1,178 +1,136 @@
-#include "OperationLocateText.h"
+﻿#include "OperationLocateText.h"
 #include "InputOutput.h"
-#include "Functions.h"
+#include "Helpers.h"
 
-#pragma comment(lib, "bcrypt.lib")
-#pragma comment(lib, "crypt32.lib")
-
-#include <bcrypt.h>
-#include <sal.h>
+#include <sstream>
 
 ClassFactory<OperationLocateText> OperationLocateText::RegisteredFactory(GetCommand());
 
-#define Q(x) L"\"" + (x) + L"\""
-
-OperationLocateText::OperationLocateText(std::queue<std::wstring> & oArgList, const std::wstring & sCommand) : Operation(oArgList)
+OperationLocateText::OperationLocateText(std::queue<std::wstring>& oArgList, const std::wstring& sCommand) : Operation(oArgList)
 {
 	// exit if there are not enough arguments to parse
-	std::vector<std::wstring> sReportFile = ProcessAndCheckArgs(1, oArgList, L"\\0");
-	std::vector<std::wstring> sMatchAndArgs = ProcessAndCheckArgs(1, oArgList);
+	const std::vector<std::wstring> sReportFile = ProcessAndCheckArgs(1, oArgList, L"\\0");
+	const std::vector<std::wstring> sMatchAndArgs = ProcessAndCheckArgs(2, oArgList);
 
-	// fetch params
 	HANDLE hFile = CreateFile(sReportFile.at(0).c_str(), GENERIC_WRITE,
-		FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
-	// see if names could be resolved
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
-		// complain
-		Print(L"ERROR: Could not create file `'{}'` specified for parameter '{}'.\n", sReportFile.at(0), GetCommand());
-		exit(-1);
+		Print(L"ERROR: Could not create file '{}' specified for parameter '{}'.", sReportFile.at(0), GetCommand());
+		std::exit(-1);
 	}
 
-	// register the file handle
 	hReportFile = RegisterFileHandle(hFile, GetCommand());
 
-	// if this is the first handle using this file, write out a header
 	if (hFile == hReportFile)
 	{
-		// write out the file type marker
-		const BYTE hHeader[] = { 0xEF,0xBB,0xBF };
+		constexpr BYTE hHeader[] = { 0xEF,0xBB,0xBF };
 		DWORD iBytes = 0;
 		if (WriteFile(hFile, &hHeader, _countof(hHeader), &iBytes, nullptr) == 0)
 		{
-			Print(L"ERROR: Could not write out file type marker `'{}'`.\n", GetCommand());
-			exit(-1);
+			Print(L"ERROR: Could not write out file type marker '{}'.", GetCommand());
+			std::exit(-1);
 		}
 
-		// write out the header
-		std::wstring sToWrite = std::wstring(L"") + Q(L"Path") + L"," + Q(L"Creation Time") + L"," +
-			Q(L"Modified Time") + L"," + Q(L"Size") + L"," + Q(L"Attributes") + L"\r\n";
-		if (WriteToFile(sToWrite, hReportFile) == 0)
+		// if this is the first handle using this file, write out a header
+		if (WriteToFile(OutToCsv(L"Path", L"Line Number", L"Matched Line"), hReportFile) == 0)
 		{
-			Print(L"ERROR: Could not write header to report file for parameter '{}'.\n", GetCommand());
-			exit(-1);
+			Print(L"ERROR: Could not write header to report file for parameter '{}'.", GetCommand());
+			std::exit(-1);
 		}
 	}
 
-	// only flag this to apply to the core object with the file name
 	AppliesToObject = true;
 
-	// record specific s if specified
-	if (sMatchAndArgs.size() > 1)
+	try
 	{
-		// convert the sha1 string from hex to binary 
-		/*
-		aHashToMatch = new BYTE[HASH_IN_BYTES];
-		DWORD iBytesRead = HASH_IN_BYTES;
-		if (CryptStringToBinary(sMatchAndArgs.at(1).c_str(), (DWORD) sMatchAndArgs.at(1).size(),
-			CRYPT_STRING_HEX_ANY, aHashToMatch, &iBytesRead, NULL, NULL) == FALSE || iBytesRead != HASH_IN_BYTES)
-		{
-			Print(L"ERROR: Invalid hash '{}' specified for parameter '{}'.\n", sMatchAndArgs.at(1), GetCommand());
-			exit(-1);
-		}
-		*/
+		tFileRegex = std::wregex(sMatchAndArgs.at(0), std::wregex::icase | std::wregex::optimize);
+		tTextRegex = std::wregex(sMatchAndArgs.at(1), std::wregex::icase | std::wregex::optimize);
+	}
+	catch (const std::regex_error&)
+	{
+		Print(L"ERROR: Invalid regular expression specified for parameter '{}'.", GetCommand());
+		std::exit(-1);
 	}
 }
 
-void OperationLocateText::ProcessObjectAction(ObjectEntry & tObjectEntry)
+void OperationLocateText::ProcessObjectAction(ObjectEntry& tObjectEntry)
 {
-	// skip directories
 	if (IsDirectory(tObjectEntry.Attributes)) return;
 
-	/*
-	// skip any files that do not match the size (if specified)
-	if (iSizeToMatch != -1 && tObjectEntry.FileSize.QuadPart != iSizeToMatch) return;
-
-	// skip any file names that do not match the regex
 	const WCHAR* sFileName = tObjectEntry.Name.c_str();
-	if (wcsrchr(sFileName, '\\') != nullptr) sFileName = wcsrchr(sFileName, '\\') + 1;
-	if (!std::regex_match(sFileName, tRegex)) return;
+	const WCHAR* sLastSep = wcsrchr(sFileName, L'\\');
+	if (sLastSep != nullptr) sFileName = sLastSep + 1;
+	if (!std::regex_match(sFileName, tFileRegex)) return;
 
-	// initialize hash for this thread
-	static constexpr size_t iFileBuffer = 2 * 1024 * 1024;
-	__declspec(thread) static BCRYPT_HASH_HANDLE HashHandle = NULL;
-	__declspec(thread) static PBYTE Hash = nullptr;
-	__declspec(thread) static PBYTE FileBuffer = nullptr; 
-	__declspec(thread) static DWORD HashLength = 0;
-	if (Hash == nullptr)
-	{
-		BCRYPT_ALG_HANDLE AlgHandle = NULL;
-		DWORD ResultLength = 0;
-		if (BCryptOpenAlgorithmProvider(&AlgHandle, BCRYPT_SHA256_ALGORITHM, NULL, BCRYPT_HASH_REUSABLE_FLAG) != 0 ||
-			BCryptGetProperty(AlgHandle, BCRYPT_HASH_LENGTH, (PBYTE) &HashLength, sizeof(HashLength), &ResultLength, 0) != 0 ||
-			BCryptCreateHash(AlgHandle, &HashHandle, NULL, 0, NULL, 0, BCRYPT_HASH_REUSABLE_FLAG) != 0 ||
-			(Hash = (PBYTE) malloc(HashLength)) == NULL ||
-			(FileBuffer = (PBYTE) malloc(iFileBuffer)) == NULL)
-		{
-			Print(L"ERROR: Could not setup hashing environment.\n");
-			exit(-1);
-		}
-	}
+	thread_local std::vector<char> tReadBuffer(64 * 1024);
 
-	HANDLE hFile = CreateFile(tObjectEntry.Name.c_str(), GENERIC_READ, FILE_SHARE_READ,
-		NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
-	if (hFile == INVALID_HANDLE_VALUE)
+	SmartPointer<HANDLE> hFile(CloseHandle, CreateFile(tObjectEntry.Name.c_str(), GENERIC_READ,
+		FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr));
+	if (!hFile.IsValid())
 	{
 		InputOutput::AddError(L"Unable to open file for reading.");
 		return;
 	}
 
-	DWORD iReadResult = 0;
-	DWORD iHashResult = 0;
-	DWORD iReadBytes = 0;
-	while ((iReadResult = ReadFile(hFile, FileBuffer, iFileBuffer, &iReadBytes, NULL)) != 0 && iReadBytes > 0)
+	std::string sRawContent;
+	DWORD iBytesRead = 0;
+	while (ReadFile(hFile, tReadBuffer.data(), static_cast<DWORD>(tReadBuffer.size()), &iBytesRead, nullptr) != 0 && iBytesRead > 0)
 	{
-		iHashResult = BCryptHashData(HashHandle, FileBuffer, iReadBytes, 0);
-		if (iHashResult != 0) break;
+		sRawContent.append(tReadBuffer.data(), iBytesRead);
 	}
 
-	// done reading data
-	CloseHandle(hFile);
-	
-	// complete hash data
-	if (BCryptFinishHash(HashHandle, Hash, HashLength, 0) != 0)
+	if (sRawContent.empty()) return;
+
+	std::wstring sContent;
+	const auto* pRaw = reinterpret_cast<const unsigned char*>(sRawContent.data());
+	if (sRawContent.size() >= 2 && pRaw[0] == 0xFF && pRaw[1] == 0xFE)
 	{
-		InputOutput::AddError(L"Could not finalize file data.");
-		exit(-1);
+		sContent.assign(reinterpret_cast<const wchar_t*>(sRawContent.data() + 2),
+			(sRawContent.size() - 2) / sizeof(wchar_t));
+	}
+	else
+	{
+		int iOffset = 0;
+		if (sRawContent.size() >= 3 && pRaw[0] == 0xEF && pRaw[1] == 0xBB && pRaw[2] == 0xBF)
+			iOffset = 3;
+
+		const int iLen = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
+			sRawContent.data() + iOffset, static_cast<int>(sRawContent.size() - iOffset), nullptr, 0);
+		if (iLen > 0)
+		{
+			sContent.resize(iLen);
+			MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
+				sRawContent.data() + iOffset, static_cast<int>(sRawContent.size() - iOffset),
+				sContent.data(), iLen);
+		}
+		else
+		{
+			const int iAnsiLen = MultiByteToWideChar(CP_ACP, 0,
+				sRawContent.data() + iOffset, static_cast<int>(sRawContent.size() - iOffset), nullptr, 0);
+			if (iAnsiLen > 0)
+			{
+				sContent.resize(iAnsiLen);
+				MultiByteToWideChar(CP_ACP, 0,
+					sRawContent.data() + iOffset, static_cast<int>(sRawContent.size() - iOffset),
+					sContent.data(), iAnsiLen);
+			}
+		}
 	}
 
-	// file read failed
-	if (iHashResult != 0 || iReadResult == 0)
+	std::wistringstream oStream(sContent);
+	std::wstring sLine;
+	LONGLONG iLineNumber = 0;
+	while (std::getline(oStream, sLine))
 	{
-		InputOutput::AddError(L"Could not hash/read file data.");
-		return;
-	}
+		++iLineNumber;
+		if (!sLine.empty() && sLine.back() == L'\r') sLine.pop_back();
+		if (!std::regex_search(sLine, tTextRegex)) continue;
 
-	// skip if a hash was specified and there is no match
-	if (aHashToMatch != nullptr && memcmp(aHashToMatch, Hash, HASH_IN_BYTES) != 0)
-	{
-		return;
-	}
-
-	// convert to base64
-	WCHAR sHash[HASH_IN_HEXCHARS + 1] = L"";
-	DWORD iHashStringLength = HASH_IN_HEXCHARS + 1;
-	CryptBinaryToStringW(Hash, HashLength, CRYPT_STRING_HEXRAW | CRYPT_STRING_NOCRLF, 
-		sHash, &iHashStringLength);
-
-	// get common file attributes
-	const std::wstring sSize = FileSizeToString(tObjectEntry.FileSize);
-	const std::wstring sAttributes = FileAttributesToString(tObjectEntry.Attributes);
-	const std::wstring sModifiedTime = FileTimeToString(tObjectEntry.ModifiedTime);
-	const std::wstring sCreationTime = FileTimeToString(tObjectEntry.CreationTime);
-
-	// check if the target path matches out regex filter 
-	if (true)
-	{
-		// write output to file
-		std::wstring sToWrite = std::wstring(L"") + Q(tObjectEntry.Name) + L"," +
-			Q(sCreationTime) + L"," + Q(sModifiedTime) + L"," + 
-			Q(sSize) + L"," + Q(sAttributes) + L"," + Q(sHash) + L"," + L"\r\n";
-		if (WriteToFile(sToWrite, hReportFile) == 0)
+		if (WriteToFile(OutToCsv(tObjectEntry.Name, std::to_wstring(iLineNumber), sLine), hReportFile) == 0)
 		{
 			InputOutput::AddError(L"Unable to write information to report file.");
 		}
 	}
-	*/
 }

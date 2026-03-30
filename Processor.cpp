@@ -58,8 +58,7 @@ void Processor::AnalyzeSecurity(ObjectEntry & oEntry)
 		const size_t iSize = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
 			FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK,
 			nullptr, iError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPWSTR>(&sError), 0, nullptr);
-		InputOutput::AddError(L"Unable to read security information", (iSize == 0) ? L"" : sError);
-		if (iSize > 0) LocalFree(sError);
+		InputOutput::AddError(L"Unable to read security information", (iSize == 0) ? L"" : *&sError);
 
 		// clear out any remaining data
 		InputOutput::WriteToScreen();
@@ -168,12 +167,11 @@ void Processor::AnalyzeSecurity(ObjectEntry & oEntry)
 				(bDaclIsDirty) ? tAclDacl : nullptr, (bSaclIsDirty) ? tAclSacl : nullptr)) != ERROR_SUCCESS)
 			{
 				// attempt to look up error message
-				LPWSTR sError = nullptr;
+				SmartPointer<WCHAR*> sError(LocalFree, nullptr);
 				const size_t iSize = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
 					FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK,
 					nullptr, iError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPWSTR>(&sError), 0, nullptr);
-				InputOutput::AddError(L"Unable to update security information", (iSize == 0) ? L"" : sError);
-				if (iSize > 0) LocalFree(sError);
+				InputOutput::AddError(L"Unable to update security information", (iSize == 0) ? L"" : *&sError);
 
 				// clear out any remaining data
 				InputOutput::WriteToScreen();

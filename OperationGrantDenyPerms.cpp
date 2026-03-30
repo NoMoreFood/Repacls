@@ -159,7 +159,7 @@ bool OperationGrantDenyPerms::ProcessAclAction(const WCHAR* const sSdPart, Objec
 	}
 
 	// merge the new trustee into the dacl
-	PACL tNewDacl;
+	SmartPointer<PACL> tNewDacl(LocalFree, nullptr);
 	if (SetEntriesInAcl(1, &tEa, tCurrentAcl, &tNewDacl) != ERROR_SUCCESS)
 	{
 		InputOutput::AddError(L"Could not modify permissions due to a system error.", sSdPart);
@@ -170,13 +170,13 @@ bool OperationGrantDenyPerms::ProcessAclAction(const WCHAR* const sSdPart, Objec
 	if (tCurrentAcl->AclSize == tNewDacl->AclSize &&
 		memcmp(tCurrentAcl, tNewDacl, tCurrentAcl->AclSize) == 0)
 	{
-		LocalFree(tNewDacl);
 		return false;
 	}
 
 	// cleanup the old dacl (if necessary) and assign our new active dacl
 	if (bAclReplacement) LocalFree(tCurrentAcl);
 	tCurrentAcl = tNewDacl;
+	*tNewDacl = nullptr;
 	bAclReplacement = true;
 
 	// flag to commit tag and cleanup dacl

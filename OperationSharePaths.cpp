@@ -8,6 +8,7 @@
 
 #include "OperationSharePaths.h"
 #include "InputOutput.h"
+#include "Helpers.h"
 
 ClassFactory<OperationSharePaths> OperationSharePaths::RegisteredFactory(GetCommand());
 
@@ -89,7 +90,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 	std::map<std::wstring, std::wstring> mPaths;
 	do
 	{
-		SHARE_INFO_2 * tInfo;
+		SmartPointer<PSHARE_INFO_2> tInfo(NetApiBufferFree, nullptr);
 		DWORD iEntries = 0;
 		DWORD iTotalEntries = 0;
 
@@ -132,9 +133,6 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 			// add path to the share list
 			mPaths[tInfo[iEntry].shi2_netname] = sLocalPath;
 		}
-
-		// cleanup
-		NetApiBufferFree(tInfo);
 	} 
 	while (iReturn == ERROR_MORE_DATA);
 
@@ -144,7 +142,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 		oPathOuter != mPaths.end(); ++oPathOuter)
 	{
 		bool bAddToPathList = true;
-		for (auto oPathInner = oPathOuter; bDoDeDupe &&
+		for (auto oPathInner = mPaths.begin(); bDoDeDupe &&
 			oPathInner != mPaths.end(); ++oPathInner)
 		{
 			// see if the path is a sub-path of another path

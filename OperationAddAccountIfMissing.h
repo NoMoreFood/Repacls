@@ -20,4 +20,7 @@ public:
 
 	// constructors
 	OperationAddAccountIfMissing(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
+
+	// destructor
+	~OperationAddAccountIfMissing() override;
 };

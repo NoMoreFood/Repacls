@@ -152,18 +152,17 @@ bool OperationCopyMap::ProcessAclAction(const WCHAR* const sSdPart, ObjectEntry&
 
 			// special case since SetEntriesInAcl does not handle setting both success
 			// and failure types together
-			PACL tNewDacl = nullptr;
+			SmartPointer<PACL> tNewDacl(LocalFree, nullptr);
 			DWORD iError = 0;
 			if (CheckBitSet(tEa.grfAccessMode, SET_AUDIT_SUCCESS) &&
 				CheckBitSet(tEa.grfAccessMode, SET_AUDIT_FAILURE))
 			{
-				PACL tNewDaclTmp = nullptr;
+				SmartPointer<PACL> tNewDaclTmp(LocalFree, nullptr);
 				tEa.grfAccessMode = SET_AUDIT_SUCCESS;
 				iError = SetEntriesInAcl(1, &tEa, tCurrentAcl, &tNewDaclTmp);
 				tEa.grfAccessMode = SET_AUDIT_FAILURE;
 				if (iError == ERROR_SUCCESS) {
 					SetEntriesInAcl(1, &tEa, tNewDaclTmp, &tNewDacl);
-					LocalFree(tNewDaclTmp);
 				}
 			}
 			else
@@ -186,8 +185,7 @@ bool OperationCopyMap::ProcessAclAction(const WCHAR* const sSdPart, ObjectEntry&
 				memcmp(tCurrentAcl, tNewDacl, tCurrentAcl->AclSize) == 0)
 			{
 				// if acls match then no change was made and we do not need
-				// to mark this as dirty or restart the enumeration 
-				LocalFree(tNewDacl);
+				// to mark this as dirty or restart the enumeration
 			}
 			else
 			{
@@ -197,6 +195,7 @@ bool OperationCopyMap::ProcessAclAction(const WCHAR* const sSdPart, ObjectEntry&
 				// cleanup the old dacl (if necessary) and assign our new active dacl
 				if (bAclReplacement) LocalFree(tCurrentAcl);
 				tCurrentAcl = tNewDacl;
+				*tNewDacl = nullptr;
 				bAclReplacement = true;
 				bAclIsDirty = true;
 				iEntry = -1;

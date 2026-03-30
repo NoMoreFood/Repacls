@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Operation.h"
+#include "Helpers.h"
 
 class OperationLog final : public Operation
 {
@@ -9,12 +10,15 @@ class OperationLog final : public Operation
 	static std::wstring GetCommand() { return L"Log"; }
 	static ClassFactory<OperationLog> RegisteredFactory;
 
-	static HANDLE hLogHandle;
+	static SmartPointer<HANDLE> hLogHandle;
 
 public:
 
 	// constructors
 	OperationLog(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);
+
+	// destructor
+	~OperationLog() override;
 
 	// functions
 	static void LogFileItem(const std::wstring & sInfoLevel, const std::wstring & sPath, const std::wstring & sMessage);

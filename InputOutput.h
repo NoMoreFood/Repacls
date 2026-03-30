@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <mutex>
 
 #include "OperationLog.h"
 
@@ -61,15 +62,15 @@ public:
 	{
 		// discover the long file name prefix so we can subtract it from the display path
 		static std::wstring sPrefix;
-		static size_t iPrefix = static_cast<size_t>(-1);
-		if (iPrefix == static_cast<size_t>(-1))
-		{
+		static size_t iPrefix = 0;
+		static std::once_flag oInitFlag;
+		std::call_once(oInitFlag, [&]() {
 			const std::wstring sUnc = L"\\??\\UNC\\";
 			const std::wstring sLocal = L"\\??\\";
 			if (sLine.starts_with(sUnc)) { iPrefix = sUnc.size(); sPrefix = L"\\\\"; }
 			else if (sLine.starts_with(sLocal)) iPrefix = sLocal.size();
 			else iPrefix = 0;
-		}
+		});
 
 		GetFileName() = sPrefix + sLine.substr(iPrefix);
 		GetDetail() = L"";

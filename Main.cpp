@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include <queue>
 #include <vector>
+#include <memory>
 #include <lmcons.h>
 
 #include <string>
@@ -25,17 +26,17 @@
 VOID BeginScan(Processor & oProcessor)
 {
 	// determine the type of processor
-	Object* oObject = nullptr;
-	if (OperationPathMode::GetPathMode() == SE_FILE_OBJECT) oObject = new ObjectFile(oProcessor);
-	if (OperationPathMode::GetPathMode() == SE_REGISTRY_KEY) oObject = new ObjectRegistry(oProcessor);
-	if (OperationPathMode::GetPathMode() == SE_DS_OBJECT) oObject = new ObjectAds(oProcessor);
+	std::unique_ptr<Object> oObject;
+	if (OperationPathMode::GetPathMode() == SE_FILE_OBJECT) oObject = std::make_unique<ObjectFile>(oProcessor);
+	if (OperationPathMode::GetPathMode() == SE_REGISTRY_KEY) oObject = std::make_unique<ObjectRegistry>(oProcessor);
+	if (OperationPathMode::GetPathMode() == SE_DS_OBJECT) oObject = std::make_unique<ObjectAds>(oProcessor);
 
 	// startup some threads for processing
 	std::vector<std::thread> oThreads;
 	oProcessor.GetQueue().SetWaiterCounter(InputOutput::MaxThreads());
 	oThreads.reserve(InputOutput::MaxThreads());
 	for (SHORT iNum = 0; iNum < InputOutput::MaxThreads(); iNum++)
-		oThreads.emplace_back([&oProcessor,oObject]() {
+		oThreads.emplace_back([&oProcessor,&oObject]() {
 		for (;;)
 		{
 			// fetch next entry
@@ -204,4 +205,6 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	Print(L"= Time Elapsed: {:.3f}", static_cast<double>(iTimeStop - iTimeStart) / 1000.0);
 	Print(L"= Note: Update statistics do not include changes due to inherited rights.");
 	Print(L"===============================================================================");
+
+	for (auto oOperation : oOperationList) delete oOperation;
 }

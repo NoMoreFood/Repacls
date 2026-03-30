@@ -72,7 +72,8 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry& tObjectEntry)
 
 	// skip any file names that do not match the regex
 	const WCHAR* sFileName = tObjectEntry.Name.c_str();
-	if (wcsrchr(sFileName, '\\') != nullptr) sFileName = wcsrchr(sFileName, '\\') + 1;
+	const WCHAR* sLastSep = wcsrchr(sFileName, L'\\');
+	if (sLastSep != nullptr) sFileName = sLastSep + 1;
 	if (!std::regex_match(sFileName, tRegexLink)) return;
 
 	// initialize com for this thread

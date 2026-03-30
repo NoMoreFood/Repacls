@@ -7,8 +7,8 @@ void ObjectRegistry::GetBaseObject(std::wstring sPath)
 	const static std::map<std::wstring_view, std::pair<HKEY, std::wstring>> oRegMap = {
 	{ L"HKLM",                   { HKEY_LOCAL_MACHINE, L"MACHINE"     }},
 	{ L"HKEY_LOCAL_MACHINE",     { HKEY_LOCAL_MACHINE, L"MACHINE"     }},
-	{ L"HKU",                    { HKEY_USERS, L"MACHINE"             }},
-	{ L"HKEY_USERS",             { HKEY_USERS, L"MACHINE"             }},
+	{ L"HKU",                    { HKEY_USERS, L"USERS"               }},
+	{ L"HKEY_USERS",             { HKEY_USERS, L"USERS"               }},
 	{ L"HKCU",                   { HKEY_CURRENT_USER, L"CURRENT_USER" }},
 	{ L"HKEY_CURRENT_USER",      { HKEY_CURRENT_USER, L"CURRENT_USER" }},
 	{ L"HKCC",                   { HKEY_CURRENT_CONFIG, L"CONFIG"     }},

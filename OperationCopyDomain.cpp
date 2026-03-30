@@ -76,14 +76,13 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 				tSidStruct->SubAuthority[4] < 1000)
 			{
 				// create a new sid that has the domain identifier of the target domain
-				PSID tSidTmp = nullptr;
+				SmartPointer<PSID> tSidTmp(FreeSid, nullptr);
 				AllocateAndInitializeSid(&tSidStruct->IdentifierAuthority, tSidStruct->SubAuthorityCount,
 					tSidStruct->SubAuthority[0], tSidTargetDomain->SubAuthority[1], tSidTargetDomain->SubAuthority[2],
 					tSidTargetDomain->SubAuthority[3], tSidStruct->SubAuthority[4], 0, 0, 0, &tSidTmp);
 
 				// lookup the target name and see if it exists
 				std::wstring sTargetAccountName = GetNameFromSid(tSidTmp);
-				FreeSid(tSidTmp);
 				if (sTargetAccountName.empty())	continue;
 
 				// do a forward lookup on the name in order to get a reference to the 
@@ -174,18 +173,17 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 
 			// special case since SetEntriesInAcl does not handle setting both success
 			// and failure types together
-			PACL tNewDacl = nullptr;
+			SmartPointer<PACL> tNewDacl(LocalFree, nullptr);
 			DWORD iError = 0;
 			if (CheckBitSet(tEa.grfAccessMode, SET_AUDIT_SUCCESS) &&
 				CheckBitSet(tEa.grfAccessMode, SET_AUDIT_FAILURE))
 			{
-				PACL tNewDaclTmp = nullptr;
+				SmartPointer<PACL> tNewDaclTmp(LocalFree, nullptr);
 				tEa.grfAccessMode = SET_AUDIT_SUCCESS;
 				iError = SetEntriesInAcl(1, &tEa, tCurrentAcl, &tNewDaclTmp);
 				tEa.grfAccessMode = SET_AUDIT_FAILURE;
 				if (iError == ERROR_SUCCESS) {
 					SetEntriesInAcl(1, &tEa, tNewDaclTmp, &tNewDacl);
-					LocalFree(tNewDaclTmp);
 				}
 			}
 			else
@@ -208,8 +206,7 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 				memcmp(tCurrentAcl, tNewDacl, tCurrentAcl->AclSize) == 0)
 			{
 				// if acls match then no change was made and we do not need
-				// to mark this as dirty or restart the enumeration 
-				LocalFree(tNewDacl);
+				// to mark this as dirty or restart the enumeration
 			}
 			else
 			{
@@ -219,6 +216,7 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 				// cleanup the old dacl (if necessary) and assign our new active dacl
 				if (bAclReplacement) LocalFree(tCurrentAcl);
 				tCurrentAcl = tNewDacl;
+				*tNewDacl = nullptr;
 				bAclReplacement = true;
 				bAclIsDirty = true;
 				iEntry = -1;

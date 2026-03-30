@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cwchar>
 #include <map>
+#include <mutex>
 #include <format>
 #include <iostream>
 
@@ -81,7 +82,10 @@ constexpr std::wstring OutToCsv(Args const&... args)
 template<typename... Args>
 void Print(std::wformat_string<Args...> fmt, Args&&... args) noexcept
 {
-	std::wcout << std::format(fmt, std::forward<Args>(args)...) << L"\n";
+	static std::mutex oPrintMutex;
+	const std::wstring sLine = std::format(fmt, std::forward<Args>(args)...) + L"\n";
+	std::lock_guard<std::mutex> oLock(oPrintMutex);
+	std::wcout << sLine;
 }
 
 typedef enum SidActionResult : char

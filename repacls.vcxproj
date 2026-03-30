@@ -224,6 +224,7 @@
     <ClCompile Include="OperationLocate.cpp" />
     <ClCompile Include="OperationLocateHash.cpp" />
     <ClCompile Include="OperationLocateShortcut.cpp" />
+    <ClCompile Include="OperationLocateText.cpp" />
     <ClCompile Include="OperationLog.cpp" />
     <ClCompile Include="OperationPathList.cpp" />
     <ClCompile Include="OperationPathMode.cpp" />
@@ -268,6 +269,7 @@
     <ClInclude Include="OperationCopyDomain.h" />
     <ClInclude Include="OperationDomainPaths.h" />
     <ClInclude Include="OperationLocate.h" />
+    <ClInclude Include="OperationLocateText.h" />
     <ClInclude Include="OperationLog.h" />
     <ClInclude Include="OperationPathList.h" />
     <ClInclude Include="OperationPathMode.h" />

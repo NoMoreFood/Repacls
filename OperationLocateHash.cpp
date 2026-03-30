@@ -81,11 +81,11 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 		std::exit(-1);
 	}
 
-	// initialize hashing environment
+	// initialize hashing environment (algorithm handle only; per-thread hash handles
+	// are created lazily inside ProcessObjectAction)
 	DWORD ResultLength = 0;
 	if (BCryptOpenAlgorithmProvider(&hAlgHandle, hashAlg->second, nullptr, BCRYPT_HASH_REUSABLE_FLAG) != 0 ||
-		BCryptGetProperty(hAlgHandle, BCRYPT_HASH_LENGTH, (PBYTE)&iHashLength, sizeof(DWORD), &ResultLength, 0) != 0 ||
-		BCryptCreateHash(hAlgHandle, &hHashHandle, nullptr, 0, nullptr, 0, BCRYPT_HASH_REUSABLE_FLAG) != 0)
+		BCryptGetProperty(hAlgHandle, BCRYPT_HASH_LENGTH, (PBYTE)&iHashLength, sizeof(DWORD), &ResultLength, 0) != 0)
 	{
 		Print(L"ERROR: Could not setup hashing environment.");
 		std::exit(-1);
@@ -106,17 +106,10 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 	{
 		iSizeToMatch = _wtoll(sMatchAndArgs.at(2).c_str());
 	}
-
-	aHash.resize(iHashLength);
-	aFileBuffer.resize(2ull * 1024ull * 1024ull);
 }
 
 OperationLocateHash::~OperationLocateHash()
 {
-	if (hHashHandle != nullptr)
-	{
-		BCryptDestroyHash(hHashHandle);
-	}
 	if (hAlgHandle != nullptr)
 	{
 		BCryptCloseAlgorithmProvider(hAlgHandle, 0);
@@ -133,12 +126,29 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 
 	// skip any file names that do not match the regex
 	const WCHAR* sFileName = tObjectEntry.Name.c_str();
-	if (wcsrchr(sFileName, '\\') != nullptr) sFileName = wcsrchr(sFileName, '\\') + 1;
+	const WCHAR* sLastSep = wcsrchr(sFileName, L'\\');
+	if (sLastSep != nullptr) sFileName = sLastSep + 1;
 	if (!std::regex_match(sFileName, tRegex)) return;
 
-	HANDLE hFile = CreateFile(tObjectEntry.Name.c_str(), GENERIC_READ, FILE_SHARE_READ,
-	           nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
-	if (hFile == INVALID_HANDLE_VALUE)
+	// Per-thread state: SmartPointer handles BCryptDestroyHash on thread exit;
+	// tHash and tBuffer are reused across calls on the same thread.
+	thread_local SmartPointer<BCRYPT_HASH_HANDLE> tHashHandle(BCryptDestroyHash);
+	thread_local std::vector<BYTE> tHash;
+	thread_local std::vector<BYTE> tBuffer;
+	if (!tHashHandle.IsValid())
+	{
+		if (BCryptCreateHash(hAlgHandle, &tHashHandle, nullptr, 0, nullptr, 0, BCRYPT_HASH_REUSABLE_FLAG) != 0)
+		{
+			InputOutput::AddError(L"Could not setup per-thread hashing environment.");
+			std::exit(-1);
+		}
+		tHash.resize(iHashLength);
+		tBuffer.resize(2ull * 1024ull * 1024ull);
+	}
+
+	SmartPointer<HANDLE> hFile(CloseHandle, CreateFile(tObjectEntry.Name.c_str(), GENERIC_READ,
+		FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr));
+	if (!hFile.IsValid())
 	{
 		InputOutput::AddError(L"Unable to open file for reading.");
 		return;
@@ -147,17 +157,14 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	DWORD iReadResult = 0;
 	DWORD iHashResult = 0;
 	DWORD iReadBytes = 0;
-	while ((iReadResult = ReadFile(hFile, aFileBuffer.data(), static_cast<DWORD>(aFileBuffer.size()), &iReadBytes, nullptr)) != 0 && iReadBytes > 0)
+	while ((iReadResult = ReadFile(hFile, tBuffer.data(), static_cast<DWORD>(tBuffer.size()), &iReadBytes, nullptr)) != 0 && iReadBytes > 0)
 	{
-		iHashResult = BCryptHashData(hHashHandle, aFileBuffer.data(), iReadBytes, 0);
+		iHashResult = BCryptHashData(tHashHandle, tBuffer.data(), iReadBytes, 0);
 		if (iHashResult != 0) break;
 	}
 
-	// done reading data
-	CloseHandle(hFile);
-	
 	// complete hash data
-	if (BCryptFinishHash(hHashHandle, aHash.data(), iHashLength, 0) != 0)
+	if (BCryptFinishHash(tHashHandle, tHash.data(), iHashLength, 0) != 0)
 	{
 		InputOutput::AddError(L"Could not finalize file data for hashing.");
 		std::exit(-1);
@@ -171,7 +178,7 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	}
 
 	// skip if a hash was specified and there is no match
-	if (!aHashToMatch.empty() && memcmp(aHashToMatch.data(), aHash.data(), iHashLength) != 0)
+	if (!aHashToMatch.empty() && memcmp(aHashToMatch.data(), tHash.data(), iHashLength) != 0)
 	{
 		return;
 	}
@@ -179,7 +186,7 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	// convert to hex string
 	DWORD iHashStringLength = iHashLength * 2 + 1;
 	std::vector<WCHAR> sHash(iHashStringLength);
-	CryptBinaryToStringW(aHash.data(), iHashLength, CRYPT_STRING_HEXRAW | CRYPT_STRING_NOCRLF, 
+	CryptBinaryToStringW(tHash.data(), iHashLength, CRYPT_STRING_HEXRAW | CRYPT_STRING_NOCRLF,
 		sHash.data(), &iHashStringLength);
 
 	// get common file attributes

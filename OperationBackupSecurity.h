@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Operation.h"
+#include "Helpers.h"
 
 class OperationBackupSecurity final : public Operation
 {
@@ -9,7 +10,7 @@ class OperationBackupSecurity final : public Operation
 	static std::wstring GetCommand() { return L"BackupSecurity"; }
 	static ClassFactory<OperationBackupSecurity> RegisteredFactory;
 
-	HANDLE hFile = INVALID_HANDLE_VALUE;
+	SmartPointer<HANDLE> hFile{ CloseHandle };
 	std::wstring sFile;
 
 public:
