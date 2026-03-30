@@ -29,7 +29,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 	const std::vector<std::wstring> sSubArgs = ProcessAndCheckArgs(1, oArgList);
 
 	// address site argument option
-	bool bFilterSite = _wcsicmp(sCommand.c_str(), GetCommandSite().c_str()) == 0;
+	const bool bFilterSite = _wcsicmp(sCommand.c_str(), GetCommandSite().c_str()) == 0;
 	std::vector<std::wstring> sSiteArgs;
 	if (bFilterSite) sSiteArgs = ProcessAndCheckArgs(1, oArgList);
 

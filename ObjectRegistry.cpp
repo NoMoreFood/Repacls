@@ -69,7 +69,7 @@ void ObjectRegistry::GetChildObjects(ObjectEntry& oEntry)
 
 	// enumerate children
 	HRESULT hResult = ERROR_SUCCESS;
-	WCHAR sKeyName[MAX_PATH];
+	WCHAR sKeyName[MAX_PATH] = {};
 	DWORD iKeyName = _countof(sKeyName);
 	for (DWORD iIndex = 0; (hResult = RegEnumKeyEx(hParentKey, iIndex, sKeyName, &iKeyName, nullptr,
 			nullptr, nullptr, &oEntry.ModifiedTime)) != ERROR_NO_MORE_ITEMS; ++iIndex, iKeyName = _countof(sKeyName))

@@ -167,7 +167,7 @@ bool OperationGrantDenyPerms::ProcessAclAction(const WCHAR* const sSdPart, Objec
 	}
 
 	// do not commit change is no actual change was made
-	if (tCurrentAcl->AclSize == tNewDacl->AclSize &&
+	if (tCurrentAcl != nullptr && tCurrentAcl->AclSize == tNewDacl->AclSize &&
 		memcmp(tCurrentAcl, tNewDacl, tCurrentAcl->AclSize) == 0)
 	{
 		return false;

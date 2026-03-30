@@ -19,15 +19,15 @@
 typedef struct ObjectEntry
 {
 	std::wstring Name;
-	SE_OBJECT_TYPE ObjectType;
-	DWORD Attributes;
-	FILETIME ModifiedTime;
-	FILETIME CreationTime;
-	LARGE_INTEGER FileSize;
-	unsigned int Depth;
+	SE_OBJECT_TYPE ObjectType = {};
+	DWORD Attributes = {};
+	FILETIME ModifiedTime = {};
+	FILETIME CreationTime = {};
+	LARGE_INTEGER FileSize = {};
+	unsigned int Depth = {};
 
 	std::wstring NameExtended;
-	HANDLE hObject;
+	HANDLE hObject = nullptr;
 }
 ObjectEntry;
 
@@ -56,12 +56,12 @@ constexpr bool IsHiddenSystem(DWORD x) { return CheckBitSet(x, FILE_ATTRIBUTE_HI
 constexpr bool IsReparsePoint(DWORD x) { return CheckBitSet(x, FILE_ATTRIBUTE_REPARSE_POINT); };
 
 // a few simple defines for convenience
-constexpr bool IsInherited(PACE_ACCESS_HEADER x) { return CheckBitSet((x)->AceFlags, INHERITED_ACE); };
-constexpr bool HasContainerInherit(PACE_ACCESS_HEADER x) { return CheckBitSet((x)->AceFlags, CONTAINER_INHERIT_ACE); };
-constexpr bool HasObjectInherit(PACE_ACCESS_HEADER x) { return CheckBitSet((x)->AceFlags, OBJECT_INHERIT_ACE); };
-constexpr bool HasInheritOnly(PACE_ACCESS_HEADER x) { return CheckBitSet((x)->AceFlags, INHERIT_ONLY_ACE); };
-constexpr bool HasNoPropogate(PACE_ACCESS_HEADER x) { return CheckBitSet((x)->AceFlags, NO_PROPAGATE_INHERIT_ACE); };
-constexpr DWORD GetNonOiCiIoBits(PACE_ACCESS_HEADER x) { return ((~(CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE | INHERIT_ONLY_ACE)) & (x)->AceFlags); };
+constexpr bool IsInherited(const ACE_ACCESS_HEADER* x) { return CheckBitSet((x)->AceFlags, INHERITED_ACE); };
+constexpr bool HasContainerInherit(const ACE_ACCESS_HEADER* x) { return CheckBitSet((x)->AceFlags, CONTAINER_INHERIT_ACE); };
+constexpr bool HasObjectInherit(const ACE_ACCESS_HEADER* x) { return CheckBitSet((x)->AceFlags, OBJECT_INHERIT_ACE); };
+constexpr bool HasInheritOnly(const ACE_ACCESS_HEADER* x) { return CheckBitSet((x)->AceFlags, INHERIT_ONLY_ACE); };
+constexpr bool HasNoPropogate(const ACE_ACCESS_HEADER* x) { return CheckBitSet((x)->AceFlags, NO_PROPAGATE_INHERIT_ACE); };
+constexpr DWORD GetNonOiCiIoBits(const ACE_ACCESS_HEADER* x) { return ((~(CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE | INHERIT_ONLY_ACE)) & (x)->AceFlags); };
 
 // string helper operations
 constexpr void ConvertToUpper(std::wstring& str)
@@ -127,7 +127,7 @@ public:
 	virtual void ProcessObjectAction(ObjectEntry & tObjectEntry) { }
 	static PSID GetSidFromAce(PACE_ACCESS_HEADER tAce) noexcept;
 
-	Operation(std::queue<std::wstring> & oArgList);
+	Operation(std::queue<std::wstring> & oArgList) noexcept;
 	virtual ~Operation() = default;
 };
 

@@ -341,4 +341,7 @@
       <Filter>Resources</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Tests\Test-Repacls.ps1" />
+  </ItemGroup>
 </Project>

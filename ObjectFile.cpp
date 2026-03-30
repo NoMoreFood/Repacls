@@ -83,7 +83,7 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 
 	// get an open file handle
 	SmartPointer<HANDLE> hFindFile(NtClose, nullptr);
-	IO_STATUS_BLOCK IoStatusBlock;
+	IO_STATUS_BLOCK IoStatusBlock = {};
 	NTSTATUS Status = NtOpenFile(&hFindFile, FILE_LIST_DIRECTORY | SYNCHRONIZE,
 		&oAttributes, &IoStatusBlock, FILE_SHARE_READ | FILE_SHARE_WRITE,
 		FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_FOR_BACKUP_INTENT |
@@ -117,8 +117,8 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 	{
 		thread_local BYTE DirectoryInfo[MAX_DIRECTORY_BUFFER];
 		Status = NtQueryDirectoryFile(hFindFile, nullptr, nullptr, nullptr, &IoStatusBlock,
-		                              DirectoryInfo, MAX_DIRECTORY_BUFFER, static_cast<FILE_INFORMATION_CLASS>(FileDirectoryInformation),
-		                              FALSE, nullptr, (bFirstRun) ? TRUE : FALSE);
+		    DirectoryInfo, MAX_DIRECTORY_BUFFER, static_cast<FILE_INFORMATION_CLASS>(FileDirectoryInformation),
+		    FALSE, nullptr, (bFirstRun) ? TRUE : FALSE);
 
 		// done processing
 		if (Status == STATUS_NO_MORE_FILES) break;
@@ -157,7 +157,7 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 			if (!IsDirectory(oSubEntry.Attributes) || IsReparsePoint(oSubEntry.Attributes))
 			{
 				// for performance do security analysis immediately instead of addiing to queue
-				if (oEntry.Depth <= OperationDepth::MaxDepth())
+				if (oSubEntry.Depth <= OperationDepth::MaxDepth())
 				{
 					oProcessor.AnalyzeSecurity(oSubEntry);
 					Processor::CompleteEntry(oSubEntry);

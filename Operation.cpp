@@ -90,7 +90,7 @@ bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 			// new size and then copy the various parts into the new memory
 			else
 			{
-				PBYTE const tNewAcl = static_cast<PBYTE>(LocalAlloc(LMEM_FIXED, tAcl->AclSize + (iNewLen - iOldLen)));
+				PBYTE const tNewAcl = static_cast<PBYTE>(LocalAlloc(LMEM_FIXED, static_cast<SIZE_T>(tAcl->AclSize) + (iNewLen - iOldLen)));
 				if (tNewAcl == nullptr)
 				{
 					Print(L"ERROR: Unable to allocate memory for new SID.");
@@ -154,7 +154,7 @@ bool Operation::ProcessSidAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 	return bMadeChange;
 }
 
-Operation::Operation(std::queue<std::wstring> & oArgList) 
+Operation::Operation(std::queue<std::wstring> & oArgList) noexcept
 {
 	SID_IDENTIFIER_AUTHORITY tAuthNt = SECURITY_NT_AUTHORITY;
 	AllocateAndInitializeSid(&tAuthNt, 2, SECURITY_BUILTIN_DOMAIN_RID,

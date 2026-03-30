@@ -42,7 +42,7 @@ public:
 		oIsEmptyCondition.wait(mlock, [&]() noexcept { return iWaiters == 0 && oQueue.empty(); });
 	}
 
-	void SetWaiterCounter(short iWaitCounters)
+	void SetWaiterCounter(short iWaitCounters) noexcept
 	{
 		iWaiters = iWaitCounters;
 	}
