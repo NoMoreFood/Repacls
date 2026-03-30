@@ -35,7 +35,7 @@ OperationRestoreSecurity::OperationRestoreSecurity(std::queue<std::wstring> & oA
 		std::vector<std::wstring> oLineItems = SplitArgs(sLine, L"\\||\r");
 
 		// convert the long string descriptor its binary equivalent
-		PSECURITY_DESCRIPTOR tDesc;
+		PSECURITY_DESCRIPTOR tDesc = nullptr;
 		if (oLineItems.size() != 2 ||
 			ConvertStringSecurityDescriptorToSecurityDescriptor(oLineItems.at(1).c_str(),
 			SDDL_REVISION_1, &tDesc, nullptr) == 0)

@@ -17,6 +17,6 @@ public:
 	virtual void GetBaseObject(std::wstring sPath) = 0;
 	virtual void GetChildObjects(ObjectEntry& oObject) = 0;
 
-	Object(Processor& poProcessor) : oProcessor(poProcessor) {}
+	Object(Processor& poProcessor) noexcept : oProcessor(poProcessor) {}
 	virtual ~Object() = default;
 };

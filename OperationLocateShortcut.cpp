@@ -138,7 +138,7 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry& tObjectEntry)
 	std::wstring sTargetPath = L"<ERROR READING>";
 	std::wstring sWorkingDirectory = L"<ERROR READING>";
 	WCHAR sTargetPathRaw[MAX_PATH];
-	WCHAR sWorkingDirRaw[MAX_PATH];
+	WCHAR sWorkingDirRaw[MAX_PATH] = {};
 	if (SUCCEEDED(oLink->GetPath(sTargetPathRaw, MAX_PATH, nullptr, SLGP_RAWPATH))) sTargetPath = sTargetPathRaw;
 	if (SUCCEEDED(oLink->GetWorkingDirectory(sWorkingDirRaw, MAX_PATH))) sWorkingDirectory = sWorkingDirRaw;
 

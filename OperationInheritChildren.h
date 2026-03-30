@@ -12,7 +12,7 @@ class OperationInheritChildren final : public Operation
 public:
 
 	// overrides
-	bool ProcessAclAction(const WCHAR * sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement) override;
+	bool ProcessAclAction(const WCHAR * sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement) noexcept override;
 
 	// constructors
 	OperationInheritChildren(std::queue<std::wstring> & oArgList, const std::wstring & sCommand);

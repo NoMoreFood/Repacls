@@ -56,7 +56,7 @@ void OperationLog::LogFileItem(const std::wstring & sInfoLevel, const std::wstri
 	if (!hLogHandle.IsValid()) return;
 
 	// get time string
-	WCHAR sDate[20];
+	WCHAR sDate[20] = {};
 	const __time64_t tUtcTime = _time64(nullptr);
 	tm tLocalTime;
 	_localtime64_s(&tLocalTime, &tUtcTime);

@@ -22,6 +22,7 @@ std::wstring FileSizeToString(LARGE_INTEGER iFileSize);
 std::wstring FileAttributesToString(DWORD iAttributes);
 BOOL WriteToFile(const std::wstring & sStringToWrite, HANDLE hFile) noexcept;
 VOID InitThreadCom() noexcept;
+BOOL IsSidInDomain(PSID pSid, PSID pDomainSid) noexcept;
 
 // helper typedefs
 typedef struct SidCompare
@@ -48,8 +49,8 @@ public:
     SmartPointer(const SmartPointer&) = delete; // non-copyable
     T operator=(const SmartPointer& lp) = delete; // copy assignment forbidden
 
-    SmartPointer(std::function<void(T)> cleanup) : m_cleanup(std::move(cleanup)), m_data(nullptr) {}
-    SmartPointer(std::function<void(T)> cleanup, T data) : m_cleanup(std::move(cleanup)), m_data(data) {}
+    SmartPointer(std::function<void(T)> cleanup) noexcept : m_cleanup(std::move(cleanup)), m_data(nullptr) {}
+    SmartPointer(std::function<void(T)> cleanup, T data) noexcept : m_cleanup(std::move(cleanup)), m_data(data) {}
 
     ~SmartPointer()
     {
@@ -90,18 +91,18 @@ public:
         }
     }
 
-    T operator=(T lp)
+    T operator=(T lp) noexcept
     {
         Release();
         m_data = lp;
         return m_data;
     }
 
-    operator T() { return m_data; }
-    T& operator*() { return m_data; }
-    T* operator&() { return &m_data; }
-    T operator->() { return m_data; }
-    bool operator!() { return m_data == nullptr; }
+    operator T() noexcept { return m_data; }
+    T& operator*() noexcept  { return m_data; }
+    T* operator&() noexcept  { return &m_data; }
+    T operator->() noexcept { return m_data; }
+    bool operator!() noexcept { return m_data == nullptr; }
 
 private:
 

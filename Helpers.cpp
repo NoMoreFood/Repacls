@@ -43,7 +43,7 @@ PSID GetSidFromName(const std::wstring& sAccountName)
 		const DWORD iSidLen = SidLength(tSidFromSid);
 		const auto tSidMem = malloc(iSidLen);
 		if (tSidMem == nullptr) return nullptr;
-		const auto tSidCopy = static_cast<PSID>(memcpy(tSidMem, tSidFromSid, iSidLen));
+		const auto tSidCopy = memcpy(tSidMem, tSidFromSid, iSidLen);
 
 		std::unique_lock<std::shared_mutex> oLock(oMutex);
 		oNameToSidLookup[sAccountName] = tSidCopy;
@@ -51,8 +51,8 @@ PSID GetSidFromName(const std::wstring& sAccountName)
 	}
 
 	// assume the sid is as large as it possibly can be
-	BYTE tSidFromName[SECURITY_MAX_SID_SIZE];
-	WCHAR sDomainName[UNLEN + 1];
+	BYTE tSidFromName[SECURITY_MAX_SID_SIZE] = {};
+	WCHAR sDomainName[UNLEN + 1] = {};
 	DWORD iDomainName = _countof(sDomainName);
 	DWORD iSidSize = sizeof(tSidFromName);
 	SID_NAME_USE tNameUse;
@@ -70,7 +70,7 @@ PSID GetSidFromName(const std::wstring& sAccountName)
 	// then add the sid to the cache map
 	const auto tSidMem = malloc(iSidSize);
 	if (tSidMem == nullptr) return nullptr;
-	const auto tSid = static_cast<PSID>(memcpy(tSidMem, tSidFromName, iSidSize));
+	const auto tSid = memcpy(tSidMem, tSidFromName, iSidSize);
 
 	// scope lock for thread safety
 	{
@@ -108,10 +108,10 @@ std::wstring GetNameFromSid(const PSID tSid, bool* bMarkAsOrphan)
 	}
 
 	// lookup the name for this sid
-	SID_NAME_USE tNameUse;
-	WCHAR sAccountName[UNLEN + 1];
+	SID_NAME_USE tNameUse = {};
+	WCHAR sAccountName[UNLEN + 1] = {};
 	DWORD iAccountNameSize = _countof(sAccountName);
-	WCHAR sDomainName[UNLEN + 1];
+	WCHAR sDomainName[UNLEN + 1] = {};
 	DWORD iDomainName = _countof(sDomainName);
 	std::wstring sFullName;
 	if (LookupAccountSid(nullptr, tSid, sAccountName,
@@ -263,7 +263,7 @@ VOID EnablePrivs() noexcept
 	}
 
 	// get the current user sid out of the token
-	BYTE aBuffer[sizeof(TOKEN_USER) + SECURITY_MAX_SID_SIZE];
+	BYTE aBuffer[sizeof(TOKEN_USER) + SECURITY_MAX_SID_SIZE] = {};
 	const auto tTokenUser = reinterpret_cast<PTOKEN_USER>(aBuffer);
 	DWORD iBytesFilled = 0;
 	if (GetTokenInformation(hToken, TokenUser, tTokenUser, sizeof(aBuffer), &iBytesFilled) == 0)
@@ -504,7 +504,7 @@ BOOL WriteToFile(const std::wstring& sStringToWrite, HANDLE hFile) noexcept
 
 	// allocate and do the conversion
 	thread_local std::string sString;
-	sString.resize(iChars - 1);
+	sString.resize(static_cast<size_t>(iChars) - 1);
 	iChars = WideCharToMultiByte(CP_UTF8, 0, sStringToWrite.c_str(), -1, sString.data(), 
 		static_cast<int>(sString.size() + 1), nullptr, nullptr);
 	if (iChars == 0)
@@ -529,4 +529,33 @@ VOID InitThreadCom() noexcept
 			std::exit(-1);
 		}
 	}
+}
+
+BOOL IsSidInDomain(PSID pSid, PSID pDomainSid) noexcept
+{
+	if (!IsValidSid(pSid) || !IsValidSid(pDomainSid)) return FALSE;
+
+	// First try the Win32 API since it has some internal logic for builtin accounts
+	BOOL bDomainSidsEqual = FALSE;
+	if (EqualDomainSid(pSid, pDomainSid, &bDomainSidsEqual) != 0 && bDomainSidsEqual)
+	{
+		return TRUE;
+	}
+
+	// fallback to prefix matching
+	const PSID_IDENTIFIER_AUTHORITY pAuthObj = GetSidIdentifierAuthority(pSid);
+	const PSID_IDENTIFIER_AUTHORITY pAuthDom = GetSidIdentifierAuthority(pDomainSid);
+	if (memcmp(pAuthObj, pAuthDom, sizeof(SID_IDENTIFIER_AUTHORITY)) != 0) return FALSE;
+
+	const PUCHAR pSubCountObj = GetSidSubAuthorityCount(pSid);
+	const PUCHAR pSubCountDom = GetSidSubAuthorityCount(pDomainSid);
+
+	if (*pSubCountObj < *pSubCountDom) return FALSE;
+
+	for (UCHAR i = 0; i < *pSubCountDom; ++i)
+	{
+		if (*GetSidSubAuthority(pSid, i) != *GetSidSubAuthority(pDomainSid, i)) return FALSE;
+	}
+
+	return TRUE;
 }
