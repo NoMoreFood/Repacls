@@ -3,6 +3,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include <utility>
 
 template <typename T>
 class ConcurrentQueue final
@@ -11,19 +12,23 @@ class ConcurrentQueue final
 	std::condition_variable oIsEmptyCondition;
 	std::queue<T> oQueue;
 	std::mutex oQueueMutex;
-	short iWaiters = 0;
+	int iActiveWorkers = 0;
 
 public:
 	ConcurrentQueue() = default;
+	ConcurrentQueue(const ConcurrentQueue&) = delete;
+	ConcurrentQueue& operator=(const ConcurrentQueue&) = delete;
+	ConcurrentQueue(ConcurrentQueue&&) = delete;
+	ConcurrentQueue& operator=(ConcurrentQueue&&) = delete;
 
 	T Pop()
 	{
 		std::unique_lock<std::mutex> mlock(oQueueMutex);
-		if (--iWaiters == 0 && oQueue.empty()) oIsEmptyCondition.notify_one();
-		oItemAvailableCondition.wait(mlock, [&]() noexcept { return !oQueue.empty(); });
-		auto oQueueItem = oQueue.front();
+		if (--iActiveWorkers == 0 && oQueue.empty()) oIsEmptyCondition.notify_all();
+		oItemAvailableCondition.wait(mlock, [this]() noexcept { return !oQueue.empty(); });
+		T oQueueItem = std::move(oQueue.front());
 		oQueue.pop();
-		iWaiters++;
+		++iActiveWorkers;
 		return oQueueItem;
 	}
 
@@ -36,14 +41,24 @@ public:
 		oItemAvailableCondition.notify_one();
 	}
 
-	void WaitForEmptyQueues() 
+	void Push(T&& oQueueItem)
+	{
+		{
+			std::lock_guard<std::mutex> mlock(oQueueMutex);
+			oQueue.push(std::move(oQueueItem));
+		}
+		oItemAvailableCondition.notify_one();
+	}
+
+	void WaitForEmptyQueues()
 	{
 		std::unique_lock<std::mutex> mlock(oQueueMutex);
-		oIsEmptyCondition.wait(mlock, [&]() noexcept { return iWaiters == 0 && oQueue.empty(); });
+		oIsEmptyCondition.wait(mlock, [this]() noexcept { return iActiveWorkers == 0 && oQueue.empty(); });
 	}
 
 	void SetWaiterCounter(short iWaitCounters) noexcept
 	{
-		iWaiters = iWaitCounters;
+		std::lock_guard<std::mutex> mlock(oQueueMutex);
+		iActiveWorkers = iWaitCounters;
 	}
 };

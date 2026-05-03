@@ -174,8 +174,7 @@ bool OperationCopyMap::ProcessAclAction(const WCHAR* const sSdPart, ObjectEntry&
 			// verify the new acl could be generated
 			if (iError != ERROR_SUCCESS || tNewDacl == nullptr)
 			{
-				//std::wstring sTargetAccountName = GetNameFromSid(tTargetAccountSid);
-				InputOutput::AddError(L"Could not copy '" + sTargetAccountName + 
+				InputOutput::AddError(L"Could not copy '" + sTargetAccountName +
 					L"' to access control list (" + std::to_wstring(iError) + L").", sSdPart);
 				continue;
 			}

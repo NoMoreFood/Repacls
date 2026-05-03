@@ -15,9 +15,8 @@ OperationFindDomain::OperationFindDomain(std::queue<std::wstring> & oArgList, co
 	// see if names could be resolved
 	if (tDomainSid == nullptr)
 	{
-		// complain
 		Print(L"ERROR: Invalid domain '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
-		std::exit(0);
+		std::exit(-1);
 	}
 
 	// do a reverse lookup of the name for reporting
@@ -48,7 +47,6 @@ SidActionResult OperationFindDomain::DetermineSid(const WCHAR * const sSdPart, O
 	// resolve the sid for reporting
 	const std::wstring sAccount = GetNameFromSidEx(tCurrentSid);
 
-	// report the
 	InputOutput::AddInfo(L"Found domain identifier '" + sDomainName + L"' on account '" + sAccount + L"'", sSdPart);
 	return Nothing;
 }

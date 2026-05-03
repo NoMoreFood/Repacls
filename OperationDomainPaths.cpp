@@ -147,7 +147,7 @@ OperationDomainPaths::OperationDomainPaths(std::queue<std::wstring>& oArgList, c
 	}
 
 	// close search handle
-	if (oSearch->CloseSearchHandle(hSearch) != NULL)
+	if (FAILED(oSearch->CloseSearchHandle(hSearch)))
 	{
 		Print(L"ERROR: Could not close search for domain '{}'", sSubArgs.at(0));
 		std::exit(-1);

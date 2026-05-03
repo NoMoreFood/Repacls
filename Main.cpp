@@ -91,7 +91,7 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	// fetch the version string
 	const DWORD iVersionSize = GetFileVersionInfoSize(sCurrentExe, nullptr);
 	UINT iQueriedSize = 0;
-	std::vector<BYTE> tVersionInfo = std::vector<BYTE>(iVersionSize);
+	std::vector<BYTE> tVersionInfo(iVersionSize);
 	VS_FIXEDFILEINFO* pVersion = nullptr;
 	if (GetFileVersionInfo(sCurrentExe, 0, iVersionSize, tVersionInfo.data()) != 0 &&
 		VerQueryValue(tVersionInfo.data(), L"\\", reinterpret_cast<LPVOID*>(&pVersion), &iQueriedSize) != 0)
@@ -112,8 +112,7 @@ int wmain(int iArgs, WCHAR * aArgs[])
 		oArgList.emplace(aArgs[iArg]);
 	}
 
-	// if not parameter was especially the artificially add a help
-	// command to the list so the help will display
+	// if no parameter was specified, artificially add a help command
 	if (iArgs <= 1) oArgList.emplace(L"/?");
 
 	// flag to track if more than one exclusive operation was specified
@@ -132,7 +131,7 @@ int wmain(int iArgs, WCHAR * aArgs[])
 
 		// validate the operation was found although this
 		// should never happen since the factory itself will complain
-		if (oOperation == nullptr) std::exit(0);
+		if (oOperation == nullptr) std::exit(-1);
 
 		// add to the processing list if there is an actionable security element
 		if (oOperation->AppliesToDacl ||

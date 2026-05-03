@@ -38,7 +38,7 @@ using ACE_ACCESS_HEADER = struct {
 	WORD AceSize;
 	ACCESS_MASK Mask;
 } ;
-using PACE_ACCESS_HEADER = ACE_ACCESS_HEADER*;;
+using PACE_ACCESS_HEADER = ACE_ACCESS_HEADER*;
 
 // macros to iterate through access control entries
 #define FirstAce(Acl) reinterpret_cast<PACE_ACCESS_HEADER>(((PUCHAR)(Acl) + sizeof(ACL)))
@@ -117,7 +117,7 @@ public:
 	bool AppliesToChildrenOnly = false;
 	bool ExclusiveOperation = false;
 
-	DWORD SpecialCommitFlags = false;
+	DWORD SpecialCommitFlags = 0;
 	PSID DefaultSidWhenEmpty = nullptr;
 
 	virtual bool ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement) { return false; }

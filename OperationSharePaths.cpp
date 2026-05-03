@@ -85,7 +85,7 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 		}
 	}
 
-	DWORD hResumeHandle = NULL;
+	DWORD hResumeHandle = 0;
 	DWORD iReturn = 0;
 	std::map<std::wstring, std::wstring> mPaths;
 	do

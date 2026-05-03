@@ -17,17 +17,15 @@ OperationCopyDomain::OperationCopyDomain(std::queue<std::wstring> & oArgList, co
 	// see if names could be resolved
 	if (tSourceDomain == nullptr)
 	{
-		// complain
 		Print(L"ERROR: Invalid source domain '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
-		std::exit(0);
+		std::exit(-1);
 	}
 
 	// see if names could be resolved
 	if (tTargetDomain == nullptr)
 	{
-		// complain
 		Print(L"ERROR: Invalid target domain '{}' specified for parameter '{}'.", sSubArgs.at(1), GetCommand());
-		std::exit(0);
+		std::exit(-1);
 	}
 
 	// store the domain strings
@@ -115,9 +113,6 @@ bool OperationCopyDomain::ProcessAclAction(const WCHAR * const sSdPart, ObjectEn
 
 				// do a reverse lookup to see if this might be a sid history item
 				if (GetNameFromSidEx(tTargetAccountSid) == sSourceAccountName) continue;
-
-				// stop processing if the account does not exist
-				if (tTargetAccountSid == nullptr) continue;
 
 				// record the status to report
 				sInfoToReport = L"Copying '" + sSourceAccountName + L"' to '" + sTargetAccountName + L"'";

@@ -16,17 +16,15 @@ OperationReplaceAccount::OperationReplaceAccount(std::queue<std::wstring> & oArg
 	// see if names could be resolved
 	if (tSearchAccount == nullptr)
 	{
-		// complain
 		Print(L"ERROR: Invalid search account '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
-		std::exit(0);
+		std::exit(-1);
 	}
 
 	// see if names could be resolved
 	if (tReplaceAccount == nullptr)
 	{
-		// complain
 		Print(L"ERROR: Invalid replace account '{}' specified for parameter '{}'.", sSubArgs.at(1), GetCommand());
-		std::exit(0);
+		std::exit(-1);
 	}
 
 	// store off the names for those entries

@@ -10,13 +10,12 @@ class Object
 protected:
 
 	Processor& oProcessor;
-	Object() = default;
 
 public:
 
 	virtual void GetBaseObject(std::wstring sPath) = 0;
 	virtual void GetChildObjects(ObjectEntry& oObject) = 0;
 
-	Object(Processor& poProcessor) noexcept : oProcessor(poProcessor) {}
+	explicit Object(Processor& poProcessor) noexcept : oProcessor(poProcessor) {}
 	virtual ~Object() = default;
 };

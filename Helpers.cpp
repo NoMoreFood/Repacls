@@ -97,7 +97,7 @@ std::wstring GetNameFromSid(const PSID tSid, bool* bMarkAsOrphan)
 		const auto oInteractor = oSidToNameLookup.find(tSid);
 		if (oInteractor != oSidToNameLookup.end())
 		{
-			// if blank that means the account has no associated same
+			// if blank that means the account has no associated name
 			// and likely is an orphan
 			if (oInteractor->second.empty() &&
 				bMarkAsOrphan != nullptr) *bMarkAsOrphan = true;
@@ -179,7 +179,7 @@ std::wstring GenerateInheritanceFlags(DWORD iCurrentFlags)
 	std::wstring sFlags;
 	if (CONTAINER_INHERIT_ACE & iCurrentFlags) sFlags += L"Container Inherit;";
 	if (OBJECT_INHERIT_ACE & iCurrentFlags) sFlags += L"Object Inherit;";
-	if (NO_PROPAGATE_INHERIT_ACE & iCurrentFlags) sFlags += L"Do No Propagate Inherit;";
+	if (NO_PROPAGATE_INHERIT_ACE & iCurrentFlags) sFlags += L"Do Not Propagate Inherit;";
 	if (INHERIT_ONLY_ACE & iCurrentFlags) sFlags += L"Inherit Only;";
 
 	// handle the empty case or trim off the trailing semicolon
@@ -269,7 +269,7 @@ VOID EnablePrivs() noexcept
 	if (GetTokenInformation(hToken, TokenUser, tTokenUser, sizeof(aBuffer), &iBytesFilled) == 0)
 	{
 		// error
-		Print(L"ERROR: Could retrieve process token information.");
+		Print(L"ERROR: Could not retrieve process token information.");
 		return;
 	}
 
@@ -370,10 +370,10 @@ HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring& sOperation)
 	const auto oFile = oFileLookup.find(sPath);
 	if (oFile != oFileLookup.end())
 	{
-		if (oFileLookup[sPath].second == sOperation)
+		if (oFile->second.second == sOperation)
 		{
 			CloseHandle(hFile);
-			return oFileLookup[sPath].first;
+			return oFile->second.first;
 		}
 		else
 		{
@@ -383,7 +383,7 @@ HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring& sOperation)
 	}
 	else
 	{
-		oFileLookup[std::wstring(sPath)] = std::pair<HANDLE, std::wstring>(hFile, sOperation);
+		oFileLookup[sPath] = std::make_pair(hFile, sOperation);
 		return hFile;
 	}
 }

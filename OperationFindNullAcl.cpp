@@ -12,12 +12,10 @@ OperationFindNullAcl::OperationFindNullAcl(std::queue<std::wstring> & oArgList, 
 
 bool OperationFindNullAcl::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObjectEntry, PACL & tCurrentAcl, bool & bAclReplacement)
 {
-	// sanity check (null acl is considered valid)
 	if (tCurrentAcl == nullptr)
 	{
 		InputOutput::AddInfo(L"Access control list is null", sSdPart);
 	}
 
-	// report the acl has been updated
 	return false;
 }

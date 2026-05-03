@@ -22,7 +22,6 @@ bool OperationCheckCanonical::ProcessAclAction(const WCHAR * const sSdPart, Obje
 		InputOutput::AddInfo(L"Access control list is not canonical", sSdPart);
 	}
 
-	// report the
 	return false;
 }
 

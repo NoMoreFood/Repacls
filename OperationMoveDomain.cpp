@@ -16,17 +16,15 @@ OperationMoveDomain::OperationMoveDomain(std::queue<std::wstring> & oArgList, co
 	// see if names could be resolved
 	if (tSourceDomain == nullptr)
 	{
-		// complain
 		Print(L"ERROR: Invalid source domain '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
-		std::exit(0);
+		std::exit(-1);
 	}
 
 	// see if names could be resolved
 	if (tTargetDomain == nullptr)
 	{
-		// complain
 		Print(L"ERROR: Invalid target domain '{}' specified for parameter '{}'.", sSubArgs.at(1), GetCommand());
-		std::exit(0);
+		std::exit(-1);
 	}
 
 	// store the domain strings
@@ -101,9 +99,6 @@ SidActionResult OperationMoveDomain::DetermineSid(const WCHAR * const sSdPart, O
 
 		// do a reverse lookup to see if this might be a sid history item
 		if (GetNameFromSidEx(tResultantSid) == sSourceAccountName) return Nothing;
-
-		// stop processing if the account does not exist
-		if (tResultantSid == nullptr) return Nothing;
 
 		// update the sid in the ace
 		InputOutput::AddInfo(L"Changing '" + sSourceAccountName + L"' to '" + sTargetAccountName + L"'", sSdPart);
