@@ -15,9 +15,8 @@ OperationRemoveDomain::OperationRemoveDomain(std::queue<std::wstring> & oArgList
 	// see if names could be resolved
 	if (tDomainSid == nullptr)
 	{
-		// complain
 		Print(L"ERROR: Invalid domain '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
-		std::exit(0);
+		std::exit(-1);
 	}
 
 	// do a reverse lookup of the name for reporting

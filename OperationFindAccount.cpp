@@ -15,9 +15,8 @@ OperationFindAccount::OperationFindAccount(std::queue<std::wstring> & oArgList, 
 	// see if names could be resolved
 	if (tFindSid == nullptr)
 	{
-		// complain
 		Print(L"ERROR: Invalid account '{}' specified for parameter '{}'.", sSubArgs.at(0), GetCommand());
-		std::exit(0);
+		std::exit(-1);
 	}
 
 	// reverse lookup the sid for reporting

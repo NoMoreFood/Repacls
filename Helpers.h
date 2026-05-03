@@ -25,7 +25,7 @@ VOID InitThreadCom() noexcept;
 BOOL IsSidInDomain(PSID pSid, PSID pDomainSid) noexcept;
 
 // helper typedefs
-typedef struct SidCompare
+struct SidCompare
 {
 	bool operator()(PSID p1, PSID p2) const
 	{
@@ -34,8 +34,7 @@ typedef struct SidCompare
 		if (iLength1 != iLength2) return iLength1 < iLength2;
 		return memcmp(p1, p2, iLength1) > 0;
 	}
-}
-SidCompare;
+};
 
 //
 // SmartPointer<>. Custom template for WinAPI resource cleanup.
@@ -46,8 +45,8 @@ class SmartPointer final
 {
 public:
 
-    SmartPointer(const SmartPointer&) = delete; // non-copyable
-    T operator=(const SmartPointer& lp) = delete; // copy assignment forbidden
+    SmartPointer(const SmartPointer&) = delete;
+    SmartPointer& operator=(const SmartPointer&) = delete;
 
     SmartPointer(std::function<void(T)> cleanup) noexcept : m_cleanup(std::move(cleanup)), m_data(nullptr) {}
     SmartPointer(std::function<void(T)> cleanup, T data) noexcept : m_cleanup(std::move(cleanup)), m_data(data) {}
@@ -59,7 +58,7 @@ public:
 
     SmartPointer(SmartPointer&& src) noexcept
     {
-        m_cleanup = src.m_cleanup;
+        m_cleanup = std::move(src.m_cleanup);
         m_data = src.m_data;
         src.m_data = nullptr;
     }

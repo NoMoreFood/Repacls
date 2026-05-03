@@ -67,7 +67,7 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 
 	// determine hash algorithm based on hash string length
 	const size_t iHashStringLength = sMatchAndArgs.at(1).size();
-	const std::map<size_t, LPCWSTR> hashAlgorithms = {
+	static const std::map<size_t, LPCWSTR> hashAlgorithms = {
 		{ 32, BCRYPT_MD5_ALGORITHM },
 		{ 40, BCRYPT_SHA1_ALGORITHM },
 		{ 64, BCRYPT_SHA256_ALGORITHM },

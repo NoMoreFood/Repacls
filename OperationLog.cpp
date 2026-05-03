@@ -22,8 +22,14 @@ OperationLog::OperationLog(std::queue<std::wstring> & oArgList, const std::wstri
 	}
 
 	// fetch params
-	hLogHandle = CreateFile(sLogFile.at(0).c_str(), GENERIC_WRITE,
+	const HANDLE hRawHandle = CreateFile(sLogFile.at(0).c_str(), GENERIC_WRITE,
 		FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+	if (hRawHandle == INVALID_HANDLE_VALUE)
+	{
+		Print(L"ERROR: Could not create log file '{}'.", sLogFile.at(0));
+		std::exit(-1);
+	}
+	hLogHandle = hRawHandle;
 
 	// write out the file type marker
 	constexpr BYTE hHeader[] = { 0xEF,0xBB,0xBF };

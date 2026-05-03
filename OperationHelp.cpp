@@ -140,11 +140,11 @@ Commands That Do Not Alter Settings
    Explorer to ensure the ACL is not corrupted in a more significant way.
 
 /BackupSecurity <FileName>
-   Export the security descriptor to the file specified. The file is
-   outputted in the format of file|descriptor on each line. The security
-   descriptor is formatted as specified in the documentation for
-   ConvertDescriptorToStringSecurityDescriptor(). This command does
-   not print informational messages other than errors.
+   Export the security descriptor for each scanned object to the file
+   specified. The file is formatted as path|descriptor on each line.
+   The security descriptor string format is documented in
+   ConvertSecurityDescriptorToStringSecurityDescriptor(). This command
+   does not print informational messages other than errors.
 
 /FindAccount <Name|Sid>
    Reports any instance of an account specified.
@@ -206,7 +206,7 @@ Commands That Can Alter Settings (When /WhatIf Is Not Present)
    from ICACLS. For example, /GrantPerms SYSTEM:(F)(CI)(OI) will check if 
    SYSTEM has Full Control to all subdirectories and, if it does not, will add
    full control with inheritance enabled. This command is often useful to 
-   correct issues where a user or administrator has mistakenly removed an group
+   correct issues where a user or administrator has mistakenly removed a group
    from subdirectories with broken inheritance.
 
 /CanonicalizeAcls
@@ -226,16 +226,16 @@ Commands That Can Alter Settings (When /WhatIf Is Not Present)
 
 /CopyDomain <SourceDomainName>:<TargetDomainName>
    This command is identical to /MoveDomain except that the original
-   entry referring the SourceDomainName is retained instead of replaced.
+   entry referring to the SourceDomainName is retained instead of replaced.
    This command only applies to the SACL and the DACL. If this command is
    used multiple times, it is recommended to use /Compact to ensure there
    are not any redundant access control entries.
 
 /CopyMap <FileName>
-   This command will read in the specified file that contains a list of 
+   This command will read in the specified file that contains a list of
    account mappings in <SearchName>:<CopyName> format. This command only
-   affects the DACL and SACL. This common is similar to the /ReplaceMap 
-   command but it does not affect the owner and does not removed the original
+   affects the DACL and SACL. This command is similar to the /ReplaceMap
+   command but it does not affect the owner and does not remove the original
    account.
 
 /MoveDomain <SourceDomainName>:<TargetDomainName>

@@ -81,7 +81,7 @@ OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgL
 		{ L"AD", FILE_APPEND_DATA | FILE_ADD_SUBDIRECTORY },
 		{ L"REA", FILE_READ_EA },
 		{ L"WEA", FILE_WRITE_EA },
-		{ L"X", FILE_EXECUTE | FILE_EXECUTE },
+		{ L"X", FILE_EXECUTE | FILE_TRAVERSE },
 		{ L"DC", FILE_DELETE_CHILD },
 		{ L"RA", FILE_READ_ATTRIBUTES },
 		{ L"WA", FILE_WRITE_ATTRIBUTES }

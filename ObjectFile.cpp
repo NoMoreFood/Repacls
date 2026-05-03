@@ -34,8 +34,12 @@ void ObjectFile::GetBaseObject(std::wstring sPath)
 	oEntryFirst.Name = std::wstring(tPathU.Buffer, tPathU.Length / sizeof(WCHAR));
 
 	// get common file attributes
-	WIN32_FILE_ATTRIBUTE_DATA tData;
-	GetFileAttributesExW(oEntryFirst.Name.c_str(), GetFileExInfoStandard, &tData);
+	WIN32_FILE_ATTRIBUTE_DATA tData = {};
+	if (GetFileAttributesExW(oEntryFirst.Name.c_str(), GetFileExInfoStandard, &tData) == 0)
+	{
+		Print(L"ERROR: Could not get file attributes for '{}'.", oEntryFirst.Name);
+		std::exit(-1);
+	}
 	oEntryFirst.Depth = 0;
 	oEntryFirst.ObjectType = SE_FILE_OBJECT;
 	oEntryFirst.FileSize = { { tData.nFileSizeLow, static_cast<LONG>(tData.nFileSizeHigh) } };
@@ -150,7 +154,7 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 			oSubEntry.Attributes = oInfo->FileAttributes;
 			oSubEntry.CreationTime = { oInfo->CreationTime.LowPart, static_cast<DWORD>(oInfo->CreationTime.HighPart) };
 			oSubEntry.ModifiedTime = { oInfo->LastWriteTime.LowPart, static_cast<DWORD>(oInfo->LastWriteTime.HighPart) };
-			oSubEntry.Name += oEntry.Name + ((oEntry.Depth == 0 && oEntry.Name.back() == '\\') ? L"" : L"\\")
+			oSubEntry.Name = oEntry.Name + ((oEntry.Depth == 0 && oEntry.Name.back() == '\\') ? L"" : L"\\")
 				+ std::wstring(oInfo->FileName, oInfo->FileNameLength / sizeof(WCHAR));
 
 			// if a leaf object, just process immediately and don't worry about putting it on the queue

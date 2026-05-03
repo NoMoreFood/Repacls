@@ -2,6 +2,7 @@
 #include "OperationCheckCanonical.h"
 #include "DriverKitPartial.h"
 #include "InputOutput.h"
+#include <vector>
 
 ClassFactory<OperationCanonicalizeAcls> OperationCanonicalizeAcls::RegisteredFactory(GetCommand());
 
@@ -22,8 +23,8 @@ bool OperationCanonicalizeAcls::ProcessAclAction(const WCHAR * const sSdPart, Ob
 		return false;
 	}	
 
-	BYTE tNewAclBuffer[MAXWORD];
-	PACE_ACCESS_HEADER tNewAce = (PACE_ACCESS_HEADER) &tNewAclBuffer;
+	thread_local std::vector<BYTE> tNewAclBuffer(MAXWORD);
+	PACE_ACCESS_HEADER tNewAce = reinterpret_cast<PACE_ACCESS_HEADER>(tNewAclBuffer.data());
 	for (int iAceOrder = 0; iAceOrder < OperationCheckCanonical::MaxAceOrder; iAceOrder++)
 	{
 		PACE_ACCESS_HEADER tAce = FirstAce(tCurrentAcl);
@@ -37,9 +38,10 @@ bool OperationCanonicalizeAcls::ProcessAclAction(const WCHAR * const sSdPart, Ob
 			}
 		}
 	}
-	
+
 	// recopy the updated list back into the original dacl memory space
-	memcpy(FirstAce(tCurrentAcl), &tNewAclBuffer, (PBYTE) tNewAce - (PBYTE) &tNewAclBuffer);
+	memcpy(FirstAce(tCurrentAcl), tNewAclBuffer.data(),
+		reinterpret_cast<PBYTE>(tNewAce) - tNewAclBuffer.data());
 	InputOutput::AddInfo(L"Access control list was canonicalized", sSdPart);
 	return true;
 }

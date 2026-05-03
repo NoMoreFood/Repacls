@@ -62,19 +62,14 @@ OperationRestoreSecurity::OperationRestoreSecurity(std::queue<std::wstring> & oA
 bool OperationRestoreSecurity::ProcessSdAction(std::wstring & sFileName, ObjectEntry & tObjectEntry, PSECURITY_DESCRIPTOR & tDescriptor, bool & bDescReplacement)
 {
 	const auto oSecInfo = oImportMap.find(sFileName);
-	if (oSecInfo != oImportMap.end())
+	if (oSecInfo == oImportMap.end())
 	{
-		// lookup the string in the map
-		if (bDescReplacement) LocalFree(tDescriptor);
-		tDescriptor = oSecInfo->second;
-		bDescReplacement = true;
-	}
-	else
-	{
-		// update the sid in the ace
-		InputOutput::AddError(L"Import File Did Not Contain Descriptor");
+		InputOutput::AddError(L"Import file did not contain a descriptor for this path");
+		return false;
 	}
 
-	// cleanup
+	if (bDescReplacement) LocalFree(tDescriptor);
+	tDescriptor = oSecInfo->second;
+	bDescReplacement = true;
 	return true;
 }
