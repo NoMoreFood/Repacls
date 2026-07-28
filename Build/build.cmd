@@ -2,6 +2,8 @@
 TITLE Building Repacls...
 CLS
 SET PATH=%WINDIR%\system32;%WINDIR%\system32\WindowsPowerShell\v1.0
+IF EXIST "%ProgramFiles%\7-Zip" SET PATH=%ProgramFiles%\7-Zip;%PATH%
+IF EXIST "%ProgramFiles(x86)%\7-Zip" SET PATH=%ProgramFiles(x86)%\7-Zip;%PATH%
 
 :: cert info to use for signing
 SET TSAURL=http://time.certum.pl/
@@ -43,7 +45,9 @@ FOR /F "USEBACKQ DELIMS=" %%X IN (`DIR /OD /B /S "%PX86%\Windows Kits\10\SIGNTOO
 
 :: zip up executatables
 PUSHD "%BINDIR%"
-%POWERSHELL% -Command "Compress-Archive -LiteralPath @('x86','x64') -DestinationPath '%~dp0Repacls.zip'"
+7z.EXE >NUL 2>&1
+IF %ERRORLEVEL% NEQ 0 ECHO 7-Zip not found; skipping archive
+IF %ERRORLEVEL% EQU 0 7z.EXE a -tzip -mm=Deflate -mx=9 "%~dp0Repacls.zip" x86 x64
 POPD
 
 PAUSE
