@@ -9,7 +9,7 @@ class OperationRestoreSecurity final : public Operation
 	static std::wstring GetCommand() { return L"RestoreSecurity"; }
 	static ClassFactory<OperationRestoreSecurity> RegisteredFactory;
 
-	std::map<std::wstring, PSECURITY_DESCRIPTOR> oImportMap;
+	std::map<std::wstring, std::vector<BYTE>> oImportMap;
 	std::wstring sFile;
 
 public:

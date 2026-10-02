@@ -680,6 +680,21 @@ Assert-True ($originalOwner -ne $changedOwner) 'Owner was changed before restore
 $r = Invoke-Repacls '/Path' $tree10.Root '/RestoreSecurity' $backupFile '/Threads' '1'
 $restoredOwner = Get-Owner $tree10.Root
 Assert-True ($restoredOwner -eq $originalOwner) 'RestoreSecurity restored original owner'
+# Duplicate and overlapping scan paths must restore independent descriptors.
+$restorePathsFile = Join-Path $Script:TestRoot 'restore-paths.txt'
+@(1..16 | ForEach-Object { $tree10.Root; $tree10.File }) |
+    Set-Content -Path $restorePathsFile -Encoding UTF8
+$restoredRootSddl = Get-AclSddl $tree10.Root
+$restoredFileSddl = Get-AclSddl $tree10.File
+$r = Invoke-Repacls '/PathList' $restorePathsFile '/RestoreSecurity' $backupFile '/Threads' '5'
+Assert-True ($r.ExitCode -eq 0 -and $r.RawOut -notmatch 'ERROR') 'RestoreSecurity supports concurrent duplicate paths'
+Assert-True ((Get-AclSddl $tree10.Root) -eq $restoredRootSddl -and
+    (Get-AclSddl $tree10.File) -eq $restoredFileSddl) 'Repeated restores preserve the saved security'
+$r = Invoke-Repacls '/PathList' $restorePathsFile '/RestoreSecurity' $backupFile `
+    '/RemoveAccount' $NameEveryone '/WhatIf' '/Threads' '5'
+Assert-True ($r.ExitCode -eq 0 -and $r.RawOut -notmatch 'ERROR') 'RestoreSecurity supports repeated previews with later edits'
+Assert-True ((Get-AclSddl $tree10.Root) -eq $restoredRootSddl -and
+    (Get-AclSddl $tree10.File) -eq $restoredFileSddl) 'Restore previews leave security unchanged'
 
 # ═══════════════════════════════════════════════════════════════════════════════
 Write-Section '/Compact'
