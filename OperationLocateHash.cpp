@@ -17,7 +17,7 @@ OperationLocateHash::OperationLocateHash(std::queue<std::wstring> & oArgList, co
 
 	// fetch params
 	HANDLE hFile = CreateFile(sReportFile.at(0).c_str(), GENERIC_WRITE,
-		FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 	// see if names could be resolved
 	if (hFile == INVALID_HANDLE_VALUE)
@@ -130,11 +130,11 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 	if (sLastSep != nullptr) sFileName = sLastSep + 1;
 	if (!std::regex_match(sFileName, tRegex)) return;
 
-	// Per-thread state: SmartPointer handles BCryptDestroyHash on thread exit;
-	// tHash and tBuffer are reused across calls on the same thread.
-	thread_local SmartPointer<BCRYPT_HASH_HANDLE> tHashHandle(BCryptDestroyHash);
+	// each supported digest size identifies a separate reusable hash on this thread
+	thread_local std::map<DWORD, SmartPointer<BCRYPT_HASH_HANDLE>> oHashHandles;
+	auto& tHashHandle = oHashHandles.try_emplace(iHashLength, BCryptDestroyHash).first->second;
 	thread_local std::vector<BYTE> tHash;
-	thread_local std::vector<BYTE> tBuffer;
+	thread_local std::vector<BYTE> tBuffer(2ull * 1024ull * 1024ull);
 	if (!tHashHandle.IsValid())
 	{
 		if (BCryptCreateHash(hAlgHandle, &tHashHandle, nullptr, 0, nullptr, 0, BCRYPT_HASH_REUSABLE_FLAG) != 0)
@@ -142,9 +142,8 @@ void OperationLocateHash::ProcessObjectAction(ObjectEntry & tObjectEntry)
 			InputOutput::AddError(L"Could not setup per-thread hashing environment.");
 			std::exit(-1);
 		}
-		tHash.resize(iHashLength);
-		tBuffer.resize(2ull * 1024ull * 1024ull);
 	}
+	tHash.resize(iHashLength);
 
 	SmartPointer<HANDLE> hFile(CloseHandle, CreateFile(tObjectEntry.Name.c_str(), GENERIC_READ,
 		FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr));

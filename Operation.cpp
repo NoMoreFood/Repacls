@@ -9,7 +9,10 @@ PSID Operation::GetSidFromAce(PACE_ACCESS_HEADER tAce) noexcept
 	PSID pSid = &reinterpret_cast<ACCESS_ALLOWED_ACE*>(tAce)->SidStart;
 	if (tAce->AceType == ACCESS_ALLOWED_OBJECT_ACE_TYPE ||
 		tAce->AceType == ACCESS_DENIED_OBJECT_ACE_TYPE ||
-		tAce->AceType == SYSTEM_AUDIT_OBJECT_ACE_TYPE)
+		tAce->AceType == SYSTEM_AUDIT_OBJECT_ACE_TYPE ||
+		tAce->AceType == ACCESS_ALLOWED_CALLBACK_OBJECT_ACE_TYPE ||
+		tAce->AceType == ACCESS_DENIED_CALLBACK_OBJECT_ACE_TYPE ||
+		tAce->AceType == SYSTEM_AUDIT_CALLBACK_OBJECT_ACE_TYPE)
 	{
 		ACCESS_ALLOWED_OBJECT_ACE* oObjectAce = reinterpret_cast<ACCESS_ALLOWED_OBJECT_ACE*>(tAce);
 		LPBYTE pSidStart = reinterpret_cast<LPBYTE>(&oObjectAce->ObjectType);
@@ -59,8 +62,8 @@ bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 			const DWORD iOldLen = SidLength(tOldSid);
 			const DWORD iNewLen = SidLength(tNewSid);
 
-			// if the old sid in the ace matches the new sid, just return immediately
-			if (SidMatch(tOldSid, tNewSid)) return false;
+			// skip unchanged sids while continuing the remaining mappings
+			if (SidMatch(tOldSid, tNewSid)) continue;
 
 			// at this point, we know we are going to make a change so set the flag
 			bMadeChange = true;

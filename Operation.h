@@ -73,9 +73,18 @@ template <typename... Args>
 constexpr std::wstring OutToCsv(Args const&... args)
 {
 	std::wstring out;
-	((out += out.empty() ? L"\"" : L",\"",
-		out += std::wstring_view{ args },
-		out += L"\""), ...);
+
+	// quote fields and escape embedded quotation marks
+	for (std::wstring_view field : { std::wstring_view{ args }... })
+	{
+		out += out.empty() ? L"\"" : L",\"";
+		for (WCHAR character : field)
+		{
+			if (character == L'"') out += L'"';
+			out += character;
+		}
+		out += L'"';
+	}
 	return out + L"\n";
 }
 

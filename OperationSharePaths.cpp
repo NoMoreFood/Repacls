@@ -145,9 +145,10 @@ OperationSharePaths::OperationSharePaths(std::queue<std::wstring> & oArgList, co
 		for (auto oPathInner = mPaths.begin(); bDoDeDupe &&
 			oPathInner != mPaths.end(); ++oPathInner)
 		{
-			// see if the path is a sub-path of another path
+			// keep the first alias for an equal path and omit paths under another share
 			if (oPathInner->first != oPathOuter->first &&
-				oPathOuter->second.find(oPathInner->second) != std::wstring::npos)
+				oPathOuter->second.starts_with(oPathInner->second) &&
+				(oPathOuter->second != oPathInner->second || oPathInner->first < oPathOuter->first))
 			{
 				Print(L"NOTE: Share '{}' is included in '{}' on '{}'; skipping",
 					oPathOuter->first, oPathInner->first, sSubArgs.at(0));

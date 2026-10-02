@@ -383,6 +383,12 @@ HANDLE RegisterFileHandle(HANDLE hFile, const std::wstring& sOperation)
 	}
 	else
 	{
+		// truncate only after ruling out a shared or incompatible report handle
+		if (SetEndOfFile(hFile) == 0)
+		{
+			Print(L"ERROR: Could not initialize report file for parameter '{}'.", sOperation);
+			std::exit(-1);
+		}
 		oFileLookup[sPath] = std::make_pair(hFile, sOperation);
 		return hFile;
 	}

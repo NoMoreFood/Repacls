@@ -55,6 +55,10 @@ bool OperationRemoveRedundant::ProcessAclAction(const WCHAR * const sSdPart, Obj
 			// stop processing if the explicit mask is not a subset of the inherited mask
 			if ((tAceExplicit->Mask | tAceInherited->Mask) != tAceInherited->Mask) continue;
 
+			// an inherited audit entry must cover every explicit audit outcome
+			constexpr BYTE iAuditFlags = SUCCESSFUL_ACCESS_ACE_FLAG | FAILED_ACCESS_ACE_FLAG;
+			if ((tAceExplicit->AceFlags & iAuditFlags & ~tAceInherited->AceFlags) != 0) continue;
+
 			// stop processing if the explicit mask has container or object inherit
 			// but the inherited entry does not
 			if (HasContainerInherit(tAceExplicit) && !HasContainerInherit(tAceInherited)) continue;

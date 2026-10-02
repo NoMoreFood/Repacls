@@ -50,25 +50,14 @@ bool OperationCheckCanonical::IsAclCanonical(const PACL & tAcl)
 
 OperationCheckCanonical::AceOrder OperationCheckCanonical::DetermineAceOrder(PACE_ACCESS_HEADER tAce)
 {
-	// determine ace order
-	if (IsInherited(tAce))
-	{
-		if (tAce->AceType == ACCESS_ALLOWED_ACE_TYPE) return InheritedAllow;
-		if (tAce->AceType == ACCESS_ALLOWED_OBJECT_ACE_TYPE) return InheritedAllow;
-		if (tAce->AceType == ACCESS_ALLOWED_CALLBACK_ACE_TYPE) return InheritedAllow;
-		if (tAce->AceType == ACCESS_DENIED_ACE_TYPE) return InheritedDeny;
-		if (tAce->AceType == ACCESS_DENIED_OBJECT_ACE_TYPE) return InheritedDeny;
-		if (tAce->AceType == ACCESS_DENIED_CALLBACK_ACE_TYPE) return InheritedDeny;
-	}
-	else
-	{
-		if (tAce->AceType == ACCESS_ALLOWED_ACE_TYPE) return ExplicitAllow;
-		if (tAce->AceType == ACCESS_ALLOWED_OBJECT_ACE_TYPE) return ExplicitAllow;
-		if (tAce->AceType == ACCESS_ALLOWED_CALLBACK_ACE_TYPE) return ExplicitAllow;
-		if (tAce->AceType == ACCESS_DENIED_ACE_TYPE) return ExplicitDeny;
-		if (tAce->AceType == ACCESS_DENIED_OBJECT_ACE_TYPE) return ExplicitDeny;
-		if (tAce->AceType == ACCESS_DENIED_CALLBACK_ACE_TYPE) return ExplicitDeny;
-	}
+	// preserve ancestor order within the inherited portion of the acl
+	if (IsInherited(tAce)) return Inherited;
+	if (tAce->AceType == ACCESS_ALLOWED_ACE_TYPE || tAce->AceType == ACCESS_ALLOWED_OBJECT_ACE_TYPE ||
+		tAce->AceType == ACCESS_ALLOWED_CALLBACK_ACE_TYPE || tAce->AceType == ACCESS_ALLOWED_CALLBACK_OBJECT_ACE_TYPE)
+		return ExplicitAllow;
+	if (tAce->AceType == ACCESS_DENIED_ACE_TYPE || tAce->AceType == ACCESS_DENIED_OBJECT_ACE_TYPE ||
+		tAce->AceType == ACCESS_DENIED_CALLBACK_ACE_TYPE || tAce->AceType == ACCESS_DENIED_CALLBACK_OBJECT_ACE_TYPE)
+		return ExplicitDeny;
 
 	return Unspecified;
 }

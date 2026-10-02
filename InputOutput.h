@@ -2,6 +2,7 @@
 
 #include <string>
 #include <mutex>
+#include <atomic>
 
 #include "OperationLog.h"
 
@@ -21,6 +22,12 @@ class InputOutput
 	}
 
 public:
+
+	static std::atomic<bool>& HadErrors() noexcept
+	{
+		static std::atomic<bool> bHadErrors = false;
+		return bHadErrors;
+	}
 
 	static bool & InQuietMode() noexcept
 	{
@@ -101,6 +108,8 @@ public:
 
 	static void AddError(const std::wstring & sLine, const std::wstring & sExtended = L"")
 	{
+		HadErrors() = true;
+
 		if (Log())
 		{
 			OperationLog::LogFileItem(L"ERROR", GetFileName(), sLine);
