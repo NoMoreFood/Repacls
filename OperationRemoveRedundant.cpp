@@ -37,10 +37,15 @@ bool OperationRemoveRedundant::ProcessAclAction(const WCHAR * const sSdPart, Obj
 			tAceExplicit->AceType != ACCESS_DENIED_ACE_TYPE &&
 			tAceExplicit->AceType != SYSTEM_AUDIT_ACE_TYPE) continue;
 
-		// assume we are increments on the next round
-		PACE_ACCESS_HEADER tAceInherited = FirstAce(tCurrentAcl);
-		for (ULONG iEntryInherited = 0; iEntryInherited < tCurrentAcl->AceCount; tAceInherited = NextAce(tAceInherited), iEntryInherited++)
+		// find a covering inherited entry without changing access-check precedence
+		PACE_ACCESS_HEADER tAceInherited = NextAce(tAceExplicit);
+		for (ULONG iEntryInherited = iEntryExplicit + 1; iEntryInherited < tCurrentAcl->AceCount;
+			tAceInherited = NextAce(tAceInherited), iEntryInherited++)
 		{
+			// a different access type can change the result for overlapping group memberships
+			if (tAceExplicit->AceType != SYSTEM_AUDIT_ACE_TYPE &&
+				tAceInherited->AceType != tAceExplicit->AceType) break;
+
 			// only process inherited items in the inner loop
 			if (!IsInherited(tAceInherited)) continue;
 

@@ -708,6 +708,38 @@ $r = Invoke-Repacls '/Path' $tree12.SubFile '/RemoveRedundant' '/Threads' '1'
 $aclAfter = Get-Acl $tree12.SubFile
 Assert-True ($r.ExitCode -eq 0 -and $r.RawOut -notmatch 'ERROR') 'RemoveRedundant runs without error'
 Assert-True ($aclAfter.Access.Count -le $aclBefore.Access.Count) 'RemoveRedundant maintains or reduces ACE count'
+# An explicit deny must still precede an explicit grant to another token group.
+$treeRedundantDeny = New-TestTree 'RedundantDeny'
+$parentAcl = Get-Acl $treeRedundantDeny.Root
+$parentAcl.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new(
+    [System.Security.Principal.SecurityIdentifier]::new($SidEveryone), 'WriteData',
+    'ContainerInherit, ObjectInherit', 'None', 'Deny'))
+Set-Acl -Path $treeRedundantDeny.Root -AclObject $parentAcl
+$childAcl = Get-Acl $treeRedundantDeny.File
+$childAcl.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new(
+    [System.Security.Principal.SecurityIdentifier]::new($SidEveryone), 'WriteData', 'Deny'))
+$childAcl.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new(
+    [System.Security.Principal.SecurityIdentifier]::new($SidAuthUsers), 'WriteData', 'Allow'))
+Set-Acl -Path $treeRedundantDeny.File -AclObject $childAcl
+foreach ($stage in @('before', 'after')) {
+    if ($stage -eq 'after') {
+        $r = Invoke-Repacls '/Path' $treeRedundantDeny.File '/RemoveRedundant' '/Threads' '1'
+        Assert-True ($r.ExitCode -eq 0 -and $r.RawOut -notmatch 'ERROR') 'RemoveRedundant checks deny precedence'
+    }
+    $writeDenied = $false
+    try {
+        $stream = [IO.File]::Open($treeRedundantDeny.File, 'Open', 'Write', 'ReadWrite')
+        $stream.Dispose()
+    } catch [UnauthorizedAccessException] {
+        $writeDenied = $true
+    }
+    Assert-True $writeDenied "File write access is denied $stage RemoveRedundant"
+}
+$explicitDenies = @((Get-Acl $treeRedundantDeny.File).GetAccessRules(
+    $true, $false, [System.Security.Principal.SecurityIdentifier]) | Where-Object {
+        $_.IdentityReference.Value -eq $SidEveryone -and $_.AccessControlType -eq 'Deny'
+    })
+Assert-True ($explicitDenies.Count -gt 0) 'RemoveRedundant retains the effective explicit deny'
 
 # ═══════════════════════════════════════════════════════════════════════════════
 Write-Section '/CanonicalizeAcls'
