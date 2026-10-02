@@ -884,7 +884,18 @@ Set-Acl -Path $tree21.Root -AclObject $acl21
 $r = Invoke-Repacls '/Path' $tree21.Root '/RemoveAccount' $NameEveryone '/MaxDepth' '0' '/Threads' '1'
 Assert-False (Test-AclContainsSid $tree21.Root $SidEveryone) 'Pre-condition: Everyone is absent before AddAccountIfMissing'
 $r = Invoke-Repacls '/Path' $tree21.Root '/AddAccountIfMissing' $NameEveryone '/Threads' '1'
-Assert-True (Test-AclContainsSid $tree21.Root $SidEveryone) 'AddAccountIfMissing adds Everyone when missing'
+Assert-True ($r.ExitCode -eq 0 -and $r.RawOut -notmatch 'ERROR') 'AddAccountIfMissing runs without error'
+$rules21 = @((Get-Acl $tree21.Root).GetAccessRules($true, $false, [System.Security.Principal.SecurityIdentifier]) |
+    Where-Object { $_.IdentityReference.Value -eq $SidEveryone })
+Assert-True ($rules21.Count -eq 1 -and $rules21[0].AccessControlType -eq 'Allow' -and
+    $rules21[0].FileSystemRights -eq 'FullControl' -and
+    $rules21[0].InheritanceFlags -eq 'ContainerInherit, ObjectInherit' -and
+    $rules21[0].PropagationFlags -eq 'None') 'AddAccountIfMissing grants inheritable full control'
+Assert-False (Test-AclContainsDenySid $tree21.Root $SidEveryone) 'AddAccountIfMissing does not deny access'
+Assert-RawAceExists $tree21.File $SidEveryone 'Allow' 'AddAccountIfMissing grant reaches existing files'
+$sddl21 = Get-AclSddl $tree21.Root
+$r = Invoke-Repacls '/Path' $tree21.Root '/AddAccountIfMissing' $NameEveryone '/Threads' '1'
+Assert-True ((Get-AclSddl $tree21.Root) -eq $sddl21) 'AddAccountIfMissing leaves an existing grant unchanged'
 
 # ═══════════════════════════════════════════════════════════════════════════════
 Write-Section '/ResetChildren (exclusive operation)'

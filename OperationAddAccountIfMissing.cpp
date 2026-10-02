@@ -13,7 +13,7 @@ OperationAddAccountIfMissing::OperationAddAccountIfMissing(std::queue<std::wstri
 	// defer construction to delegate
 	std::queue<std::wstring> oArgListAlt;
 	oArgListAlt.push(sSubArgs.at(0) + L":(OI)(CI)(F)");
-	oDelegate = new OperationGrantDenyPerms(oArgListAlt, L"AddPerms");
+	oDelegate = new OperationGrantDenyPerms(oArgListAlt, L"GrantPerms");
 
 	// flag this as being an ace-level action
 	AppliesToDacl = true;
