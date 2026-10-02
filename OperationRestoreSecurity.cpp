@@ -35,17 +35,19 @@ OperationRestoreSecurity::OperationRestoreSecurity(std::queue<std::wstring> & oA
 		std::vector<std::wstring> oLineItems = SplitArgs(sLine, L"\\||\r");
 
 		// convert the long string descriptor its binary equivalent
-		PSECURITY_DESCRIPTOR tDesc = nullptr;
+		SmartPointer<PSECURITY_DESCRIPTOR> tDesc(LocalFree, nullptr);
+		ULONG iDescSize = 0;
 		if (oLineItems.size() != 2 ||
 			ConvertStringSecurityDescriptorToSecurityDescriptor(oLineItems.at(1).c_str(),
-			SDDL_REVISION_1, &tDesc, nullptr) == 0)
+			SDDL_REVISION_1, &tDesc, &iDescSize) == 0)
 		{
 			Print(L"ERROR: Unable to parse string security descriptor file for restoration.");
 			std::exit(-1);
 		}
 
-		// update the map
-		oImportMap[oLineItems.at(0)] = tDesc;
+		// retain an owned snapshot for repeated and concurrent restores
+		const BYTE * pDesc = static_cast<const BYTE *>(*tDesc);
+		oImportMap[oLineItems.at(0)].assign(pDesc, pDesc + iDescSize);
 	}
 
 	// cleanup
@@ -68,8 +70,19 @@ bool OperationRestoreSecurity::ProcessSdAction(std::wstring & sFileName, ObjectE
 		return false;
 	}
 
+	// give each entry its own descriptor before releasing the current one
+	SmartPointer<PSECURITY_DESCRIPTOR> tNewDescriptor(LocalFree,
+		LocalAlloc(LMEM_FIXED, oSecInfo->second.size()));
+	if (!tNewDescriptor)
+	{
+		InputOutput::AddError(L"Could not allocate security descriptor for restoration.");
+		return false;
+	}
+	memcpy(tNewDescriptor, oSecInfo->second.data(), oSecInfo->second.size());
+
 	if (bDescReplacement) LocalFree(tDescriptor);
-	tDescriptor = oSecInfo->second;
+	tDescriptor = tNewDescriptor;
+	*tNewDescriptor = nullptr;
 	bDescReplacement = true;
 	return true;
 }
