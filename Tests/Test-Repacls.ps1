@@ -1009,6 +1009,38 @@ $r = Invoke-Repacls '/Path' $tree25b.Root '/CopyMap' $copyMapFile '/Threads' '1'
 Assert-True (Test-AclContainsSid $tree25b.Root $SidBuiltinUsers) 'CopyMap added BUILTIN\Users'
 # CopyMap should retain original as well
 Assert-True (Test-AclContainsSid $tree25b.Root $SidEveryone) 'CopyMap retained Everyone (original)'
+# Copy deny ACEs without changing their type or removing the source.
+$treeCopyDeny = New-TestTree 'CopyMapDeny'
+$r = Invoke-Repacls '/Path' $treeCopyDeny.File '/DenyPerms' "$SidEveryone`:(WD)" '/Threads' '1'
+$r = Invoke-Repacls '/Path' $treeCopyDeny.File '/CopyMap' $copyMapFile '/Threads' '1'
+Assert-True ($r.ExitCode -eq 0 -and $r.RawOut -notmatch 'ERROR') 'CopyMap accepts a deny ACE'
+Assert-RawAceExists $treeCopyDeny.File $SidBuiltinUsers 'Deny' 'CopyMap preserves the copied deny type'
+Assert-RawAceExists $treeCopyDeny.File $SidEveryone 'Deny' 'CopyMap retains the source deny'
+
+# Audit success and failure are independent outcomes.
+$treeCopyAudit = New-TestTree 'CopyMapAudit'
+foreach ($auditFlags in @('Success', 'Failure', 'Success, Failure')) {
+    $auditAcl = Get-Acl $treeCopyAudit.File -Audit
+    $auditAcl.SetAuditRuleProtection($true, $false)
+    $auditAcl.PurgeAuditRules([System.Security.Principal.SecurityIdentifier]::new($SidEveryone))
+    $auditAcl.PurgeAuditRules([System.Security.Principal.SecurityIdentifier]::new($SidBuiltinUsers))
+    $auditAcl.AddAuditRule([System.Security.AccessControl.FileSystemAuditRule]::new(
+        [System.Security.Principal.SecurityIdentifier]::new($SidEveryone), 'ReadData', $auditFlags))
+    Set-Acl -Path $treeCopyAudit.File -AclObject $auditAcl
+    $r = Invoke-Repacls '/Path' $treeCopyAudit.File '/CopyMap' $copyMapFile '/Threads' '1'
+    Assert-True ($r.ExitCode -eq 0 -and $r.RawOut -notmatch 'ERROR') "CopyMap accepts $auditFlags auditing"
+    $auditRules = (Get-Acl $treeCopyAudit.File -Audit).GetAuditRules(
+        $true, $false, [System.Security.Principal.SecurityIdentifier])
+    foreach ($auditSid in @($SidEveryone, $SidBuiltinUsers)) {
+        $rules = @($auditRules | Where-Object { $_.IdentityReference.Value -eq $auditSid })
+        $actualFlags = 0
+        foreach ($rule in $rules) { $actualFlags = $actualFlags -bor [int]$rule.AuditFlags }
+        Assert-True ($rules.Count -gt 0 -and
+            @($rules | Where-Object { $_.FileSystemRights -ne 'ReadData' }).Count -eq 0 -and
+            $actualFlags -eq [int][System.Security.AccessControl.AuditFlags]$auditFlags) `
+            "CopyMap preserves $auditFlags auditing for $auditSid"
+    }
+}
 
 # ═══════════════════════════════════════════════════════════════════════════════
 Write-Section '/NoHiddenSystem'
