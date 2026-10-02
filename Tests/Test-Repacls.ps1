@@ -337,8 +337,7 @@ namespace RepaclsTest
                 int acePhase;
                 if (!ace.IsInherited && ace.AceType == "Deny") acePhase = 0;
                 else if (!ace.IsInherited && ace.AceType == "Allow") acePhase = 1;
-                else if (ace.IsInherited && ace.AceType == "Deny") acePhase = 2;
-                else acePhase = 3;
+                else acePhase = 2;
 
                 if (acePhase < phase)
                     return string.Format("ACE #{0} ({1}) is in phase {2} but expected >= {3}",
@@ -1095,7 +1094,6 @@ Write-Section '/NoHiddenSystem'
 
 $tree26 = New-TestTree 'NoHiddenSystem'
 # Mark the ROOT directory as hidden+system so /NoHiddenSystem skips it entirely.
-# The NoHiddenSystem check in ObjectFile.cpp only applies at depth 0 (the scan root).
 Set-ItemProperty -Path $tree26.Root -Name Attributes -Value ([System.IO.FileAttributes]::Hidden -bor [System.IO.FileAttributes]::System)
 
 $locHs   = Join-Path $Script:TestRoot 'locate_hs.csv'

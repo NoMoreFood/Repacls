@@ -59,8 +59,7 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 	if (oEntry.Name.empty()) return;
 
 	// skip if hidden and system
-	if (oEntry.Depth == 0 && IsHiddenSystem(oEntry.Attributes)
-		&& InputOutput::ExcludeHiddenSystem())
+	if (IsHiddenSystem(oEntry.Attributes) && InputOutput::ExcludeHiddenSystem())
 	{
 		Processor::CompleteEntry(oEntry);
 		return;
@@ -144,6 +143,13 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 				{
 					if (oInfo->NextEntryOffset == 0) break; else continue;
 				}
+			}
+
+			// skip protected children before processing or descending into them
+			if (IsHiddenSystem(oInfo->FileAttributes) && InputOutput::ExcludeHiddenSystem())
+			{
+				if (oInfo->NextEntryOffset == 0) break;
+				continue;
 			}
 
 			// construct the entry

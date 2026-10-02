@@ -206,4 +206,5 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	Print(L"===============================================================================");
 
 	for (auto oOperation : oOperationList) delete oOperation;
+	return InputOutput::HadErrors() ? EXIT_FAILURE : EXIT_SUCCESS;
 }

@@ -17,8 +17,7 @@ public:
 		Unspecified = 0,
 		ExplicitDeny = 1,
 		ExplicitAllow = 2,
-		InheritedDeny = 3,
-		InheritedAllow = 4,
+		Inherited = 3,
 		MaxAceOrder
 	};
 

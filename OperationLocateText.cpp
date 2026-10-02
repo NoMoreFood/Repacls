@@ -13,7 +13,7 @@ OperationLocateText::OperationLocateText(std::queue<std::wstring>& oArgList, con
 	const std::vector<std::wstring> sMatchAndArgs = ProcessAndCheckArgs(2, oArgList);
 
 	HANDLE hFile = CreateFile(sReportFile.at(0).c_str(), GENERIC_WRITE,
-		FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
