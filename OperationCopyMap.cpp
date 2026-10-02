@@ -117,12 +117,13 @@ bool OperationCopyMap::ProcessAclAction(const WCHAR* const sSdPart, ObjectEntry&
 			{
 				if (CheckBitSet(tAceDacl->AceFlags, SUCCESSFUL_ACCESS_ACE_FLAG))
 				{
-					tMode = static_cast<ACCESS_MODE>(tMode | SET_AUDIT_SUCCESS);
+					tMode = SET_AUDIT_SUCCESS;
 				}
-				if (CheckBitSet(tAceDacl->AceFlags, FAILED_ACCESS_ACE_FLAG))
+				else if (CheckBitSet(tAceDacl->AceFlags, FAILED_ACCESS_ACE_FLAG))
 				{
-					tMode = static_cast<ACCESS_MODE>(tMode | SET_AUDIT_FAILURE);
+					tMode = SET_AUDIT_FAILURE;
 				}
+				else continue;
 			}
 			else
 			{
@@ -154,15 +155,15 @@ bool OperationCopyMap::ProcessAclAction(const WCHAR* const sSdPart, ObjectEntry&
 			// and failure types together
 			SmartPointer<PACL> tNewDacl(LocalFree, nullptr);
 			DWORD iError = 0;
-			if (CheckBitSet(tEa.grfAccessMode, SET_AUDIT_SUCCESS) &&
-				CheckBitSet(tEa.grfAccessMode, SET_AUDIT_FAILURE))
+			if (tMode == SET_AUDIT_SUCCESS && CheckBitSet(tAceDacl->AceFlags, FAILED_ACCESS_ACE_FLAG))
 			{
 				SmartPointer<PACL> tNewDaclTmp(LocalFree, nullptr);
 				tEa.grfAccessMode = SET_AUDIT_SUCCESS;
 				iError = SetEntriesInAcl(1, &tEa, tCurrentAcl, &tNewDaclTmp);
 				tEa.grfAccessMode = SET_AUDIT_FAILURE;
-				if (iError == ERROR_SUCCESS) {
-					SetEntriesInAcl(1, &tEa, tNewDaclTmp, &tNewDacl);
+				if (iError == ERROR_SUCCESS)
+				{
+					iError = SetEntriesInAcl(1, &tEa, tNewDaclTmp, &tNewDacl);
 				}
 			}
 			else
