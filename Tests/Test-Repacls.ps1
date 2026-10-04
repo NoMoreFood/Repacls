@@ -1407,8 +1407,9 @@ Write-Section '/PathMode ActiveDirectory'
 
 # Simply passing a syntactically correct but non-existent AD path should fail to read
 $r = Invoke-Repacls '/Path' 'OU=Bogus,DC=Local' '/PathMode' 'ActiveDirectory' '/FindAccount' $NameEveryone '/Threads' '1' '/MaxDepth' '0'
-# As long as it parses the PathMode correctly, the tool handles lookup failures gracefully.
-Assert-True ($r.ExitCode -eq 0) 'PathMode ActiveDirectory parses and runs without fatal crash'
+# Lookup failures must propagate to the exit status and scan statistics.
+Assert-True ($r.ExitCode -ne 0 -and $r.RawOut -match 'Read Failures: 1' -and
+    $r.RawOut -match 'Enumeration Failures: 1') 'PathMode ActiveDirectory reports lookup failures'
 
 # ═══════════════════════════════════════════════════════════════════════════════
 Write-Section 'Domain operations (FindDomain, RemoveDomain)'
@@ -1450,8 +1451,13 @@ Write-Section '/RemoveOrphans and /UpdateHistoricalSids'
 # ═══════════════════════════════════════════════════════════════════════════════
 
 $treeMiscOps = New-TestTree 'MiscOps'
-$r = Invoke-Repacls '/Path' $treeMiscOps.Root '/RemoveOrphans' 'S-1-5' '/Threads' '1' '/MaxDepth' '0'
-Assert-True ($r.ExitCode -eq 0) 'RemoveOrphans runs without error'
+$orphanDomain = 'S-1-5-21-123456789-234567890-345678901'
+$orphanSid = "$orphanDomain-1001"
+$r = Invoke-Repacls '/Path' $treeMiscOps.Root '/GrantPerms' "$orphanSid`:(R)" '/Threads' '1' '/MaxDepth' '0'
+Assert-True ($r.ExitCode -eq 0 -and (Test-AclContainsSid $treeMiscOps.Root $orphanSid)) 'Orphan fixture is present'
+$r = Invoke-Repacls '/Path' $treeMiscOps.Root '/RemoveOrphans' $orphanDomain '/Threads' '1' '/MaxDepth' '0'
+Assert-True ($r.ExitCode -eq 0 -and $r.RawOut -notmatch 'ERROR') 'RemoveOrphans runs without error'
+Assert-False (Test-AclContainsSid $treeMiscOps.Root $orphanSid) 'RemoveOrphans removes an unresolved account'
 
 $r = Invoke-Repacls '/Path' $treeMiscOps.Root '/UpdateHistoricalSids' '/Threads' '1' '/MaxDepth' '0'
 Assert-True ($r.ExitCode -eq 0) 'UpdateHistoricalSids runs without error'
@@ -1658,9 +1664,20 @@ Assert-True ([RepaclsTest.RawAclValidator]::HasAceForSid($snap5, $SidEveryone, '
     #region ── Cleanup & Summary ───────────────────────────────────────────────
     Pop-Location
     try {
-        Remove-Item -Path $Script:TestRoot -Recurse -Force -ErrorAction SilentlyContinue
+        $cleanupRoot = [IO.Path]::GetFullPath($Script:TestRoot)
+        $tempParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
+        if (-not $cleanupRoot.StartsWith($tempParent, [StringComparison]::OrdinalIgnoreCase) -or
+            [IO.Path]::GetFileName($cleanupRoot) -notmatch '^RepaclsTests_[0-9a-f]{8}$') {
+            throw 'Test cleanup path is outside its temporary directory.'
+        }
+
+        # Restore inherited access before deleting fixtures with deny rules.
+        $cleanupResult = Invoke-Repacls '/Path' $cleanupRoot '/ResetChildren' '/Quiet' '/Threads' '1'
+        if ($cleanupResult.ExitCode -ne 0) { throw 'Unable to reset fixture permissions for cleanup.' }
+        Remove-Item -LiteralPath $cleanupRoot -Recurse -Force -ErrorAction Stop
+        Assert-False (Test-Path -LiteralPath $cleanupRoot) 'Test fixtures are removed'
     } catch {
-        Write-Warning "Could not fully clean up '$Script:TestRoot': $_"
+        Assert-True $false "Could not fully clean up '$Script:TestRoot': $_"
     }
     #endregion
 }
