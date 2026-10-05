@@ -28,7 +28,7 @@ Global options apply to the entire command regardless of where they appear.
 | --- | --- |
 | `/Path <Path>` | Scan a file, directory, registry key, or AD distinguished name. Repeat to scan multiple roots. |
 | `/PathList <FileName>` | Read a UTF-8 file containing one scan path per line. |
-| `/PathMode <File\|Registry\|ActiveDirectory>` | Choose the object type. `File` is the default. `REG` and `ADS` are accepted abbreviations. |
+| <code>/PathMode &lt;File&#124;Registry&#124;ActiveDirectory&gt;</code> | Choose the object type. `File` is the default. `REG` and `ADS` are accepted abbreviations. |
 | `/MaxDepth <Depth>` | Limit how deep to scan. `0` processes only the root; the default has no depth limit. Permission inheritance can still affect descendants beyond that limit. |
 | `/SharePaths <Server>[:Options]` | Scan shares discovered on a server. By default, skip administrative and hidden shares and deduplicate overlapping share paths. |
 | `/DomainPaths <Domain>[:Options]` | Discover domain member servers and scan their shares. Accepts the share options below and `StopOnError`. |
@@ -63,9 +63,9 @@ Registry paths use forms such as `HKLM\Software`; AD paths use distinguished nam
 | --- | --- |
 | `/PrintDescriptor` | Print security descriptors as objects are processed. |
 | `/CheckCanonical` | Report ACLs whose entries are not in canonical order. |
-| `/BackupSecurity <FileName>` | Save each scanned object's path and security descriptor as `path\|descriptor`. |
-| `/FindAccount <Name\|Sid>` | Find references to a particular account. |
-| `/FindDomain <Domain\|Sid>` | Find references to accounts in a domain. |
+| `/BackupSecurity <FileName>` | Save each scanned object's path and security descriptor as <code>path&#124;descriptor</code>. |
+| <code>/FindAccount &lt;Name&#124;Sid&gt;</code> | Find references to a particular account. |
+| <code>/FindDomain &lt;Domain&#124;Sid&gt;</code> | Find references to accounts in a domain. |
 | `/FindNullAcl` | Find null ACLs, which allow unrestricted access. |
 | `/Report <FileName> <AccountRegex>` | Write a CSV with paths, descriptor parts, accounts, permissions, and inheritance flags. Use `.*` for all accounts. |
 | `/Locate <FileName> <FileRegex>` | Report matching file names and their creation time, modified time, size, and attributes. Also supports names of registry and AD objects. |
@@ -91,19 +91,19 @@ Operations run in the order specified. Combine related operations to perform the
 
 | Operation | Purpose |
 | --- | --- |
-| `/GrantPerms <Name\|Sid>:<Flags>` | Ensure the account has the specified allow permissions, adding entries where necessary. |
-| `/DenyPerms <Name\|Sid>:<Flags>` | Ensure the account has the specified deny permissions. |
-| `/AddAccountIfMissing <Name\|Sid>` | Shorthand for granting inheritable full control with `(CI)(OI)(F)`. |
-| `/SetOwner <Name\|Sid>` | Change ownership. |
-| `/ReplaceAccount <SourceName\|Sid>:<TargetName\|Sid>` | Replace one account with another in selected descriptor parts. |
-| `/ReplaceMap <FileName>[\|<Parts>]` | Read account replacements from a UTF-8 mapping file. An optional part list restricts the descriptor parts to update. |
+| <code>/GrantPerms &lt;Name&#124;Sid&gt;:&lt;Flags&gt;</code> | Ensure the account has the specified allow permissions, adding entries where necessary. |
+| <code>/DenyPerms &lt;Name&#124;Sid&gt;:&lt;Flags&gt;</code> | Ensure the account has the specified deny permissions. |
+| <code>/AddAccountIfMissing &lt;Name&#124;Sid&gt;</code> | Shorthand for granting inheritable full control with `(CI)(OI)(F)`. |
+| <code>/SetOwner &lt;Name&#124;Sid&gt;</code> | Change ownership. |
+| <code>/ReplaceAccount &lt;SourceName&#124;Sid&gt;:&lt;TargetName&#124;Sid&gt;</code> | Replace one account with another in selected descriptor parts. |
+| <code>/ReplaceMap &lt;FileName&gt;[&#124;&lt;Parts&gt;]</code> | Read account replacements from a UTF-8 mapping file. An optional part list restricts the descriptor parts to update. |
 | `/CopyMap <FileName>` | Copy mapped account permissions while preserving the source account. Affects DACL and SACL entries, not ownership. |
 | `/MoveDomain <SourceDomain>:<TargetDomain>` | Replace domain account references with matching account names in the target domain. Both domains must be resolvable. |
 | `/CopyDomain <SourceDomain>:<TargetDomain>` | Add equivalent DACL and SACL entries for matching target-domain accounts while retaining source entries. |
 | `/UpdateHistoricalSids` | Replace an account's historical SID references with its primary SID. |
-| `/RemoveAccount <Name\|Sid>` | Remove references to the account. If it owns the object or is its primary group, replace that reference with the built-in Administrators group. |
-| `/RemoveDomain <Domain\|Sid>` | Remove references to accounts whose SIDs belong to the domain. |
-| `/RemoveOrphans <Domain\|Sid>` | Remove references to unresolved accounts in the specified domain. |
+| <code>/RemoveAccount &lt;Name&#124;Sid&gt;</code> | Remove references to the account. If it owns the object or is its primary group, replace that reference with the built-in Administrators group. |
+| <code>/RemoveDomain &lt;Domain&#124;Sid&gt;</code> | Remove references to accounts whose SIDs belong to the domain. |
+| <code>/RemoveOrphans &lt;Domain&#124;Sid&gt;</code> | Remove references to unresolved accounts in the specified domain. |
 | `/RemoveRedundant` | Remove explicit permission entries already supplied by inheritance. |
 | `/Compact` | Merge compatible ACL entries. |
 | `/CanonicalizeAcls` | Reorder entries into canonical ACL order. |
