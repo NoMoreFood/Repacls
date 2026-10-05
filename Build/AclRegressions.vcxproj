@@ -32,12 +32,12 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <PropertyGroup>
     <TargetName>AclRegressions</TargetName>
-    <OutDir>$(MSBuildProjectDirectory)\..\Temp\Tests\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(MSBuildProjectDirectory)\Temp\Tests\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(OutDir)obj\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\Code;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <WarningLevel>Level4</WarningLevel>
       <DisableSpecificWarnings>4100</DisableSpecificWarnings>
@@ -53,8 +53,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\*.cpp" Exclude="..\Main.cpp;..\Processor.cpp;..\OperationSharePaths.cpp" />
-    <ClCompile Include="AclRegressions.cpp" />
+    <ClCompile Include="..\Code\*.cpp" Exclude="..\Code\Main.cpp;..\Code\Processor.cpp;..\Code\OperationSharePaths.cpp" />
+    <ClCompile Include="..\Tests\AclRegressions.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

@@ -74,25 +74,25 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\km</IncludePath>
-    <OutDir>$(SolutionDir)Build\Debug\x86\</OutDir>
-    <IntDir>$(SolutionDir)Temp\Debug\x86\</IntDir>
+    <OutDir>$(MSBuildProjectDirectory)\Debug\x86\</OutDir>
+    <IntDir>$(MSBuildProjectDirectory)\Temp\Debug\x86\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)Build\\Debug\x64\</OutDir>
-    <IntDir>$(SolutionDir)Temp\Debug\x64\</IntDir>
+    <OutDir>$(MSBuildProjectDirectory)\Debug\x64\</OutDir>
+    <IntDir>$(MSBuildProjectDirectory)\Temp\Debug\x64\</IntDir>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\km</IncludePath>
-    <OutDir>$(SolutionDir)Build\Release\x86\</OutDir>
-    <IntDir>$(SolutionDir)Temp\Release\x86\</IntDir>
+    <OutDir>$(MSBuildProjectDirectory)\Release\x86\</OutDir>
+    <IntDir>$(MSBuildProjectDirectory)\Temp\Release\x86\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)Build\Release\x64\</OutDir>
-    <IntDir>$(SolutionDir)Temp\Release\x64\</IntDir>
+    <OutDir>$(MSBuildProjectDirectory)\Release\x64\</OutDir>
+    <IntDir>$(MSBuildProjectDirectory)\Temp\Release\x64\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -201,117 +201,117 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Helpers.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="ObjectAds.cpp" />
-    <ClCompile Include="ObjectFile.cpp" />
-    <ClCompile Include="ObjectRegistry.cpp" />
-    <ClCompile Include="Operation.cpp" />
-    <ClCompile Include="OperationAddAccountIfMissing.cpp" />
-    <ClCompile Include="OperationCopyMap.cpp" />
-    <ClCompile Include="OperationDepth.cpp" />
-    <ClCompile Include="OperationGrantDenyPerms.cpp" />
-    <ClCompile Include="OperationCanonicalizeAcls.cpp" />
-    <ClCompile Include="OperationCheckCanonical.cpp" />
-    <ClCompile Include="OperationCompact.cpp" />
-    <ClCompile Include="OperationCopyDomain.cpp" />
-    <ClCompile Include="OperationDomainPaths.cpp" />
-    <ClCompile Include="OperationBackupSecurity.cpp" />
-    <ClCompile Include="OperationFindAccount.cpp" />
-    <ClCompile Include="OperationFindDomain.cpp" />
-    <ClCompile Include="OperationFindNullAcl.cpp" />
-    <ClCompile Include="OperationHelp.cpp" />
-    <ClCompile Include="OperationLocate.cpp" />
-    <ClCompile Include="OperationLocateHash.cpp" />
-    <ClCompile Include="OperationLocateShortcut.cpp" />
-    <ClCompile Include="OperationLocateText.cpp" />
-    <ClCompile Include="OperationLog.cpp" />
-    <ClCompile Include="OperationPathList.cpp" />
-    <ClCompile Include="OperationPathMode.cpp" />
-    <ClCompile Include="OperationRemoveDomain.cpp" />
-    <ClCompile Include="OperationRemoveStreams.cpp" />
-    <ClCompile Include="OperationReplaceMap.cpp" />
-    <ClCompile Include="OperationRestoreSecurity.cpp" />
-    <ClCompile Include="OperationInheritChildren.cpp" />
-    <ClCompile Include="OperationMoveDomain.cpp" />
-    <ClCompile Include="OperationNoHiddenSystem.cpp" />
-    <ClCompile Include="OperationPath.cpp" />
-    <ClCompile Include="OperationPrintDescriptor.cpp" />
-    <ClCompile Include="OperationQuiet.cpp" />
-    <ClCompile Include="OperationRemoveAccount.cpp" />
-    <ClCompile Include="OperationRemoveOrphan.cpp" />
-    <ClCompile Include="OperationRemoveRedundant.cpp" />
-    <ClCompile Include="OperationReplaceAccount.cpp" />
-    <ClCompile Include="OperationReport.cpp" />
-    <ClCompile Include="OperationResetChildren.cpp" />
-    <ClCompile Include="OperationSetOwner.cpp" />
-    <ClCompile Include="OperationSharePaths.cpp" />
-    <ClCompile Include="OperationSidHistory.cpp" />
-    <ClCompile Include="OperationThreads.cpp" />
-    <ClCompile Include="OperationWhatIf.cpp" />
-    <ClCompile Include="Processor.cpp" />
+    <ClCompile Include="..\Code\Helpers.cpp" />
+    <ClCompile Include="..\Code\Main.cpp" />
+    <ClCompile Include="..\Code\ObjectAds.cpp" />
+    <ClCompile Include="..\Code\ObjectFile.cpp" />
+    <ClCompile Include="..\Code\ObjectRegistry.cpp" />
+    <ClCompile Include="..\Code\Operation.cpp" />
+    <ClCompile Include="..\Code\OperationAddAccountIfMissing.cpp" />
+    <ClCompile Include="..\Code\OperationCopyMap.cpp" />
+    <ClCompile Include="..\Code\OperationDepth.cpp" />
+    <ClCompile Include="..\Code\OperationGrantDenyPerms.cpp" />
+    <ClCompile Include="..\Code\OperationCanonicalizeAcls.cpp" />
+    <ClCompile Include="..\Code\OperationCheckCanonical.cpp" />
+    <ClCompile Include="..\Code\OperationCompact.cpp" />
+    <ClCompile Include="..\Code\OperationCopyDomain.cpp" />
+    <ClCompile Include="..\Code\OperationDomainPaths.cpp" />
+    <ClCompile Include="..\Code\OperationBackupSecurity.cpp" />
+    <ClCompile Include="..\Code\OperationFindAccount.cpp" />
+    <ClCompile Include="..\Code\OperationFindDomain.cpp" />
+    <ClCompile Include="..\Code\OperationFindNullAcl.cpp" />
+    <ClCompile Include="..\Code\OperationHelp.cpp" />
+    <ClCompile Include="..\Code\OperationLocate.cpp" />
+    <ClCompile Include="..\Code\OperationLocateHash.cpp" />
+    <ClCompile Include="..\Code\OperationLocateShortcut.cpp" />
+    <ClCompile Include="..\Code\OperationLocateText.cpp" />
+    <ClCompile Include="..\Code\OperationLog.cpp" />
+    <ClCompile Include="..\Code\OperationPathList.cpp" />
+    <ClCompile Include="..\Code\OperationPathMode.cpp" />
+    <ClCompile Include="..\Code\OperationRemoveDomain.cpp" />
+    <ClCompile Include="..\Code\OperationRemoveStreams.cpp" />
+    <ClCompile Include="..\Code\OperationReplaceMap.cpp" />
+    <ClCompile Include="..\Code\OperationRestoreSecurity.cpp" />
+    <ClCompile Include="..\Code\OperationInheritChildren.cpp" />
+    <ClCompile Include="..\Code\OperationMoveDomain.cpp" />
+    <ClCompile Include="..\Code\OperationNoHiddenSystem.cpp" />
+    <ClCompile Include="..\Code\OperationPath.cpp" />
+    <ClCompile Include="..\Code\OperationPrintDescriptor.cpp" />
+    <ClCompile Include="..\Code\OperationQuiet.cpp" />
+    <ClCompile Include="..\Code\OperationRemoveAccount.cpp" />
+    <ClCompile Include="..\Code\OperationRemoveOrphan.cpp" />
+    <ClCompile Include="..\Code\OperationRemoveRedundant.cpp" />
+    <ClCompile Include="..\Code\OperationReplaceAccount.cpp" />
+    <ClCompile Include="..\Code\OperationReport.cpp" />
+    <ClCompile Include="..\Code\OperationResetChildren.cpp" />
+    <ClCompile Include="..\Code\OperationSetOwner.cpp" />
+    <ClCompile Include="..\Code\OperationSharePaths.cpp" />
+    <ClCompile Include="..\Code\OperationSidHistory.cpp" />
+    <ClCompile Include="..\Code\OperationThreads.cpp" />
+    <ClCompile Include="..\Code\OperationWhatIf.cpp" />
+    <ClCompile Include="..\Code\Processor.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ConcurrentQueue.h" />
-    <ClInclude Include="DriverKitPartial.h" />
-    <ClInclude Include="Helpers.h" />
-    <ClInclude Include="Object.h" />
-    <ClInclude Include="ObjectAds.h" />
-    <ClInclude Include="ObjectFile.h" />
-    <ClInclude Include="ObjectRegistry.h" />
-    <ClInclude Include="OperationCopyMap.h" />
-    <ClInclude Include="OperationDepth.h" />
-    <ClInclude Include="OperationGrantDenyPerms.h" />
-    <ClInclude Include="OperationCanonicalizeAcls.h" />
-    <ClInclude Include="OperationLocateHash.h" />
-    <ClInclude Include="OperationLocateShortcut.h" />
-    <ClInclude Include="InputOutput.h" />
-    <ClInclude Include="OperationCopyDomain.h" />
-    <ClInclude Include="OperationDomainPaths.h" />
-    <ClInclude Include="OperationLocate.h" />
-    <ClInclude Include="OperationLocateText.h" />
-    <ClInclude Include="OperationLog.h" />
-    <ClInclude Include="OperationPathList.h" />
-    <ClInclude Include="OperationPathMode.h" />
-    <ClInclude Include="OperationRemoveDomain.h" />
-    <ClInclude Include="OperationRemoveStreams.h" />
-    <ClInclude Include="OperationReplaceMap.h" />
-    <ClInclude Include="OperationRestoreSecurity.h" />
-    <ClInclude Include="OperationSharePaths.h" />
-    <ClInclude Include="OperationAddAccountIfMissing.h" />
-    <ClInclude Include="OperationCheckCanonical.h" />
-    <ClInclude Include="OperationCompact.h" />
-    <ClInclude Include="OperationBackupSecurity.h" />
-    <ClInclude Include="OperationFactory.h" />
-    <ClInclude Include="OperationFindAccount.h" />
-    <ClInclude Include="Operation.h" />
-    <ClInclude Include="OperationFindDomain.h" />
-    <ClInclude Include="OperationFindNullAcl.h" />
-    <ClInclude Include="OperationHelp.h" />
-    <ClInclude Include="OperationInheritChildren.h" />
-    <ClInclude Include="OperationMoveDomain.h" />
-    <ClInclude Include="OperationNoHiddenSystem.h" />
-    <ClInclude Include="OperationPath.h" />
-    <ClInclude Include="OperationPrintDescriptor.h" />
-    <ClInclude Include="OperationQuiet.h" />
-    <ClInclude Include="OperationRemoveAccount.h" />
-    <ClInclude Include="OperationRemoveOrphan.h" />
-    <ClInclude Include="OperationRemoveRedundant.h" />
-    <ClInclude Include="OperationReplaceAccount.h" />
-    <ClInclude Include="OperationReport.h" />
-    <ClInclude Include="OperationResetChildren.h" />
-    <ClInclude Include="OperationSetOwner.h" />
-    <ClInclude Include="OperationSidHistory.h" />
-    <ClInclude Include="OperationThreads.h" />
-    <ClInclude Include="OperationWhatIf.h" />
-    <ClInclude Include="Processor.h" />
-    <ClInclude Include="resource.h" />
+    <ClInclude Include="..\Code\ConcurrentQueue.h" />
+    <ClInclude Include="..\Code\DriverKitPartial.h" />
+    <ClInclude Include="..\Code\Helpers.h" />
+    <ClInclude Include="..\Code\Object.h" />
+    <ClInclude Include="..\Code\ObjectAds.h" />
+    <ClInclude Include="..\Code\ObjectFile.h" />
+    <ClInclude Include="..\Code\ObjectRegistry.h" />
+    <ClInclude Include="..\Code\OperationCopyMap.h" />
+    <ClInclude Include="..\Code\OperationDepth.h" />
+    <ClInclude Include="..\Code\OperationGrantDenyPerms.h" />
+    <ClInclude Include="..\Code\OperationCanonicalizeAcls.h" />
+    <ClInclude Include="..\Code\OperationLocateHash.h" />
+    <ClInclude Include="..\Code\OperationLocateShortcut.h" />
+    <ClInclude Include="..\Code\InputOutput.h" />
+    <ClInclude Include="..\Code\OperationCopyDomain.h" />
+    <ClInclude Include="..\Code\OperationDomainPaths.h" />
+    <ClInclude Include="..\Code\OperationLocate.h" />
+    <ClInclude Include="..\Code\OperationLocateText.h" />
+    <ClInclude Include="..\Code\OperationLog.h" />
+    <ClInclude Include="..\Code\OperationPathList.h" />
+    <ClInclude Include="..\Code\OperationPathMode.h" />
+    <ClInclude Include="..\Code\OperationRemoveDomain.h" />
+    <ClInclude Include="..\Code\OperationRemoveStreams.h" />
+    <ClInclude Include="..\Code\OperationReplaceMap.h" />
+    <ClInclude Include="..\Code\OperationRestoreSecurity.h" />
+    <ClInclude Include="..\Code\OperationSharePaths.h" />
+    <ClInclude Include="..\Code\OperationAddAccountIfMissing.h" />
+    <ClInclude Include="..\Code\OperationCheckCanonical.h" />
+    <ClInclude Include="..\Code\OperationCompact.h" />
+    <ClInclude Include="..\Code\OperationBackupSecurity.h" />
+    <ClInclude Include="..\Code\OperationFactory.h" />
+    <ClInclude Include="..\Code\OperationFindAccount.h" />
+    <ClInclude Include="..\Code\Operation.h" />
+    <ClInclude Include="..\Code\OperationFindDomain.h" />
+    <ClInclude Include="..\Code\OperationFindNullAcl.h" />
+    <ClInclude Include="..\Code\OperationHelp.h" />
+    <ClInclude Include="..\Code\OperationInheritChildren.h" />
+    <ClInclude Include="..\Code\OperationMoveDomain.h" />
+    <ClInclude Include="..\Code\OperationNoHiddenSystem.h" />
+    <ClInclude Include="..\Code\OperationPath.h" />
+    <ClInclude Include="..\Code\OperationPrintDescriptor.h" />
+    <ClInclude Include="..\Code\OperationQuiet.h" />
+    <ClInclude Include="..\Code\OperationRemoveAccount.h" />
+    <ClInclude Include="..\Code\OperationRemoveOrphan.h" />
+    <ClInclude Include="..\Code\OperationRemoveRedundant.h" />
+    <ClInclude Include="..\Code\OperationReplaceAccount.h" />
+    <ClInclude Include="..\Code\OperationReport.h" />
+    <ClInclude Include="..\Code\OperationResetChildren.h" />
+    <ClInclude Include="..\Code\OperationSetOwner.h" />
+    <ClInclude Include="..\Code\OperationSidHistory.h" />
+    <ClInclude Include="..\Code\OperationThreads.h" />
+    <ClInclude Include="..\Code\OperationWhatIf.h" />
+    <ClInclude Include="..\Code\Processor.h" />
+    <ClInclude Include="..\Code\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Resource.rc" />
+    <ResourceCompile Include="..\Code\Resource.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Tests\Test-Repacls.ps1" />
+    <None Include="..\Tests\Test-Repacls.ps1" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
