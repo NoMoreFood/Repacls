@@ -14,7 +14,9 @@
 Temp/
 [Dd]ebug/
 [Dd]ebugPublic/
+[Rr]elease/
 [Rr]eleases/
+/Build/*.zip
 bld/
 [Bb]in/
 [Oo]bj/
