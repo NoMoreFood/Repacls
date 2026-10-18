@@ -6,6 +6,7 @@
 #include "Processor.h"
 #include "InputOutput.h"
 #include "OperationCheckCanonical.h"
+#include "ObjectRegistry.h"
 
 #include <LM.h>
 #include <codecvt>
@@ -204,6 +205,80 @@ void CheckAuditRedundancy()
 		if (!removable) Require(DescribeAcl(acl, true) == before, "Leave necessary auditing unchanged");
 		if (cleanup) LocalFree(acl);
 	}
+}
+
+void CheckCompactionPrecedence()
+{
+	// merging an allow across a deny must preserve the Windows access-check result
+	auto operation = MakeOperation({ L"/Compact" });
+	for (const auto* sddl : { L"D:(A;;0x2;;;WD)(D;;0x1;;;WD)(A;;0x1;;;WD)",
+		L"D:(D;;0x2;;;WD)(A;;0x1;;;WD)(D;;0x1;;;WD)" })
+	{
+		SmartPointer<PSECURITY_DESCRIPTOR> descriptor(LocalFree);
+		Require(ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl, SDDL_REVISION_1,
+			&descriptor, nullptr) != 0, "Parse compaction fixture");
+		PACL acl = nullptr;
+		BOOL present, defaulted;
+		GetSecurityDescriptorDacl(descriptor, &present, &acl, &defaulted);
+		const bool allowed = CanRead(acl);
+		bool cleanup = false;
+		ObjectEntry entry{};
+		operation->ProcessAclAction(L"DACL", entry, acl, cleanup);
+		Require(CanRead(acl) == allowed, "Compaction preserves access across intervening ACE types");
+		if (cleanup) LocalFree(acl);
+	}
+}
+
+void CheckAclGrowthLimit()
+{
+	// a nearly full ACL must remain valid when a replacement SID does not fit
+	auto operation = MakeOperation({ L"/ReplaceAccount", L"S-1-1-0:S-1-5-21-1-2-3-1001:DACL" });
+	std::vector<BYTE> storage(MAXWORD & ~3u);
+	PACL acl = reinterpret_cast<PACL>(storage.data());
+	Require(InitializeAcl(acl, static_cast<DWORD>(storage.size()), ACL_REVISION) != 0, "Initialize large ACL");
+	Require(AddAccessAllowedAce(acl, ACL_REVISION, FILE_READ_DATA, GetSidFromName(L"S-1-1-0")) != 0,
+		"Add replacement target to large ACL");
+	while (AddAccessAllowedAce(acl, ACL_REVISION, FILE_READ_DATA, GetSidFromName(L"S-1-5-18"))) {}
+	const auto original = storage;
+	bool cleanup = false;
+	ObjectEntry entry{};
+	InputOutput::HadErrors() = false;
+	Require(!operation->ProcessAclAction(L"DACL", entry, acl, cleanup) && InputOutput::HadErrors(),
+		"Reject a SID replacement that exceeds the ACL size limit");
+	Require(!cleanup && IsValidAcl(acl) && storage == original, "Oversized replacement leaves the ACL intact");
+	InputOutput::HadErrors() = false;
+
+	// unused capacity must not cause a valid replacement to be rejected
+	InitializeAcl(acl, static_cast<DWORD>(storage.size()), ACL_REVISION);
+	AddAccessAllowedAce(acl, ACL_REVISION, FILE_READ_DATA, GetSidFromName(L"S-1-1-0"));
+	Require(operation->ProcessAclAction(L"DACL", entry, acl, cleanup) && IsValidAcl(acl),
+		"SID replacement uses available ACL capacity");
+	if (cleanup) LocalFree(acl);
+}
+
+void CheckConditionalGrant()
+{
+	// a conditional allow is not a duplicate of an unconditional grant
+	SmartPointer<PSECURITY_DESCRIPTOR> descriptor(LocalFree);
+	Require(ConvertStringSecurityDescriptorToSecurityDescriptorW(
+		L"D:(XA;;FR;;;WD;(@User.Test == 1))", SDDL_REVISION_1, &descriptor, nullptr) != 0,
+		"Parse conditional permission fixture");
+	PACL acl = nullptr;
+	BOOL present, defaulted;
+	GetSecurityDescriptorDacl(descriptor, &present, &acl, &defaulted);
+	auto operation = MakeOperation({ L"/GrantPerms", L"S-1-1-0:(R)" });
+	bool cleanup = false;
+	ObjectEntry entry{};
+	Require(operation->ProcessAclAction(L"DACL", entry, acl, cleanup), "Add unconditional grant beside conditional ACE");
+	bool unconditional = false;
+	auto ace = FirstAce(acl);
+	for (WORD index = 0; index < acl->AceCount; ++index, ace = NextAce(ace))
+	{
+		unconditional |= ace->AceType == ACCESS_ALLOWED_ACE_TYPE && ace->Mask == FILE_GENERIC_READ &&
+			SidMatch(Operation::GetSidFromAce(ace), GetSidFromName(L"S-1-1-0"));
+	}
+	Require(unconditional, "Granted read access is unconditional");
+	if (cleanup) LocalFree(acl);
 }
 
 void CheckIdentityMappings(const std::wstring& directory)
@@ -435,6 +510,86 @@ void CheckShareDiscovery()
 	InputOutput::ScanPaths().clear();
 }
 
+void CheckMissingRestoredIdentities(const std::wstring& directory)
+{
+	// partial descriptors must support later account operations without null SID dereferences
+	const auto path = directory + L"\\partial.backup";
+	std::ofstream file(path);
+	file << "regression|D:(A;;FR;;;WD)\n";
+	file.close();
+	auto restore = MakeOperation({ L"/RestoreSecurity", path });
+	auto find = MakeOperation({ L"/FindAccount", L"S-1-1-0" });
+	auto replace = MakeOperation({ L"/ReplaceMap", directory + L"\\identity.map" });
+	auto owner = MakeOperation({ L"/SetOwner", L"S-1-5-18" });
+	InitialDescriptor = L"O:SYG:SYD:(A;;FA;;;SY)";
+	InputOutput::HadErrors() = false;
+	ObjectEntry entry{};
+	entry.Name = L"regression";
+	entry.ObjectType = SE_FILE_OBJECT;
+	Processor processor({ restore.get(), find.get(), replace.get() }, true, true, true, true);
+	processor.AnalyzeSecurity(entry);
+	Require(!(CommittedInformation & (OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION)),
+		"Restoring absent identities does not attempt to clear the owner or group");
+	Processor ownerProcessor({ restore.get(), owner.get() }, true, true, true, true);
+	ownerProcessor.AnalyzeSecurity(entry);
+	Require((CommittedInformation & OWNER_SECURITY_INFORMATION) && !InputOutput::HadErrors(),
+		"SetOwner fills an absent restored owner");
+	InitialDescriptor.clear();
+}
+
+void CheckMixedPathLogging(const std::wstring& directory)
+{
+	// logs retain the correct path for every root type in one process
+	const auto path = directory + L"\\mixed-paths.csv";
+	{
+		auto log = MakeOperation({ L"/Log", path });
+		for (const auto* name : { L"\\??\\C:\\local.txt", L"\\??\\UNC\\server\\share\\remote.txt", L"X" })
+		{
+			InputOutput::AddFile(name);
+			InputOutput::AddInfo(L"Path fixture", L"");
+		}
+		InputOutput::Log() = false;
+	}
+	std::ifstream file(path);
+	const std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	Require(content.find("\"C:\\local.txt\"") != std::string::npos &&
+		content.find("\"\\\\server\\share\\remote.txt\"") != std::string::npos &&
+		content.find("\"X\"") != std::string::npos, "Normalize mixed local, UNC, and short diagnostic paths");
+}
+
+class DeleteRegistryEntry final : public Operation
+{
+public:
+	DeleteRegistryEntry(std::queue<std::wstring>& arguments) : Operation(arguments) { AppliesToObject = true; }
+	void ProcessObjectAction(ObjectEntry& entry) override
+	{
+		Require(RegDeleteKey(HKEY_CURRENT_USER, entry.NameExtended.c_str()) == ERROR_SUCCESS,
+			"Delete key during registry processing");
+	}
+};
+
+void CheckRegistryDeletion()
+{
+	// a key removed during processing must terminate enumeration and report failure
+	ObjectEntry entry{};
+	entry.NameExtended = L"Software\\RepaclsRegression_" + std::to_wstring(GetCurrentProcessId());
+	entry.Name = L"CURRENT_USER\\" + entry.NameExtended;
+	entry.ObjectType = SE_REGISTRY_KEY;
+	entry.hObject = HKEY_CURRENT_USER;
+	SmartPointer<HKEY> key(RegCloseKey);
+	Require(RegCreateKeyEx(HKEY_CURRENT_USER, entry.NameExtended.c_str(), 0, nullptr, 0,
+		KEY_ALL_ACCESS, nullptr, &key, nullptr) == ERROR_SUCCESS, "Create registry enumeration fixture");
+	std::queue<std::wstring> arguments;
+	DeleteRegistryEntry remove(arguments);
+	Processor processor({ &remove }, false, false, false, false);
+	ObjectRegistry registry(processor);
+	InputOutput::HadErrors() = false;
+	registry.GetChildObjects(entry);
+	Require(processor.ItemsEnumerationFailures == 1ull && InputOutput::HadErrors(),
+		"Deleted registry keys fail enumeration without looping");
+	InputOutput::HadErrors() = false;
+}
+
 void CheckSecurityReadFailure(const std::wstring& directory)
 {
 	// a real Windows lookup failure must set the process-wide error state
@@ -456,11 +611,17 @@ int wmain(int argc, WCHAR* argv[])
 		InputOutput::InQuietMode() = true;
 		CheckCanonicalization();
 		CheckAuditRedundancy();
+		CheckCompactionPrecedence();
+		CheckAclGrowthLimit();
+		CheckConditionalGrant();
 		CheckIdentityMappings(argv[1]);
 		CheckCallbackObjectAces();
 		CheckDescriptorPipeline(argv[1]);
 		CheckRestoreProtection(argv[1]);
 		CheckShareDiscovery();
+		CheckMissingRestoredIdentities(argv[1]);
+		CheckMixedPathLogging(argv[1]);
+		CheckRegistryDeletion();
 		CheckSecurityReadFailure(argv[1]);
 		std::wcout << L"PASS: native ACL, descriptor pipeline, and share discovery regressions\n";
 		return 0;

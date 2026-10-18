@@ -29,6 +29,7 @@ struct SidCompare
 {
 	bool operator()(PSID p1, PSID p2) const
 	{
+		if (p1 == nullptr || p2 == nullptr) return p1 == nullptr && p2 != nullptr;
 		const DWORD iLength1 = SidLength(p1);
 		const DWORD iLength2 = SidLength(p2);
 		if (iLength1 != iLength2) return iLength1 < iLength2;

@@ -22,7 +22,7 @@ OperationRestoreSecurity::OperationRestoreSecurity(std::queue<std::wstring> & oA
 	}
 
 	// adapt the stream to read windows unicode files
-	(void) fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf8<wchar_t,
+	(void) fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf8_utf16<wchar_t,
 		0x10ffff, std::consume_header>));
 
 	// read the file line-by-line
@@ -48,6 +48,13 @@ OperationRestoreSecurity::OperationRestoreSecurity(std::queue<std::wstring> & oA
 		// retain an owned snapshot for repeated and concurrent restores
 		const BYTE * pDesc = static_cast<const BYTE *>(*tDesc);
 		oImportMap[oLineItems.at(0)].assign(pDesc, pDesc + iDescSize);
+	}
+
+	// reject incomplete input before starting any scan or permission changes
+	if (!fFile.eof())
+	{
+		Print(L"ERROR: Unable to read UTF-8 input file '{}'.", sSubArgs.at(0));
+		std::exit(-1);
 	}
 
 	// cleanup

@@ -123,6 +123,7 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	bool bFetchGroup = false;
 
 	// process each argument in the queue
+	std::vector<std::unique_ptr<Operation>> oOperations;
 	std::vector<Operation*> oOperationList;
 	while (!oArgList.empty())
 	{
@@ -132,6 +133,7 @@ int wmain(int iArgs, WCHAR * aArgs[])
 		// validate the operation was found although this
 		// should never happen since the factory itself will complain
 		if (oOperation == nullptr) std::exit(-1);
+		oOperations.emplace_back(oOperation);
 
 		// add to the processing list if there is an actionable security element
 		if (oOperation->AppliesToDacl ||
@@ -205,6 +207,5 @@ int wmain(int iArgs, WCHAR * aArgs[])
 	Print(L"= Note: Update statistics do not include changes due to inherited rights.");
 	Print(L"===============================================================================");
 
-	for (auto oOperation : oOperationList) delete oOperation;
 	return InputOutput::HadErrors() ? EXIT_FAILURE : EXIT_SUCCESS;
 }

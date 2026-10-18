@@ -40,6 +40,10 @@ bool OperationCompact::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry
 			// reset skip increment variable
 			bSkipIncrement = false;
 
+			// do not move access rights ahead of an intervening access-control type
+			if (tAceOuter->AceType != SYSTEM_AUDIT_ACE_TYPE &&
+				tAceInner->AceType != tAceOuter->AceType) break;
+
 			// stop processing completely if the flags are not identical or
 			// the flags aren't mergeable with identical masks
 			if (tAceInner->AceFlags != tAceOuter->AceFlags &&

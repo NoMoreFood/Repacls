@@ -21,14 +21,17 @@ OperationGrantDenyPerms::OperationGrantDenyPerms(std::queue<std::wstring>& oArgL
 	// constructor extract the list of perm strings
 	ConvertToUpper(sPerms);
 	std::vector<std::wstring> aPermList;
+	size_t iParsedLength = 0;
 	const std::wregex oPermsRegex(LR"(\(([A-Z]+)\))");
 	for (std::wsregex_iterator oPermsIterator(sPerms.begin(), sPerms.end(), oPermsRegex,
-		std::regex_constants::match_continuous); oPermsIterator != std::wsregex_iterator(); ++oPermsIterator) {
+		std::regex_constants::match_continuous); oPermsIterator != std::wsregex_iterator(); ++oPermsIterator)
+	{
 		aPermList.push_back(oPermsIterator->str(1));
+		iParsedLength += oPermsIterator->length();
 	}
 
 	// error if no options set
-	if (aPermList.empty())
+	if (aPermList.empty() || iParsedLength != sPerms.size())
 	{
 		Print(L"ERROR: Invalid or no permissions string specified for parameter '{}'.", GetCommandAdd());
 		std::exit(-1);
@@ -128,11 +131,9 @@ bool OperationGrantDenyPerms::ProcessAclAction(const WCHAR* const sSdPart, Objec
 		PACE_ACCESS_HEADER tAceDacl = FirstAce(tCurrentAcl);
 		for (ULONG iEntry = 0; iEntry < tCurrentAcl->AceCount; tAceDacl = NextAce(tAceDacl), iEntry++)
 		{
-			// skip other ace types that are not allowing accessing
-			if ((tAceDacl->AceType == ACCESS_ALLOWED_ACE_TYPE &&
-				tEa.grfAccessMode != GRANT_ACCESS) ||
-				(tAceDacl->AceType == ACCESS_DENIED_ACE_TYPE &&
-				tEa.grfAccessMode != DENY_ACCESS)) continue;
+			// only an unconditional ACE of the requested type can be a duplicate
+			if (tAceDacl->AceType != ((tEa.grfAccessMode == GRANT_ACCESS) ?
+				ACCESS_ALLOWED_ACE_TYPE : ACCESS_DENIED_ACE_TYPE)) continue;
 
 			// do not look at sids that are not the specified account
 			const PSID tSid = GetSidFromAce(tAceDacl);

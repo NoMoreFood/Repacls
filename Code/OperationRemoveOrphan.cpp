@@ -39,7 +39,7 @@ SidActionResult OperationRemoveOrphan::DetermineSid(const WCHAR * const sSdPart,
 	{
 		// see if this sid in the source domain
 		BOOL bDomainSidsEqual = FALSE;
-		if (EqualDomainSid(tCurrentSid, tDomainSid, &bDomainSidsEqual) == 0 ||
+		if (tCurrentSid == nullptr || EqualDomainSid(tCurrentSid, tDomainSid, &bDomainSidsEqual) == 0 ||
 			bDomainSidsEqual == FALSE)
 		{
 			// no match - cease processing this instruction

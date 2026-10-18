@@ -22,7 +22,7 @@ OperationReplaceMap::OperationReplaceMap(std::queue<std::wstring> & oArgList, co
 	}
 
 	// adapt the stream to read windows unicode files
-	(void) fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf8<wchar_t,
+	(void) fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf8_utf16<wchar_t,
 		0x10ffff, std::consume_header>));
 
 	// read the file line-by-line
@@ -59,6 +59,13 @@ OperationReplaceMap::OperationReplaceMap(std::queue<std::wstring> & oArgList, co
 
 		// update the map
 		oReplaceMap[tSearchSid] = tReplaceSid;
+	}
+
+	// reject incomplete input before starting any scan or permission changes
+	if (!fFile.eof())
+	{
+		Print(L"ERROR: Unable to read UTF-8 input file '{}'.", sSubArgs.at(0));
+		std::exit(-1);
 	}
 
 	// cleanup

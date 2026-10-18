@@ -11,7 +11,7 @@ OperationBackupSecurity::OperationBackupSecurity(std::queue<std::wstring> & oArg
 
 	// fetch params
 	hFile = CreateFile(sSubArgs.at(0).c_str(), GENERIC_WRITE,
-		FILE_SHARE_WRITE | FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 	// see if names could be resolved
 	if (hFile == INVALID_HANDLE_VALUE)

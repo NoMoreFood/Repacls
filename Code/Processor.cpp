@@ -201,11 +201,11 @@ void Processor::AnalyzeSecurity(ObjectEntry & oEntry)
 				iSpecialCommitMergeFlags |= CheckBitSet(SE_SACL_PROTECTED, tControl) ?
 					PROTECTED_SACL_SECURITY_INFORMATION : UNPROTECTED_SACL_SECURITY_INFORMATION;
 
-				// mark all elements as needing to be updated
+				// absent owner and group fields leave the object's existing identities intact
 				bDaclIsDirty = true;
 				bSaclIsDirty = true;
-				bOwnerIsDirty = true;
-				bGroupIsDirty = true;
+				bOwnerIsDirty = tOwnerSid != nullptr;
+				bGroupIsDirty = tGroupSid != nullptr;
 			}
 		}
 	}

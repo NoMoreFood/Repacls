@@ -4,12 +4,12 @@
 #include <Windows.h>
 #include <sddl.h>
 #include <lmcons.h>
-#include <NTSecAPI.h>
 #include <atlbase.h>
 #include <atlstr.h>
 #include <Wscapi.h>
 #include <iwscapi.h>
 #include <clocale>
+#include <climits>
 
 #include <string>
 #include <map>
@@ -46,8 +46,9 @@ PSID GetSidFromName(const std::wstring& sAccountName)
 		const auto tSidCopy = memcpy(tSidMem, tSidFromSid, iSidLen);
 
 		std::unique_lock<std::shared_mutex> oLock(oMutex);
-		oNameToSidLookup[sAccountName] = tSidCopy;
-		return tSidCopy;
+		const auto [oEntry, bInserted] = oNameToSidLookup.try_emplace(sAccountName, tSidCopy);
+		if (!bInserted) free(tSidCopy);
+		return oEntry->second;
 	}
 
 	// assume the sid is as large as it possibly can be
@@ -61,8 +62,12 @@ PSID GetSidFromName(const std::wstring& sAccountName)
 	if (LookupAccountName(nullptr, sAccountName.c_str(), (PSID)tSidFromName,
 	                      &iSidSize, sDomainName, &iDomainName, &tNameUse) == 0)
 	{
-		std::unique_lock<std::shared_mutex> oLock(oMutex);
-		oNameToSidLookup[sAccountName] = nullptr;
+		// transient lookup failures must not become permanent negative cache entries
+		if (GetLastError() == ERROR_NONE_MAPPED)
+		{
+			std::unique_lock<std::shared_mutex> oLock(oMutex);
+			return oNameToSidLookup.try_emplace(sAccountName, nullptr).first->second;
+		}
 		return nullptr;
 	}
 
@@ -75,11 +80,10 @@ PSID GetSidFromName(const std::wstring& sAccountName)
 	// scope lock for thread safety
 	{
 		std::unique_lock<std::shared_mutex> oLock(oMutex);
-		oNameToSidLookup[sAccountName] = tSid;
+		const auto [oEntry, bInserted] = oNameToSidLookup.try_emplace(sAccountName, tSid);
+		if (!bInserted) free(tSid);
+		return oEntry->second;
 	}
-
-	// return the sid pointer to the caller
-	return tSid;
 }
 
 std::wstring GetNameFromSid(const PSID tSid, bool* bMarkAsOrphan)
@@ -143,21 +147,24 @@ std::wstring GetNameFromSid(const PSID tSid, bool* bMarkAsOrphan)
 
 	// scope lock for thread safety
 	std::unique_lock oLock(oMutex);
-	oSidToNameLookup[tSidCopy] = sFullName;
+	const auto [oEntry, bInserted] = oSidToNameLookup.try_emplace(tSidCopy, sFullName);
+	if (!bInserted) free(tSidCopy);
 
 	// return name
-	return sFullName;
+	return oEntry->second;
 }
 
 std::wstring GetNameFromSidEx(const PSID tSid, bool* bMarkAsOrphan)
 {
+	if (tSid == nullptr) return L"";
+
 	// if sid is resolvable then return the account name
 	std::wstring sName = GetNameFromSid(tSid, bMarkAsOrphan);
 	if (!sName.empty()) return sName;
 
 	// if sid is unresolvable then return sid in string form
 	SmartPointer<WCHAR*> sSidBuf(LocalFree, nullptr);
-	ConvertSidToStringSid(tSid, &sSidBuf);
+	if (!ConvertSidToStringSid(tSid, &sSidBuf)) return L"";
 	std::wstring sSid(sSidBuf);
 	return sSid;
 }
@@ -253,92 +260,26 @@ std::wstring GenerateAccessMask(DWORD iCurrentMask)
 
 VOID EnablePrivs() noexcept
 {
-	// open the current token
+	// enable privileges already assigned to this process without changing account policy
 	SmartPointer<HANDLE> hToken(CloseHandle, nullptr);
-	if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES, &hToken) == 0)
+	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
 	{
-		// error
-		Print(L"ERROR: Could not open process token for enabling privileges.");
-		return;
-	}
-
-	// get the current user sid out of the token
-	BYTE aBuffer[sizeof(TOKEN_USER) + SECURITY_MAX_SID_SIZE] = {};
-	const auto tTokenUser = reinterpret_cast<PTOKEN_USER>(aBuffer);
-	DWORD iBytesFilled = 0;
-	if (GetTokenInformation(hToken, TokenUser, tTokenUser, sizeof(aBuffer), &iBytesFilled) == 0)
-	{
-		// error
-		Print(L"ERROR: Could not retrieve process token information.");
+		Print(L"WARNING: Could not open process token for enabling privileges.");
 		return;
 	}
 
 	const WCHAR* sPrivsToSet[] = { SE_RESTORE_NAME, SE_BACKUP_NAME,
 		SE_TAKE_OWNERSHIP_NAME, SE_CHANGE_NOTIFY_NAME, SE_SECURITY_NAME };
-	for (auto& i : sPrivsToSet)
+	for (const auto* sPrivilege : sPrivsToSet)
 	{
-		// populate the privilege adjustment structure
-		TOKEN_PRIVILEGES tPrivEntry;
+		TOKEN_PRIVILEGES tPrivEntry{};
 		tPrivEntry.PrivilegeCount = 1;
 		tPrivEntry.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-
-		// translate the privilege name into the binary representation
-		if (LookupPrivilegeValue(nullptr, i,
-		                         &tPrivEntry.Privileges[0].Luid) == 0)
+		if (!LookupPrivilegeValue(nullptr, sPrivilege, &tPrivEntry.Privileges[0].Luid) ||
+			!AdjustTokenPrivileges(hToken, FALSE, &tPrivEntry, 0, nullptr, nullptr) ||
+			GetLastError() == ERROR_NOT_ALL_ASSIGNED)
 		{
-			Print(L"ERROR: Could not lookup privilege: {}", i);
-			continue;
-		}
-
-		// adjust the process to change the privilege
-		if (AdjustTokenPrivileges(hToken, FALSE, &tPrivEntry,
-			sizeof(TOKEN_PRIVILEGES), nullptr, nullptr) != 0)
-		{
-			// enabling was successful
-			continue;
-		}
-
-		// Object attributes are reserved, so initialize to zeros.
-		LSA_OBJECT_ATTRIBUTES ObjectAttributes;
-		ZeroMemory(&ObjectAttributes, sizeof(ObjectAttributes));
-
-		// Get a handle to the Policy object.
-		SmartPointer<LSA_HANDLE> hPolicyHandle(LsaClose, nullptr);
-		NTSTATUS iResult = 0;
-		if ((iResult = LsaOpenPolicy(nullptr, &ObjectAttributes,
-		                             POLICY_LOOKUP_NAMES | POLICY_CREATE_ACCOUNT, &hPolicyHandle)) != STATUS_SUCCESS)
-		{
-			Print(L"ERROR: Local security policy could not be opened with error '{}'",
-				LsaNtStatusToWinError(iResult));
-			continue;
-		}
-
-		// convert the privilege name to a unicode string format
-		LSA_UNICODE_STRING sPrivilege;
-		sPrivilege.Buffer = const_cast<PWSTR>(i);
-		sPrivilege.Length = static_cast<USHORT>(wcslen(i) * sizeof(WCHAR));
-		sPrivilege.MaximumLength = static_cast<USHORT>((wcslen(i) + 1) * sizeof(WCHAR));
-
-		// attempt to add the account to policy
-		if ((iResult = LsaAddAccountRights(hPolicyHandle,
-			tTokenUser->User.Sid, &sPrivilege, 1)) != STATUS_SUCCESS)
-		{
-			Print(L"ERROR: Privilege '{}' was not able to be added with error '{}'",
-				i, LsaNtStatusToWinError(iResult));
-			continue;
-		}
-
-		if (AdjustTokenPrivileges(hToken, FALSE, &tPrivEntry,
-			sizeof(TOKEN_PRIVILEGES), nullptr, nullptr) == 0)
-		{
-			Print(L"ERROR: Could not adjust privilege: {}", i);
-			continue;
-		}
-
-		// error if not all items were assigned
-		if (GetLastError() == ERROR_NOT_ALL_ASSIGNED)
-		{
-			Print(L"ERROR: Could not enable privilege: {}", i);
+			Print(L"WARNING: Could not enable privilege: {}", sPrivilege);
 		}
 	}
 }
@@ -500,9 +441,12 @@ std::wstring FileAttributesToString(const DWORD iAttributes)
 
 BOOL WriteToFile(const std::wstring& sStringToWrite, HANDLE hFile) noexcept
 {
+	if (sStringToWrite.empty()) return TRUE;
+	if (sStringToWrite.size() > INT_MAX) return FALSE;
+
 	// see how many characters we need to store as utf-8
 	int iChars = WideCharToMultiByte(CP_UTF8, 0, sStringToWrite.c_str(),
-		-1, nullptr, 0, nullptr, nullptr);
+		static_cast<int>(sStringToWrite.size()), nullptr, 0, nullptr, nullptr);
 	if (iChars == 0)
 	{
 		return FALSE;
@@ -510,9 +454,9 @@ BOOL WriteToFile(const std::wstring& sStringToWrite, HANDLE hFile) noexcept
 
 	// allocate and do the conversion
 	thread_local std::string sString;
-	sString.resize(static_cast<size_t>(iChars) - 1);
-	iChars = WideCharToMultiByte(CP_UTF8, 0, sStringToWrite.c_str(), -1, sString.data(), 
-		static_cast<int>(sString.size() + 1), nullptr, nullptr);
+	sString.resize(iChars);
+	iChars = WideCharToMultiByte(CP_UTF8, 0, sStringToWrite.c_str(),
+		static_cast<int>(sStringToWrite.size()), sString.data(), iChars, nullptr, nullptr);
 	if (iChars == 0)
 	{
 		return FALSE;
@@ -520,7 +464,8 @@ BOOL WriteToFile(const std::wstring& sStringToWrite, HANDLE hFile) noexcept
 
 	// write to file, free memory, and return result
 	DWORD iBytes = 0;
-	return WriteFile(hFile, sString.data(), static_cast<DWORD>(sString.size()), &iBytes, nullptr);
+	return WriteFile(hFile, sString.data(), static_cast<DWORD>(sString.size()), &iBytes, nullptr) &&
+		iBytes == sString.size();
 }
 
 VOID InitThreadCom() noexcept

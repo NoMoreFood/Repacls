@@ -22,7 +22,7 @@ OperationCopyDomain::OperationCopyDomain(std::queue<std::wstring> & oArgList, co
 	}
 
 	// see if names could be resolved
-	if (tTargetDomain == nullptr)
+	if (tTargetDomain == nullptr || *GetSidSubAuthorityCount(tTargetDomain) < 4)
 	{
 		Print(L"ERROR: Invalid target domain '{}' specified for parameter '{}'.", sSubArgs.at(1), GetCommand());
 		std::exit(-1);

@@ -46,7 +46,11 @@ using PACE_ACCESS_HEADER = ACE_ACCESS_HEADER*;
 
 // define our own version of sid length since its faster
 constexpr DWORD SidLength(PSID x) { return sizeof(SID) + (static_cast<SID*>(x)->SubAuthorityCount - 1) * sizeof(static_cast<SID*>(x)->SubAuthority); };
-constexpr bool SidMatch(PSID x, PSID y) { return SidLength(x) == SidLength(y) && __builtin_memcmp(x, y, min(SidLength(x), SidLength(y))) == 0; };
+constexpr bool SidMatch(PSID x, PSID y)
+{
+	return x == y || (x != nullptr && y != nullptr && SidLength(x) == SidLength(y) &&
+		__builtin_memcmp(x, y, SidLength(x)) == 0);
+}
 constexpr bool SidNotMatch(PSID x, PSID y) { return !SidMatch(x, y); };
 
 // macros for checking file attributes
@@ -137,7 +141,7 @@ public:
 	static PSID GetSidFromAce(PACE_ACCESS_HEADER tAce) noexcept;
 
 	Operation(std::queue<std::wstring> & oArgList) noexcept;
-	virtual ~Operation() = default;
+	virtual ~Operation() { if (DefaultSidWhenEmpty != nullptr) FreeSid(DefaultSidWhenEmpty); }
 };
 
 #include "OperationFactory.h"

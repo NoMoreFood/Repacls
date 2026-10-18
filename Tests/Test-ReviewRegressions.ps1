@@ -152,6 +152,101 @@ try {
         $locked.Dispose()
     }
 
+    # Decode long lines and supplementary Unicode characters across input chunk boundaries.
+    foreach ($encoding in @([Text.UTF8Encoding]::new($true), [Text.UnicodeEncoding]::new($false, $true))) {
+        $boundaryFile = Join-Path $testRoot 'boundary.txt'
+        $boundaryLines = @('alpha ' + ('x' * 65523) + 'é😀', 'alpha second', 'alpha final')
+        [IO.File]::WriteAllText($boundaryFile, ($boundaryLines -join "`r`n"), $encoding)
+        $result = Invoke-Repacls '/Path' $boundaryFile '/LocateText' $textReport '.*:alpha' '/Threads' '1'
+        $rows = @(Import-Csv -LiteralPath $textReport)
+        Assert-That ($result.ExitCode -eq 0 -and $rows.Count -eq $boundaryLines.Count) `
+            "Text search handles chunk boundaries with $($encoding.WebName)"
+        for ($index = 0; $index -lt $rows.Count; $index++) {
+            Assert-That ($rows[$index].'Matched Line' -ceq $boundaryLines[$index]) `
+                "Preserve $($encoding.WebName) line $($index + 1)"
+        }
+    }
+
+    # UTF-8 path lists support Windows names containing surrogate pairs.
+    $unicodePath = Join-Path $testRoot 'unicode-😀.txt'
+    [IO.File]::WriteAllText($unicodePath, 'fixture')
+    $pathList = Join-Path $testRoot 'paths.txt'
+    [IO.File]::WriteAllText($pathList, $unicodePath, [Text.UTF8Encoding]::new($true))
+    $result = Invoke-Repacls '/PathList' $pathList '/Locate' $discoveryReport '.*' '/Threads' '1'
+    $rows = @(Import-Csv -LiteralPath $discoveryReport)
+    Assert-That ($result.ExitCode -eq 0 -and $rows.Count -eq 1 -and $rows[0].Path.EndsWith('unicode-😀.txt')) `
+        'Path lists retain supplementary Unicode characters'
+
+    # Invalid text after valid input must fail before a partial scan or permission update.
+    foreach ($command in @('/PathList', '/ReplaceMap', '/CopyMap', '/RestoreSecurity')) {
+        $inputFile = Join-Path $testRoot 'invalid-utf8.txt'
+        [IO.File]::WriteAllBytes($inputFile, [byte[]]@(0xEF, 0xBB, 0xBF, 0xFF, 0x0A))
+        $result = Invoke-Repacls '/Path' $textFile $command $inputFile '/WhatIf'
+        Assert-That ($result.ExitCode -ne 0 -and $result.Output -match 'Unable to read UTF-8 input file') `
+            "$command rejects undecodable input"
+    }
+
+    # Stream deletion must leave all attributes on the containing file intact.
+    $streamFile = Join-Path $testRoot 'streams.txt'
+    $streamAttributes = [IO.FileAttributes]::ReadOnly -bor [IO.FileAttributes]::Hidden -bor
+        [IO.FileAttributes]::System -bor [IO.FileAttributes]::Archive
+    [IO.File]::WriteAllText($streamFile, 'main data')
+    [IO.File]::WriteAllText($streamFile + ':target', 'stream data')
+    [IO.File]::WriteAllText($streamFile + ':keep', 'retained data')
+    [IO.File]::SetAttributes($streamFile, $streamAttributes)
+    $result = Invoke-Repacls '/Path' $streamFile '/RemoveStreamsByName' '.*target.*' '/WhatIf' '/Threads' '1'
+    Assert-That ($result.ExitCode -eq 0 -and [IO.File]::ReadAllText($streamFile + ':target') -eq 'stream data' -and
+        [IO.File]::GetAttributes($streamFile) -eq $streamAttributes) 'WhatIf preserves streams and file attributes'
+    $result = Invoke-Repacls '/Path' $streamFile '/RemoveStreamsByName' '.*target.*' '/Threads' '1'
+    Assert-That ($result.ExitCode -eq 0 -and -not (Test-Path -LiteralPath ($streamFile + ':target')) -and
+        [IO.File]::ReadAllText($streamFile + ':keep') -eq 'retained data' -and
+        [IO.File]::GetAttributes($streamFile) -eq $streamAttributes) 'Stream deletion preserves other streams and attributes'
+    [IO.File]::SetAttributes($streamFile, [IO.FileAttributes]::Normal)
+
+    # Parsing invalid permissions must not apply the valid prefix to an actual file.
+    $before = (Get-Acl -LiteralPath $textFile).Sddl
+    foreach ($permissions in @('(R)garbage', '(R)(W', '(R) (W)')) {
+        $result = Invoke-Repacls '/Path' $textFile '/GrantPerms' "S-1-1-0:$permissions" '/Threads' '1'
+        Assert-That ($result.ExitCode -ne 0 -and (Get-Acl -LiteralPath $textFile).Sddl -eq $before) `
+            "Malformed permissions $permissions leave security unchanged"
+    }
+
+    # A depth-limited scan does not need permission to list excluded children.
+    $depthDirectory = Join-Path $testRoot 'depth-limited'
+    New-Item -Path $depthDirectory -ItemType Directory | Out-Null
+    $depthAcl = Get-Acl -LiteralPath $depthDirectory
+    $restrictedAcl = Get-Acl -LiteralPath $depthDirectory
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent().User
+    $restrictedAcl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new(
+        $identity, 'ListDirectory', 'None', 'None', 'Deny'))
+    Set-Acl -LiteralPath $depthDirectory -AclObject $restrictedAcl
+    try {
+        $result = Invoke-Repacls '/Path' $depthDirectory '/MaxDepth' '0' '/Locate' $discoveryReport '.*' '/Threads' '5'
+        Assert-That ($result.ExitCode -eq 0 -and @(Import-Csv -LiteralPath $discoveryReport).Count -eq 1) `
+            'MaxDepth zero avoids unnecessary directory enumeration'
+    } finally {
+        Set-Acl -LiteralPath $depthDirectory -AclObject $depthAcl
+    }
+
+    # A real malformed shortcut must propagate failure to the caller.
+    $badShortcut = Join-Path $testRoot 'broken.lnk'
+    [IO.File]::WriteAllText($badShortcut, 'invalid shortcut')
+    $result = Invoke-Repacls '/Path' $badShortcut '/LocateShortcut' $discoveryReport '.*' '/Threads' '1'
+    Assert-That ($result.ExitCode -ne 0 -and $result.Output -match 'Could not read ShellLink') `
+        'Shortcut read failures return a failing exit status'
+
+    # Distinct roots and queued descendants are each scanned exactly once under load.
+    $parallelRoot = Join-Path $testRoot 'parallel'
+    foreach ($index in 1..80) {
+        $directory = Join-Path $parallelRoot "$index\child"
+        New-Item -Path $directory -ItemType Directory -Force | Out-Null
+        [IO.File]::WriteAllText((Join-Path $directory 'item.txt'), 'fixture')
+    }
+    $result = Invoke-Repacls '/Path' $parallelRoot '/Path' $textFile '/Locate' $discoveryReport '.*' '/Threads' '16'
+    $rows = @(Import-Csv -LiteralPath $discoveryReport)
+    Assert-That ($result.ExitCode -eq 0 -and $rows.Count -eq 242 -and
+        @($rows.Path | Sort-Object -Unique).Count -eq 242) 'Concurrent scans complete every queued item exactly once'
+
     Write-Host "All $script:checks regression checks passed."
 } finally {
     # Remove only the unique fixture directory created by this run.

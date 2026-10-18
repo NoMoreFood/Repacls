@@ -59,54 +59,69 @@ bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 		{
 			PSID const tOldSid = GetSidFromAce(tAce);
 			PSID const tNewSid = tResultantSid;
+			if (tNewSid == nullptr)
+			{
+				InputOutput::AddError(L"Unable to resolve replacement SID.", sSdPart);
+				continue;
+			}
 			const DWORD iOldLen = SidLength(tOldSid);
 			const DWORD iNewLen = SidLength(tNewSid);
 
 			// skip unchanged sids while continuing the remaining mappings
 			if (SidMatch(tOldSid, tNewSid)) continue;
 
-			// at this point, we know we are going to make a change so set the flag
-			bMadeChange = true;
-
 			// if lengths are equals just overwrite the old sid with the new sid
 			if (iOldLen == iNewLen)
 			{
 				memcpy(tOldSid, tNewSid, iNewLen);
+				bMadeChange = true;
 				continue;
 			}
+
+			// retain a valid ACL when a longer SID would exceed its size field
+			ACL_SIZE_INFORMATION tAclInfo{};
+			if (!GetAclInformation(tCurrentAcl, &tAclInfo, sizeof(tAclInfo), AclSizeInformation) ||
+				tAclInfo.AclBytesInUse + iNewLen - iOldLen > MAXWORD)
+			{
+				InputOutput::AddError(L"Unable to replace SID within the ACL size limit.", sSdPart);
+				continue;
+			}
+			const DWORD iAclSize = tAclInfo.AclBytesInUse + iNewLen - iOldLen;
 
 			// casted convenience variables
 			PACL const tAcl = tCurrentAcl;
 			PBYTE const tAclLoc = (PBYTE)tAcl;
 			PBYTE const tAceLoc = (PBYTE)tAce;
 			PBYTE const tOldSidLoc = static_cast<PBYTE>(tOldSid);
+			const auto iAceOffset = tAceLoc - tAclLoc;
+			const auto iSidOffset = tOldSidLoc - tAclLoc;
+			const auto iTailSize = tAclInfo.AclBytesInUse - iSidOffset - iOldLen;
 
-			// if the new length is less than the old length, then copy the new sid
-			// and then shift the remaining bytes in the acl down to collapse the gap
-			if (iNewLen < iOldLen)
+			// reuse available capacity while retaining callback data and following entries
+			if (iAclSize <= tAcl->AclSize)
 			{
+				memmove(tOldSidLoc + iNewLen, tOldSidLoc + iOldLen, iTailSize);
 				memcpy(tOldSid, tNewSid, iNewLen);
-				memmove(tOldSidLoc + iNewLen, tOldSidLoc + iOldLen, tAcl->AclSize - ((tOldSidLoc - tAclLoc) + iOldLen));
 			}
 
 			// if the size is bigger than we should expand the acl to accommodate the
 			// new size and then copy the various parts into the new memory
 			else
 			{
-				PBYTE const tNewAcl = static_cast<PBYTE>(LocalAlloc(LMEM_FIXED, static_cast<SIZE_T>(tAcl->AclSize) + (iNewLen - iOldLen)));
+				PBYTE const tNewAcl = static_cast<PBYTE>(LocalAlloc(LMEM_FIXED, iAclSize));
 				if (tNewAcl == nullptr)
 				{
 					Print(L"ERROR: Unable to allocate memory for new SID.");
 					std::exit(-1);
 				}
 
-				memcpy(tNewAcl, tAclLoc, tOldSidLoc - tAclLoc);
-				memcpy(tNewAcl + (tOldSidLoc - tAclLoc), tNewSid, iNewLen);
-				memcpy(tNewAcl + (tOldSidLoc - tAclLoc) + iNewLen, tOldSidLoc + iOldLen, tAcl->AclSize - ((tOldSidLoc - tAclLoc) + iOldLen));
+				memcpy(tNewAcl, tAclLoc, iSidOffset);
+				memcpy(tNewAcl + iSidOffset, tNewSid, iNewLen);
+				memcpy(tNewAcl + iSidOffset + iNewLen, tOldSidLoc + iOldLen, iTailSize);
 
 				// free the existing pointer and update the value that was passed
 				if (bAclReplacement) LocalFree(tAcl);
-				tAce = (PACE_ACCESS_HEADER)(tNewAcl + (tAceLoc - tAclLoc));
+				tAce = (PACE_ACCESS_HEADER)(tNewAcl + iAceOffset);
 				tCurrentAcl = (PACL)tNewAcl;
 				bAclReplacement = true;
 			}
@@ -114,8 +129,9 @@ bool Operation::ProcessAclAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 			// update size in ace header
 			tAce->AceSize += static_cast<WORD>(iNewLen - iOldLen);
 
-			// update size in acl header and return size differential
-			tCurrentAcl->AclSize += static_cast<WORD>(iNewLen - iOldLen);
+			// update the ACL size after its storage and ACE header are ready
+			tCurrentAcl->AclSize = static_cast<WORD>(iAclSize);
+			bMadeChange = true;
 		}
 	}
 
@@ -144,6 +160,12 @@ bool Operation::ProcessSidAction(const WCHAR * const sSdPart, ObjectEntry & tObj
 	}
 	else if (tResult == Replace)
 	{
+		if (tResultantSid == nullptr)
+		{
+			InputOutput::AddError(L"Unable to resolve replacement SID.", sSdPart);
+			return false;
+		}
+
 		// only process change if sid is actually different
 		if (SidNotMatch(tCurrentSid, tResultantSid))
 		{

@@ -1,6 +1,7 @@
 #include "InputOutput.h"
 #include "ObjectRegistry.h"
 #include "Helpers.h"
+#include "OperationDepth.h"
 
 void ObjectRegistry::GetBaseObject(std::wstring sPath)
 {
@@ -37,7 +38,7 @@ void ObjectRegistry::GetBaseObject(std::wstring sPath)
 	// valid registry key is valid
 	SmartPointer<HKEY> hParentKey(RegCloseKey, nullptr);
 	if (RegOpenKeyEx(oRootEntry->second.first, tReg.NameExtended.c_str(), REG_OPTION_OPEN_LINK,
-		KEY_ENUMERATE_SUB_KEYS, &hParentKey) != ERROR_SUCCESS)
+		0, &hParentKey) != ERROR_SUCCESS)
 	{
 		Print(L"ERROR: Could not parse registry path: {}", sPath);
 		std::exit(-1);
@@ -53,6 +54,14 @@ void ObjectRegistry::GetBaseObject(std::wstring sPath)
 
 void ObjectRegistry::GetChildObjects(ObjectEntry& oEntry)
 {
+	// process the key without requesting enumeration access at the depth limit
+	oProcessor.AnalyzeSecurity(oEntry);
+	if (oEntry.Depth >= OperationDepth::MaxDepth())
+	{
+		Processor::CompleteEntry(oEntry);
+		return;
+	}
+
 	// open handle so we can enumerate subkeys
 	SmartPointer<HKEY> hParentKey(RegCloseKey, nullptr);
 	if (RegOpenKeyEx(static_cast<HKEY>(oEntry.hObject), oEntry.NameExtended.c_str(), REG_OPTION_OPEN_LINK, 
@@ -64,9 +73,6 @@ void ObjectRegistry::GetChildObjects(ObjectEntry& oEntry)
 		return;
 	}
 
-	// analyze security on this node
-	oProcessor.AnalyzeSecurity(oEntry);
-
 	// enumerate children
 	HRESULT hResult = ERROR_SUCCESS;
 	WCHAR sKeyName[MAX_PATH] = {};
@@ -74,9 +80,11 @@ void ObjectRegistry::GetChildObjects(ObjectEntry& oEntry)
 	for (DWORD iIndex = 0; (hResult = RegEnumKeyEx(hParentKey, iIndex, sKeyName, &iKeyName, nullptr,
 			nullptr, nullptr, &oEntry.ModifiedTime)) != ERROR_NO_MORE_ITEMS; ++iIndex, iKeyName = _countof(sKeyName))
 	{
-		if (hResult != S_OK && hResult != ERROR_MORE_DATA)
+		if (hResult != ERROR_SUCCESS)
 		{
-			continue;
+			InputOutput::AddError(L"An error occurred while enumerating registry key");
+			++oProcessor.ItemsEnumerationFailures;
+			break;
 		}
 
 		const LPCWSTR sSeperator = oEntry.NameExtended.empty() ? L"" : L"\\";

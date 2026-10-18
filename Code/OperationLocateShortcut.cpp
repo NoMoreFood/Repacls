@@ -99,7 +99,7 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry& tObjectEntry)
 	if (CoCreateInstance(__uuidof(ShellLink), nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&oLink)) != S_OK ||
 		oLink->QueryInterface(IID_PPV_ARGS(&oFile)) != S_OK)
 	{
-		Print(L"ERROR: Could not initialize ShellLink COM instance.");
+		InputOutput::AddError(L"Could not initialize ShellLink COM instance.");
 		return;
 	}
 
@@ -116,7 +116,7 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry& tObjectEntry)
 			SLDF_FORCE_NO_LINKTRACK |
 			SLDF_NO_KF_ALIAS)))
 	{
-		Print(L"ERROR: Could not read ShellLink COM instance.");
+		InputOutput::AddError(L"Could not read ShellLink COM instance.");
 		return;
 	}
 
@@ -130,14 +130,14 @@ void OperationLocateShortcut::ProcessObjectAction(ObjectEntry& tObjectEntry)
 		FAILED(oUpdatedLinkStream->Seek(tSeekLocation, 0, nullptr)) ||
 		FAILED(oUpdatedLinkPersistStream->Load(oUpdatedLinkStream)))
 	{
-		Print(L"ERROR: Could not reload ShellLink COM instance.");
+		InputOutput::AddError(L"Could not reload ShellLink COM instance.");
 		return;
 	}
 
 	// get link data
 	std::wstring sTargetPath = L"<ERROR READING>";
 	std::wstring sWorkingDirectory = L"<ERROR READING>";
-	WCHAR sTargetPathRaw[MAX_PATH];
+	WCHAR sTargetPathRaw[MAX_PATH] = {};
 	WCHAR sWorkingDirRaw[MAX_PATH] = {};
 	if (SUCCEEDED(oLink->GetPath(sTargetPathRaw, MAX_PATH, nullptr, SLGP_RAWPATH))) sTargetPath = sTargetPathRaw;
 	if (SUCCEEDED(oLink->GetWorkingDirectory(sWorkingDirRaw, MAX_PATH))) sWorkingDirectory = sWorkingDirRaw;

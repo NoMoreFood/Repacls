@@ -23,8 +23,12 @@ void ObjectFile::GetBaseObject(std::wstring sPath)
 	}
 
 	// convert the path to a long path that is compatible with the other call
-	UNICODE_STRING tPathU;
-	RtlDosPathNameToNtPathName_U(sPath.data(), &tPathU, nullptr, nullptr);
+	UNICODE_STRING tPathU{};
+	if (!RtlDosPathNameToNtPathName_U(sPath.data(), &tPathU, nullptr, nullptr))
+	{
+		Print(L"ERROR: Could not resolve path '{}'.", sPath);
+		std::exit(-1);
+	}
 
 	// to get the process started, we need to have one entry so
 	// we will set that to the passed argument
@@ -32,6 +36,7 @@ void ObjectFile::GetBaseObject(std::wstring sPath)
 
 	// copy it to a null terminated string
 	oEntryFirst.Name = std::wstring(tPathU.Buffer, tPathU.Length / sizeof(WCHAR));
+	RtlFreeUnicodeString(&tPathU);
 
 	// get common file attributes
 	WIN32_FILE_ATTRIBUTE_DATA tData = {};
@@ -46,9 +51,6 @@ void ObjectFile::GetBaseObject(std::wstring sPath)
 	oEntryFirst.Attributes = tData.dwFileAttributes;
 	oEntryFirst.CreationTime = tData.ftCreationTime;
 	oEntryFirst.ModifiedTime = tData.ftLastWriteTime;
-
-	// free the buffer returned previously
-	RtlFreeUnicodeString(&tPathU);
 
 	oProcessor.GetQueue().Push(oEntryFirst);
 }
@@ -68,8 +70,8 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 	// do security analysis
 	oProcessor.AnalyzeSecurity(oEntry);
 
-	// stop processing if not a directory
-	if (!IsDirectory(oEntry.Attributes))
+	// stop before enumerating children outside the requested scan depth
+	if (!IsDirectory(oEntry.Attributes) || oEntry.Depth >= OperationDepth::MaxDepth())
 	{
 		Processor::CompleteEntry(oEntry);
 		return;
@@ -118,6 +120,8 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 	// enumerate files in the directory
 	for (bool bFirstRun = true; true; bFirstRun = false)
 	{
+		// child processing changes the current diagnostic path
+		InputOutput::AddFile(oEntry.Name);
 		thread_local BYTE DirectoryInfo[MAX_DIRECTORY_BUFFER];
 		Status = NtQueryDirectoryFile(hFindFile, nullptr, nullptr, nullptr, &IoStatusBlock,
 		    DirectoryInfo, MAX_DIRECTORY_BUFFER, static_cast<FILE_INFORMATION_CLASS>(FileDirectoryInformation),
@@ -129,6 +133,7 @@ void ObjectFile::GetChildObjects(ObjectEntry& oEntry)
 		if (Status != 0)
 		{
 			InputOutput::AddError(L"An error occurred while enumerating items in the directory");
+			++oProcessor.ItemsEnumerationFailures;
 			break;
 		}
 

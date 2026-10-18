@@ -67,19 +67,10 @@ public:
 
 	static void AddFile(const std::wstring & sLine)
 	{
-		// discover the long file name prefix so we can subtract it from the display path
-		static std::wstring sPrefix;
-		static size_t iPrefix = 0;
-		static std::once_flag oInitFlag;
-		std::call_once(oInitFlag, [&]() {
-			const std::wstring sUnc = L"\\??\\UNC\\";
-			const std::wstring sLocal = L"\\??\\";
-			if (sLine.starts_with(sUnc)) { iPrefix = sUnc.size(); sPrefix = L"\\\\"; }
-			else if (sLine.starts_with(sLocal)) iPrefix = sLocal.size();
-			else iPrefix = 0;
-		});
-
-		GetFileName() = sPrefix + sLine.substr(iPrefix);
+		// normalize each path independently when local and network roots share a scan
+		if (sLine.starts_with(L"\\??\\UNC\\")) GetFileName() = L"\\\\" + sLine.substr(8);
+		else if (sLine.starts_with(L"\\??\\")) GetFileName() = sLine.substr(4);
+		else GetFileName() = sLine;
 		GetDetail() = L"";
 	}
 

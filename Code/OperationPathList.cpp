@@ -22,7 +22,7 @@ OperationPathList::OperationPathList(std::queue<std::wstring> & oArgList, const 
 	}
 
 	// adapt the stream to read windows unicode files
-	(void) fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf8<wchar_t,
+	(void) fFile.imbue(std::locale(fFile.getloc(), new std::codecvt_utf8_utf16<wchar_t,
 		0x10ffff, std::consume_header>));
 
 	// read the file line-by-line
@@ -40,6 +40,13 @@ OperationPathList::OperationPathList(std::queue<std::wstring> & oArgList, const 
 
 		// store off the argument
 		InputOutput::ScanPaths().push_back(oLineItems.at(0));
+	}
+
+	// reject incomplete input before starting any scan or permission changes
+	if (!fFile.eof())
+	{
+		Print(L"ERROR: Unable to read UTF-8 input file '{}'.", sSubArgs.at(0));
+		std::exit(-1);
 	}
 
 	// cleanup

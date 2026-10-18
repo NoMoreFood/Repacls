@@ -1,6 +1,7 @@
 #include "InputOutput.h"
 #include "ObjectAds.h"
 #include "Helpers.h"
+#include "OperationDepth.h"
 
 #include <Windows.h>
 
@@ -31,6 +32,11 @@ void ObjectAds::GetChildObjects(ObjectEntry& oEntry)
 
     // analyze security on this node
     oProcessor.AnalyzeSecurity(oEntry);
+	if (oEntry.Depth >= OperationDepth::MaxDepth())
+	{
+		Processor::CompleteEntry(oEntry);
+		return;
+	}
 
     // enumerate children
     CComPtr<IADsContainer> pContainer = nullptr;
@@ -49,7 +55,8 @@ void ObjectAds::GetChildObjects(ObjectEntry& oEntry)
     ULONG iFetched = 0L;
     VARIANT vVar;
     VariantInit(&vVar);
-    while (SUCCEEDED(ADsEnumerateNext(pEnumerator, 1, &vVar, &iFetched)) && (iFetched > 0))
+    HRESULT hResult;
+    while (SUCCEEDED(hResult = ADsEnumerateNext(pEnumerator, 1, &vVar, &iFetched)) && (iFetched > 0))
     {
         CComPtr<IADs> pADs = nullptr;
         if (SUCCEEDED(V_DISPATCH(&vVar)->QueryInterface(IID_PPV_ARGS(&pADs))))
@@ -71,6 +78,14 @@ void ObjectAds::GetChildObjects(ObjectEntry& oEntry)
         }
 
         VariantClear(&vVar);
+    }
+
+    // a failed page must not be reported as a complete enumeration
+    VariantClear(&vVar);
+    if (FAILED(hResult))
+    {
+        InputOutput::AddError(L"Error occurred while enumerating distinguished name");
+        ++oProcessor.ItemsEnumerationFailures;
     }
 
     // cleanup

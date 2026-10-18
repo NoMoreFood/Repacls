@@ -2,7 +2,8 @@
 #include "InputOutput.h"
 #include "Helpers.h"
 
-#include <sstream>
+#include <climits>
+#include <string_view>
 
 ClassFactory<OperationLocateText> OperationLocateText::RegisteredFactory(GetCommand());
 
@@ -74,63 +75,91 @@ void OperationLocateText::ProcessObjectAction(ObjectEntry& tObjectEntry)
 		return;
 	}
 
-	std::string sRawContent;
-	DWORD iBytesRead = 0;
-	while (ReadFile(hFile, tReadBuffer.data(), static_cast<DWORD>(tReadBuffer.size()), &iBytesRead, nullptr) != 0 && iBytesRead > 0)
+	// retain only the unfinished line while reading bounded chunks
+	std::string sPending;
+	size_t iScanOffset = 0;
+	bool bFirstRead = true;
+	bool bUtf16 = false;
+	LONGLONG iLineNumber = 0;
+	auto WriteLine = [&](std::string_view sBytes)
 	{
-		sRawContent.append(tReadBuffer.data(), iBytesRead);
-	}
-
-	if (sRawContent.empty()) return;
-
-	std::wstring sContent;
-	const auto* pRaw = reinterpret_cast<const unsigned char*>(sRawContent.data());
-	if (sRawContent.size() >= 2 && pRaw[0] == 0xFF && pRaw[1] == 0xFE)
-	{
-		sContent.assign(reinterpret_cast<const wchar_t*>(sRawContent.data() + 2),
-			(sRawContent.size() - 2) / sizeof(wchar_t));
-	}
-	else
-	{
-		int iOffset = 0;
-		if (sRawContent.size() >= 3 && pRaw[0] == 0xEF && pRaw[1] == 0xBB && pRaw[2] == 0xBF)
-			iOffset = 3;
-
-		const int iLen = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-			sRawContent.data() + iOffset, static_cast<int>(sRawContent.size() - iOffset), nullptr, 0);
-		if (iLen > 0)
+		std::wstring sLine;
+		if (sBytes.size() > INT_MAX || (bUtf16 && sBytes.size() % sizeof(WCHAR) != 0))
 		{
-			sContent.resize(iLen);
-			MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-				sRawContent.data() + iOffset, static_cast<int>(sRawContent.size() - iOffset),
-				sContent.data(), iLen);
+			InputOutput::AddError(L"Unable to decode text line.");
+			return false;
 		}
-		else
+
+		// preserve UTF-16 code units or decode UTF-8 with the system code page as fallback
+		if (bUtf16)
 		{
-			const int iAnsiLen = MultiByteToWideChar(CP_ACP, 0,
-				sRawContent.data() + iOffset, static_cast<int>(sRawContent.size() - iOffset), nullptr, 0);
-			if (iAnsiLen > 0)
+			sLine.resize(sBytes.size() / sizeof(WCHAR));
+			memcpy(sLine.data(), sBytes.data(), sBytes.size());
+		}
+		else if (!sBytes.empty())
+		{
+			UINT iCodePage = CP_UTF8;
+			const int iByteCount = static_cast<int>(sBytes.size());
+			int iLength = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, sBytes.data(), iByteCount, nullptr, 0);
+			if (iLength == 0)
 			{
-				sContent.resize(iAnsiLen);
-				MultiByteToWideChar(CP_ACP, 0,
-					sRawContent.data() + iOffset, static_cast<int>(sRawContent.size() - iOffset),
-					sContent.data(), iAnsiLen);
+				iCodePage = CP_ACP;
+				iLength = MultiByteToWideChar(iCodePage, 0, sBytes.data(), iByteCount, nullptr, 0);
+			}
+			sLine.resize(iLength);
+			if (iLength == 0 || !MultiByteToWideChar(iCodePage, 0, sBytes.data(), iByteCount, sLine.data(), iLength))
+			{
+				InputOutput::AddError(L"Unable to decode text line.");
+				return false;
 			}
 		}
-	}
 
-	std::wistringstream oStream(sContent);
-	std::wstring sLine;
-	LONGLONG iLineNumber = 0;
-	while (std::getline(oStream, sLine))
-	{
+		// match complete lines and keep their original numbering in the report
 		++iLineNumber;
 		if (!sLine.empty() && sLine.back() == L'\r') sLine.pop_back();
-		if (!std::regex_search(sLine, tTextRegex)) continue;
-
-		if (WriteToFile(OutToCsv(tObjectEntry.Name, std::to_wstring(iLineNumber), sLine), hReportFile) == 0)
+		if (std::regex_search(sLine, tTextRegex) &&
+			!WriteToFile(OutToCsv(tObjectEntry.Name, std::to_wstring(iLineNumber), sLine), hReportFile))
 		{
 			InputOutput::AddError(L"Unable to write information to report file.");
+			return false;
 		}
+		return true;
+	};
+
+	for (;;)
+	{
+		DWORD iBytesRead = 0;
+		if (!ReadFile(hFile, tReadBuffer.data(), static_cast<DWORD>(tReadBuffer.size()), &iBytesRead, nullptr))
+		{
+			InputOutput::AddError(L"Unable to read file data.");
+			return;
+		}
+		if (iBytesRead == 0) break;
+
+		// consume the encoding marker once at the beginning of the file
+		size_t iOffset = 0;
+		if (bFirstRead)
+		{
+			const auto* pRaw = reinterpret_cast<const unsigned char*>(tReadBuffer.data());
+			bUtf16 = iBytesRead >= 2 && pRaw[0] == 0xFF && pRaw[1] == 0xFE;
+			if (bUtf16) iOffset = 2;
+			else if (iBytesRead >= 3 && pRaw[0] == 0xEF && pRaw[1] == 0xBB && pRaw[2] == 0xBF) iOffset = 3;
+			bFirstRead = false;
+		}
+		sPending.append(tReadBuffer.data() + iOffset, iBytesRead - iOffset);
+
+		// carry incomplete code units and lines across read boundaries
+		const size_t iCharSize = bUtf16 ? sizeof(WCHAR) : 1;
+		size_t iLineStart = 0;
+		for (; iScanOffset + iCharSize <= sPending.size(); iScanOffset += iCharSize)
+		{
+			if (sPending[iScanOffset] != '\n' || (bUtf16 && sPending[iScanOffset + 1] != '\0')) continue;
+			if (!WriteLine(std::string_view(sPending).substr(iLineStart, iScanOffset - iLineStart))) return;
+			iLineStart = iScanOffset + iCharSize;
+		}
+		sPending.erase(0, iLineStart);
+		iScanOffset -= iLineStart;
 	}
+
+	if (!sPending.empty()) WriteLine(sPending);
 }

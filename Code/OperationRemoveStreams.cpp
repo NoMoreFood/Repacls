@@ -65,7 +65,12 @@ void OperationRemoveStreams::ProcessObjectAction(ObjectEntry& tObjectEntry)
 	}
 
 	// cleanup and verify we got the data we needed
-	if (iStatus != STATUS_SUCCESS || tIOStatus.Information == 0) return;
+	if (iStatus != STATUS_SUCCESS)
+	{
+		InputOutput::AddError(L"Unable to enumerate file streams.");
+		return;
+	}
+	if (tIOStatus.Information == 0) return;
 
 	// Loop for all streams
 	for (PFILE_STREAM_INFORMATION pStreamInfo = reinterpret_cast<PFILE_STREAM_INFORMATION>(sInfoBuffer.data()); pStreamInfo->StreamNameLength != 0;
@@ -85,13 +90,31 @@ void OperationRemoveStreams::ProcessObjectAction(ObjectEntry& tObjectEntry)
 		if (std::regex_match(sStream, tRegex))
 		{
 			std::wstring sFullStreamName = (tObjectEntry.Name + sStream);
-			if (InputOutput::InWhatIfMode() || (SetFileAttributes(sFullStreamName.c_str(), FILE_ATTRIBUTE_NORMAL) != 0 && DeleteFile(sFullStreamName.c_str()) != 0))
+			bool bDeleted = InputOutput::InWhatIfMode();
+			DWORD iDeleteError = ERROR_SUCCESS;
+			if (!bDeleted)
+			{
+				// clear only read-only protection and restore it even if stream deletion fails
+				const DWORD iAttributes = GetFileAttributes(tObjectEntry.Name.c_str());
+				const bool bReadOnly = iAttributes != INVALID_FILE_ATTRIBUTES &&
+					CheckBitSet(iAttributes, FILE_ATTRIBUTE_READONLY);
+				if (iAttributes != INVALID_FILE_ATTRIBUTES && (!bReadOnly ||
+					SetFileAttributes(tObjectEntry.Name.c_str(), iAttributes & ~FILE_ATTRIBUTE_READONLY)))
+				{
+					bDeleted = DeleteFile(sFullStreamName.c_str()) != 0;
+					iDeleteError = bDeleted ? ERROR_SUCCESS : GetLastError();
+					if (bReadOnly && !SetFileAttributes(tObjectEntry.Name.c_str(), iAttributes))
+						InputOutput::AddError(L"Unable to restore file attributes after stream deletion.");
+				}
+				else iDeleteError = GetLastError();
+			}
+			if (bDeleted)
 			{
 				InputOutput::AddInfo(L"Removed stream: " + sStream, L"");
 			}
 			else
 			{
-				InputOutput::AddError(L"Unable delete stream: " + sStream + L" (" + std::to_wstring(GetLastError()) + L")");
+				InputOutput::AddError(L"Unable delete stream: " + sStream + L" (" + std::to_wstring(iDeleteError) + L")");
 			}
 		}
 		// break if no next stream
