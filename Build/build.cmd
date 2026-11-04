@@ -1,4 +1,6 @@
 @ECHO OFF
+SETLOCAL
+SET COPYCMD=/Y
 TITLE Building Repacls...
 CLS
 SET PATH=%WINDIR%\system32;%WINDIR%\system32\WindowsPowerShell\v1.0
@@ -47,7 +49,5 @@ FOR /F "USEBACKQ DELIMS=" %%X IN (`DIR /OD /B /S "%PX86%\Windows Kits\10\SIGNTOO
 PUSHD "%BINDIR%"
 7z.EXE >NUL 2>&1
 IF %ERRORLEVEL% NEQ 0 ECHO 7-Zip not found; skipping archive
-IF %ERRORLEVEL% EQU 0 7z.EXE a -tzip -mm=Deflate -mx=9 "%~dp0Repacls.zip" x86 x64
+IF %ERRORLEVEL% EQU 0 7z.EXE a -y -tzip -mm=Deflate -mx=9 "%~dp0Repacls.zip" x86 x64
 POPD
-
-PAUSE
